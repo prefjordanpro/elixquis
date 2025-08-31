@@ -41,4 +41,10 @@ final class AccountController extends AbstractController
             'modifyPwd' => $form->createView()
         ]);
     }
+
+    #[Route('/compte/adresses', name: 'app_account_address')]
+    public function address(): Response
+    {
+        return $this->render('account/index.html.twig');
+    }
 }
