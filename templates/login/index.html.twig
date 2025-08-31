@@ -1,26 +1,78 @@
-{% extends 'base.html.twig' %}
+    {% extends 'base.html.twig' %}
 
-{% block body %}
+    {% block body %}
     <div class="container my-5">
-        <h1>Connexion</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
 
-        {% if error %}
-            <div>{{ error.messageKey|trans(error.messageData, 'security') }}</div>
-        {% endif %}
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 p-lg-5">
+            <h1 class="h3 mb-3">Connexion</h1>
 
-        <form action="{{ path('app_login') }}" method="post">
-            <label for="username">Votre email :</label>
-            <input class="form-control" type="text" id="username" name="_username" value="{{ last_username }}" required>
+            {% if error %}
+                <div class="alert alert-danger" role="alert">
+                {{ error.messageKey|trans(error.messageData, 'security') }}
+                </div>
+            {% endif %}
 
-            <label for="password">Votre mot de passe :</label>
-            <input class="form-control" type="password" id="password" name="_password" required>
+            <form action="{{ path('app_login') }}" method="post" novalidate>
+                <div class="mb-3">
+                <label for="username" class="form-label">Votre email</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i data-feather="mail"></i></span>
+                    <input class="form-control" type="text" id="username" name="_username" value="{{ last_username }}" required autofocus>
+                </div>
+                </div>
 
-            <input type="hidden" name="_target_path" value="{{ path('app_account') }}">
+                <div class="mb-3">
+                <label for="password" class="form-label">Votre mot de passe</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i data-feather="lock"></i></span>
+                    <input class="form-control" type="password" id="password" name="_password" required>
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Afficher/Masquer le mot de passe">
+                    <i data-feather="eye"></i>
+                    </button>
+                </div>
+                </div>
 
-            <button type="submit" class="btn btn-success mt-3">Me connecter</button>
-        </form>
+                <input type="hidden" name="_target_path" value="{{ path('app_account') }}">
 
-        <br/>
-        Vous n'avez pas de compte ? <a href="{{ path('app_register') }}">Inscrivez-vous</a>
+                <div class="d-grid">
+                <button type="submit" class="btn btn-success btn-lg">Me connecter</button>
+                </div>
+            </form>
+
+            <hr class="my-4">
+
+            <p class="mb-0 text-center">
+                Vous n'avez pas de compte ?
+                <a href="{{ path('app_register') }}">Inscrivez-vous</a>
+            </p>
+            </div>
+        </div>
+
+        </div>
     </div>
-{% endblock %}
+    </div>
+
+    {# Petit script pour l’affichage/masquage du mot de passe (aucune dépendance) #}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const btn = document.getElementById('togglePassword');
+        const input = document.getElementById('password');
+        if (btn && input) {
+        btn.addEventListener('click', () => {
+            input.type = input.type === 'password' ? 'text' : 'password';
+            // rafraîchir l’icône feather si présent
+            if (window.feather) {
+            btn.querySelector('i')?.remove();
+            btn.insertAdjacentHTML('afterbegin', '<i data-feather="' + (input.type === 'password' ? 'eye' : 'eye-off') + '"></i>');
+            feather.replace();
+            }
+        });
+        }
+        // initial replace des icônes si base.html.twig ne l’a pas déjà fait ici
+        if (window.feather) feather.replace();
+    });
+    </script>
+    {% endblock %}

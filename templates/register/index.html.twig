@@ -1,12 +1,86 @@
-{% extends 'base.html.twig'%}
+{% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="container my-5">
-        <h1>Inscription</h1>
-            {{ form(registerForm) }}
+<div class="container my-5">
+<div class="row justify-content-center">
+<div class="col-md-8 col-lg-6">
 
-            <br/>
+    {% form_theme registerForm 'bootstrap_5_layout.html.twig' %}
 
-            Vous avez déjà un compte ? <a href="{{ path('app_login') }}">Connectez-vous</a>
+    <div class="card shadow-sm border-0">
+    <div class="card-body p-4 p-lg-5">
+        <h1 class="h3 mb-3">Inscription</h1>
+
+        {{ form_start(registerForm) }}
+
+        {# Ligne prénom/nom si ces champs existent #}
+        {% if registerForm.firstname is defined or registerForm.lastname is defined %}
+            <div class="row g-3">
+            {% if registerForm.firstname is defined %}
+                <div class="col-md-6">
+                {{ form_row(registerForm.firstname, {
+                    label: 'Prénom',
+                    attr: { placeholder: 'Votre prénom' }
+                }) }}
+                </div>
+            {% endif %}
+            {% if registerForm.lastname is defined %}
+                <div class="col-md-6">
+                {{ form_row(registerForm.lastname, {
+                    label: 'Nom',
+                    attr: { placeholder: 'Votre nom' }
+                }) }}
+                </div>
+            {% endif %}
+            </div>
+        {% endif %}
+
+        {# Email #}
+        {% if registerForm.email is defined %}
+            {{ form_row(registerForm.email, {
+            label: 'Email',
+            attr: { placeholder: 'nom@domaine.fr' }
+            }) }}
+        {% endif %}
+
+        {# Mot de passe (RepeatedType ou simple) #}
+        {% if registerForm.plainPassword is defined %}
+            {% if registerForm.plainPassword.first is defined %}
+            {{ form_row(registerForm.plainPassword.first, { label: 'Mot de passe' }) }}
+            {{ form_row(registerForm.plainPassword.second, { label: 'Confirmer le mot de passe' }) }}
+            {% else %}
+            {{ form_row(registerForm.plainPassword, { label: 'Mot de passe' }) }}
+            {% endif %}
+        {% endif %}
+
+        {# CGU/CGV / consentement si présent #}
+        {% if registerForm.agreeTerms is defined %}
+            <div class="form-check my-3">
+            {{ form_widget(registerForm.agreeTerms, { attr: { class: 'form-check-input' } }) }}
+            {{ form_label(registerForm.agreeTerms, 'J’accepte les conditions', { label_attr: { class: 'form-check-label' } }) }}
+            {{ form_errors(registerForm.agreeTerms) }}
+            </div>
+        {% endif %}
+
+        {# IMPORTANT : on rend le token CSRF, puis on bloque le rendu automatique du reste #}
+        {{ form_row(registerForm._token) }}
+
+        <div class="d-grid mt-3">
+            <button type="submit" class="btn btn-success btn-lg">Créer mon compte</button>
+        </div>
+
+        {{ form_end(registerForm, { render_rest: false }) }}
+
+        <hr class="my-4">
+
+        <p class="mb-0 text-center">
+        Vous avez déjà un compte ?
+        <a href="{{ path('app_login') }}">Connectez-vous</a>
+        </p>
     </div>
+    </div>
+
+</div>
+</div>
+</div>
 {% endblock %}
