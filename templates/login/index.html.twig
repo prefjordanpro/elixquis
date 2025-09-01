@@ -30,7 +30,7 @@
                     <span class="input-group-text"><i data-feather="lock"></i></span>
                     <input class="form-control" type="password" id="password" name="_password" required>
                     <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Afficher/Masquer le mot de passe">
-                    <i data-feather="eye"></i>
+                    <span id="passwordIcon"><i data-feather="eye"></i></span>
                     </button>
                 </div>
                 </div>
@@ -55,24 +55,32 @@
     </div>
     </div>
 
-    {# Petit script pour l’affichage/masquage du mot de passe (aucune dépendance) #}
+    {# Script : toggle mot de passe + remplacement propre de l’icône (sans doublons) #}
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const btn = document.getElementById('togglePassword');
-        const input = document.getElementById('password');
-        if (btn && input) {
-        btn.addEventListener('click', () => {
-            input.type = input.type === 'password' ? 'text' : 'password';
-            // rafraîchir l’icône feather si présent
-            if (window.feather) {
-            btn.querySelector('i')?.remove();
-            btn.insertAdjacentHTML('afterbegin', '<i data-feather="' + (input.type === 'password' ? 'eye' : 'eye-off') + '"></i>');
-            feather.replace();
-            }
-        });
+    const btn   = document.getElementById('togglePassword');
+    const input = document.getElementById('password');
+    const iconHolder = document.getElementById('passwordIcon');
+    if (!btn || !input || !iconHolder) return;
+
+    // Première passe d’icônes si le layout global ne l’a pas déjà fait
+    if (window.feather) feather.replace();
+
+    function setIcon(name) {
+        // Insère l’icône SVG directement sans dupliquer
+        if (window.feather && feather.icons && feather.icons[name]) {
+        iconHolder.innerHTML = feather.icons[name].toSvg();
+        } else {
+        // fallback très basique si feather indisponible
+        iconHolder.textContent = (name === 'eye') ? '👁️' : '🙈';
         }
-        // initial replace des icônes si base.html.twig ne l’a pas déjà fait ici
-        if (window.feather) feather.replace();
+    }
+
+    btn.addEventListener('click', () => {
+        const showing = (input.type === 'password'); // on va afficher ?
+        input.type = showing ? 'text' : 'password';
+        setIcon(showing ? 'eye-off' : 'eye');
+    });
     });
     </script>
     {% endblock %}
