@@ -16,6 +16,7 @@
         "easycorp/easyadmin-bundle": "^4.24",
         "phpdocumentor/reflection-docblock": "^5.6",
         "phpstan/phpdoc-parser": "1.24",
+        "stripe/stripe-php": "^17.6",
         "symfony/asset": "7.0.*",
         "symfony/asset-mapper": "7.0.*",
         "symfony/console": "7.0.*",

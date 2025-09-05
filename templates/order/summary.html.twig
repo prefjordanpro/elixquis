@@ -1,109 +1,219 @@
-    {% extends 'base.html.twig' %}
+{% extends 'base.html.twig' %}
 
-    {% block body %}
-    <div class="container-md my-5">
-    <h1 class="h3 mb-4">Récapitulatif de ma commande</h1>
+{% block body %}
+<div class="container-md my-5">
+<h1 class="h3 mb-4">Récapitulatif de ma commande</h1>
 
-    <div class="row g-4">
-        <div class="col-lg-8">
+<div class="row g-4">
+<div class="col-lg-8">
 
-        {# Adresse #}
-        <div class="card shadow border-1 bg-body-secondary">
-            <div class="card-body">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <i data-feather="map-pin"></i>
-                <h2 class="h5 mb-0">Adresse de livraison</h2>
-            </div>
-
-            {% if address is defined and address %}
-                <p class="mb-0">
-                {{ address.firstname }} {{ address.lastname }}<br>
-                {{ address.address }}<br>
-                {{ address.postal }} {{ address.city }} — {{ address.country }}
-                </p>
-            {% else %}
-                <p class="text-muted mb-0"><em>Aucune adresse reçue. Retournez à l’étape précédente.</em></p>
-            {% endif %}
-            </div>
+    {# Adresse #}
+    <div class="card shadow border-1 bg-body-secondary">
+    <div class="card-body">
+        <div class="d-flex align-items-center gap-2 mb-2">
+        <i data-feather="map-pin"></i>
+        <h2 class="h5 mb-0">Adresse de livraison</h2>
         </div>
 
-        {# Transporteur #}
-        <div class="card shadow border-1 bg-body-secondary mt-3">
-            <div class="card-body">
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <i data-feather="truck"></i>
-                <h2 class="h5 mb-0">Transporteur</h2>
+        {% if address is defined and address %}
+        <p class="mb-0">
+            {{ address.firstname }} {{ address.lastname }}<br>
+            {{ address.address }}<br>
+            {{ address.postal }} {{ address.city }} — {{ address.country }}
+        </p>
+        {% else %}
+        <p class="text-muted mb-0"><em>Aucune adresse reçue. Retournez à l’étape précédente.</em></p>
+        {% endif %}
+    </div>
+    </div>
+
+    {# Transporteur #}
+    <div class="card shadow border-1 bg-body-secondary mt-3">
+    <div class="card-body">
+        <div class="d-flex align-items-center gap-2 mb-2">
+        <i data-feather="truck"></i>
+        <h2 class="h5 mb-0">Transporteur</h2>
+        </div>
+
+        {% if carrier is defined and carrier %}
+        <p class="mb-1 fw-semibold">{{ carrier.name }}</p>
+        <p class="text-muted small mb-2">{{ carrier.description }}</p>
+        <p class="mb-0">
+            <strong>Frais de livraison :</strong>
+            {{ carrier.price|number_format(2, ',', ' ') }} €
+        </p>
+        {% else %}
+        <p class="text-muted mb-0"><em>Aucun transporteur sélectionné.</em></p>
+        {% endif %}
+    </div>
+    </div>
+
+    {# Produits commandés (lecture seule) #}
+    <div class="card shadow border-1 bg-body-secondary mt-3">
+    <div class="card-body">
+        <div class="d-flex align-items-center gap-2 mb-3">
+        <i data-feather="shopping-cart"></i>
+        <h2 class="h5 mb-0">Produits</h2>
+        </div>
+
+{% if cart is not empty %}
+
+{# --- Mobile: cartes empilées, pas de scroll horizontal --- #}
+<div class="d-md-none">
+    <div class="vstack gap-3">
+    {% for product in cart %}
+        <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body">
+            <div class="d-flex align-items-start gap-3">
+            <div class="flex-shrink-0">
+                <div class="ratio ratio-1x1 rounded overflow-hidden" style="width:64px;">
+                <img
+                    src="/uploads/{{ product.object.illustration }}"
+                    alt="{{ product.object.name }}"
+                    class="img-fluid" style="object-fit:cover;">
+                </div>
             </div>
 
+            <div class="flex-grow-1">
+                <div class="fw-semibold mb-1">{{ product.object.name }}</div>
+
+                <div class="d-flex flex-wrap align-items-center gap-2 small text-muted">
+                <span>PU : <strong class="text-body">{{ product.object.pricewt|price }}</strong></span>
+                <span class="vr d-none d-sm-inline"></span>
+                <span>Qté :
+                    <span class="badge bg-secondary">{{ product.qty }}</span>
+                </span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                <span class="text-muted small">Sous-total</span>
+                <span class="fw-bold">{{ (product.qty * product.object.pricewt)|price }}</span>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    {% endfor %}
+    </div>
+</div>
+
+{# --- Tablette/desktop: tableau élégant --- #}
+<div class="d-none d-md-block">
+    <div class="card shadow-sm border-0 rounded-3">
+    <div class="card-body p-4">
+        <div class="table-responsive">
+        <table class="table table-borderless align-middle mb-0">
+            <thead class="text-uppercase small text-muted border-bottom fw-semibold">
+            <tr>
+                <th style="width:70px;"></th>
+                <th>Produit</th>
+                <th class="text-end">Prix unitaire</th>
+                <th class="text-center">Qté</th>
+                <th class="text-end">Sous-total</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for product in cart %}
+                <tr class="border-bottom">
+                <td class="py-3">
+                    <div class="ratio ratio-1x1 rounded overflow-hidden shadow-sm" style="width:60px;">
+                    <img
+                        src="/uploads/{{ product.object.illustration }}"
+                        alt="{{ product.object.name }}"
+                        class="img-fluid" style="object-fit:cover;">
+                    </div>
+                </td>
+                <td class="py-3">
+                    <div class="fw-semibold">{{ product.object.name }}</div>
+                </td>
+                <td class="text-end py-3">
+                    <span class="badge bg-light text-dark px-3 py-2 shadow-sm">
+                    {{ product.object.pricewt|price }}
+                    </span>
+                </td>
+                <td class="text-center py-3">
+                    <span class="badge bg-secondary text-white px-3 py-2 fs-6">
+                    {{ product.qty }}
+                    </span>
+                </td>
+                <td class="text-end py-3">
+                    <span class="fw-bold text-success">{{ (product.qty * product.object.pricewt)|price }}</span>
+                </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+    </div>
+</div>
+
+{% else %}
+<p class="text-muted mb-0"><em>Aucun produit dans le panier.</em></p>
+{% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+{# Résumé / Totaux #}
+<div class="col-lg-4">
+    <div class="card shadow position-sticky" style="top: 2rem;">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h6 mb-0">Total produit :</h2>
+        <span class="fw-bold">{{ fullCartQuantity }}</span>
+    </div>
+
+        <div class="d-flex justify-content-between">
+        <span>Prix total produit :</span>
+        <strong>
+            {% if totalWt is defined %}
+            {{ totalWt|price }}
+            {% else %}
+            —
+            {% endif %}
+        </strong>
+        </div>
+
+        <div class="d-flex justify-content-between mt-2">
+        <span>Prix livraison :</span>
+        <strong>
             {% if carrier is defined and carrier %}
-                <p class="mb-1 fw-semibold">{{ carrier.name }}</p>
-                <p class="text-muted small mb-2">{{ carrier.description }}</p>
-                <p class="mb-0">
-                <strong>Frais de livraison :</strong>
-                {{ carrier.price|number_format(2, ',', ' ') }} €
-                </p>
+            {{ carrier.price|number_format(2, ',', ' ') }} €
             {% else %}
-                <p class="text-muted mb-0"><em>Aucun transporteur sélectionné.</em></p>
+            —
             {% endif %}
-            </div>
+        </strong>
         </div>
 
+        <hr class="my-3">
+
+        <div class="d-flex justify-content-between">
+        <span>Total de la commande TTC :</span>
+        <strong>
+            {% if grandTotal is defined %}
+            {{ grandTotal|price }}
+            {% elseif totalWt is defined and carrier is defined and carrier %}
+            {{ (totalWt + carrier.price)|price }}
+            {% elseif totalWt is defined %}
+            {{ totalWt|price }}
+            {% else %}
+            —
+            {% endif %}
+        </strong>
         </div>
 
-        {# Résumé / Totaux #}
-        <div class="col-lg-4">
-        <div class="card shadow position-sticky" style="top: 2rem;">
-            <div class="card-body">
-            <h2 class="h6 mb-3">Résumé</h2>
-
-            <div class="d-flex justify-content-between">
-                <span>Total produit</span>
-                <strong>
-                {% if totalWt is defined %}
-                    {{ totalWt|price }}
-                {% else %}
-                    —
-                {% endif %}
-                </strong>
-            </div>
-
-            <div class="d-flex justify-content-between mt-2">
-                <span>Livraison</span>
-                <strong>
-                {% if carrier is defined and carrier %}
-                    {{ carrier.price|number_format(2, ',', ' ') }} €
-                {% else %}
-                    —
-                {% endif %}
-                </strong>
-            </div>
-
-            <hr class="my-3">
-
-            <div class="d-flex justify-content-between">
-                <span>Total TTC</span>
-                <strong>
-                {% if grandTotal is defined %}
-                    {{ grandTotal|price }}
-                {% elseif totalWt is defined and carrier is defined and carrier %}
-                    {{ (totalWt + carrier.price)|price }}
-                {% elseif totalWt is defined %}
-                    {{ totalWt|price }}
-                {% else %}
-                    —
-                {% endif %}
-                </strong>
-            </div>
-
-            <div class="d-grid mt-3">
-                <a href="{{ path('app_order') }}" class="btn btn-outline-secondary">Modifier</a>
-                {# TODO: remplace '#' par ta route de paiement quand elle sera prête (ex: app_payment_start) #}
-                <a href="#" class="btn btn-success mt-2">Payer</a>
-            </div>
-            </div>
-        </div>
+        <div class="d-grid mt-3">
+        <a href="{{ path('app_cart') }}" class="btn btn-outline-secondary">Modifier</a>
+        {# TODO: remplace '#' par ta route de paiement quand elle sera prête (ex: app_payment_start) #}
+        <a href="#" class="btn btn-success mt-2">Payer</a>
         </div>
     </div>
-
     </div>
-    {% endblock %}
+</div>
+</div>
+
+</div>
+{% endblock %}

@@ -35,12 +35,49 @@ class Order
     /**
      * @var Collection<int, OrderDetail>
      */
-    #[ORM\OneToMany(targetEntity: OrderDetail::class, mappedBy: 'myOrder', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: OrderDetail::class, mappedBy: 'myOrder', orphanRemoval: true, cascade:['persist'])]
     private Collection $orderDetails;
+
+    #[ORM\ManyToOne(inversedBy: 'orders')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $user = null;
 
     public function __construct()
     {
         $this->orderDetails = new ArrayCollection();
+    }
+
+    public function getTotalWt(): float
+    {
+        $totalTtc = 0.0;
+
+        foreach ($this->getOrderDetails() as $line) {
+            // productPrice déjà TTC !
+            $totalTtc += $line->getProductPrice() * $line->getProductQuantity();
+        }
+
+        // frais de port TTC aussi
+        $totalTtc += $this->getCarrierPrice();
+
+        return round($totalTtc, 2);
+    }
+
+
+    public function getTotalTva()
+    {
+        $totalTva = 0.0;
+
+        foreach ($this->getOrderDetails() as $line) {
+            $tvaRate = $line->getProductTva() / 100;
+            $priceTtc = $line->getProductPrice(); // déjà TTC
+            $priceHt  = $priceTtc / (1 + $tvaRate);
+            
+
+            $lineTva = ($priceTtc - $priceHt) * $line->getProductQuantity();
+            $totalTva += $lineTva;
+        }
+
+        return round($totalTva, 2);
     }
 
     public function getId(): ?int
@@ -134,6 +171,18 @@ class Order
                 $orderDetail->setMyOrder(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getUser(): ?User
+    {
+        return $this->user;
+    }
+
+    public function setUser(?User $user): static
+    {
+        $this->user = $user;
 
         return $this;
     }
