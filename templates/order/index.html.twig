@@ -2,46 +2,90 @@
 
 {% block body %}
 <div class="container-md my-5">
-<h1 class="h3 mb-4">Ma commande</h1>
+  <h1 class="h3 mb-4">Ma commande</h1>
 
-{{ form_start(deliverForm) }}
+  {{ form_start(deliverForm) }}
 
-    {# Adresse #}
-    {% if deliverForm.addresses is defined %}
+  <style>
+    /* Chaque radio ou checkbox affiché par Symfony */
+    .form-check {
+      display: block;
+      margin-bottom: .5rem;
+    }
+    /* On met un effet "card" sur le conteneur */
+    .form-check.card {
+      border: 1px solid var(--bs-border-color);
+      border-radius: .5rem;
+      background: #fff;
+      padding: 1rem;
+      transition: .15s ease;
+    }
+    .form-check.card:hover {
+      background: #f8f9fa;
+    }
+    .form-check.card input:checked + label {
+      font-weight: 600;
+      color: var(--bs-primary);
+    }
+  </style>
+
+  {# Adresse #}
+  {% if deliverForm.addresses is defined %}
     <div class="card shadow border-1 mb-3 bg-body-secondary">
-        <div class="card-body">
+      <div class="card-body">
         <div class="d-flex align-items-center gap-2 mb-2">
-            <i data-feather="map-pin"></i>
-            <h2 class="h5 mb-0">Adresse de livraison</h2>
+          <i data-feather="map-pin"></i>
+          <h2 class="h5 mb-0">Adresse de livraison</h2>
         </div>
         <p class="text-muted small mb-3">Sélectionnez l’adresse à laquelle vous souhaitez recevoir votre commande.</p>
-        {{ form_row(deliverForm.addresses) }}
+        
+        <div class="vstack gap-2">
+          {% for choice in deliverForm.addresses %}
+            <div class="form-check card">
+              {{ form_widget(choice) }}
+              {{ form_label(choice) }}
+            </div>
+          {% endfor %}
         </div>
+
+        {{ form_errors(deliverForm.addresses) }}
+      </div>
     </div>
-    {% endif %}
-    <a href="{{ path("app_account_address_form")}}" class="small btn btn-secondary">Ajouter une nouvelle adresse de livraison</a>
-    <hr>
-    {# Transporteur #}
-    {% if deliverForm.carriers is defined %}
+  {% endif %}
+
+  <a href="{{ path('app_account_address_form') }}" class="small btn btn-secondary mb-3">Ajouter une nouvelle adresse de livraison</a>
+  <hr>
+
+  {# Transporteur #}
+  {% if deliverForm.carriers is defined %}
     <div class="card shadow border-1 mb-4 bg-body-secondary">
-        <div class="card-body">
+      <div class="card-body">
         <div class="d-flex align-items-center gap-2 mb-2">
-            <i data-feather="truck"></i>
-            <h2 class="h5 mb-0">Transporteur</h2>
+          <i data-feather="truck"></i>
+          <h2 class="h5 mb-0">Transporteur</h2>
         </div>
         <p class="text-muted small mb-3">Choisissez votre mode de livraison.</p>
-        {{ form_row(deliverForm.carriers) }}
-        </div>
-    </div>
-    {% endif %}
 
-    {# Token CSRF puis bouton d’action #}
-    {{ form_row(deliverForm._token) }}
-    <div class="d-grid d-sm-flex justify-content-sm-end gap-2">
+        <div class="vstack gap-2">
+          {% for choice in deliverForm.carriers %}
+            <div class="form-check card">
+              {{ form_widget(choice) }}
+              {{ form_label(choice) }}
+            </div>
+          {% endfor %}
+        </div>
+
+        {{ form_errors(deliverForm.carriers) }}
+      </div>
+    </div>
+  {% endif %}
+
+  {{ form_row(deliverForm._token) }}
+  <div class="d-grid d-sm-flex justify-content-sm-end gap-2">
     <a href="{{ path('app_cart') }}" class="btn btn-outline-secondary">Retour au panier</a>
     <button type="submit" class="btn btn-success">Continuer</button>
-    </div>
+  </div>
 
-{{ form_end(deliverForm, { render_rest: false }) }}
+  {{ form_end(deliverForm, { render_rest: false }) }}
 </div>
 {% endblock %}

@@ -34,6 +34,7 @@ class OrderType extends AbstractType
                 'mapped'      => false,
                 'constraints' => [new Assert\NotBlank(message: 'Sélectionnez un transporteur.')],
             ])
+            
         ;
     }
 

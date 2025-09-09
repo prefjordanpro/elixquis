@@ -1,0 +1,154 @@
+{# templates/admin/order.html.twig #}
+{% set order = (entity.instance is defined) ? entity.instance : ea.entity.instance %}
+{% set crud  = 'App\\\\Controller\\\\Admin\\\\OrderCrudController' %}
+
+{% macro euro(x) %}{{ (x|default(0))|number_format(2, ',', ' ') }} €{% endmacro %}
+{% import _self as ui %}
+
+{% set labels = {
+  0: ['En attente de paiement','badge bg-secondary'],
+  1: ['Payée','badge bg-success'],
+  2: ['En préparation','badge bg-warning text-dark'],
+  3: ['Expédiée','badge bg-primary'],
+  4: ['Annulée','badge bg-danger']
+} %}
+
+{# --- Entête --- #}
+{% set badge = labels[order.state|default(0)]|default(['Statut inconnu','badge bg-secondary']) %}
+<div class="mb-2"><span class="{{ badge[1] }}">{{ badge[0] }}</span></div>
+<div class="mb-2"><strong>Commande #{{ order.id }}</strong> — {{ order.createdAt|date('d/m/Y H:i') }}</div>
+{% if order.user %}
+  <div class="mb-3">Client : <strong>{{ order.user.firstname|default('') }} {{ order.user.lastname|default('') }}</strong></div>
+{% endif %}
+
+{# --- Adresse de livraison (Order::delivery peut contenir des <br>) --- #}
+<div class="mb-3">
+  <div><strong>Adresse de livraison</strong></div>
+  <div class="text-muted">
+    {% if order.delivery %}{{ order.delivery|raw }}{% else %}<em>Non renseignée</em>{% endif %}
+  </div>
+</div>
+
+{# ===================== LIGNES PRODUITS (responsive) ===================== #}
+<div class="table-responsive">
+  <table class="table table-sm align-middle mb-0">
+    <thead class="table-light">
+      <tr>
+        <th style="width:56px;"></th>
+        <th>Produit</th>
+        <th class="text-center" style="width:90px;">Qté</th>
+        <th class="text-end" style="width:110px;">PU TTC</th>
+
+        {# colonnes visibles seulement ≥ lg #}
+        <th class="text-end d-none d-lg-table-cell" style="width:110px;">PU HT</th>
+        <th class="text-end d-none d-lg-table-cell" style="width:80px;">TVA</th>
+        <th class="text-end d-none d-lg-table-cell" style="width:110px;">Ligne HT</th>
+        <th class="text-end d-none d-lg-table-cell" style="width:110px;">Ligne TVA</th>
+
+        <th class="text-end" style="width:110px;">Ligne TTC</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% set total_ht = 0 %}
+      {% set total_tva = 0 %}
+
+      {% for d in order.orderDetails %}
+        {% set q    = d.productQuantity|default(0) %}
+        {% set put  = d.productPrice|default(0) %}        {# PU TTC stocké #}
+        {% set tvaP = d.productTva|default(0) %}
+        {% set coef = 1 + (tvaP/100) %}
+        {% set puh  = (coef > 0) ? (put / coef) : put %}  {# PU HT recalculé #}
+        {% set lht  = puh * q %}
+        {% set lttc = put * q %}
+        {% set ltv  = lttc - lht %}
+        {% set total_ht  = total_ht + lht %}
+        {% set total_tva = total_tva + ltv %}
+
+        <tr>
+          <td>
+            {% if d.productIllustration %}
+              <img src="{{ asset('uploads/' ~ d.productIllustration) }}" alt=""
+                   class="rounded" style="width:48px;height:48px;object-fit:cover">
+            {% endif %}
+          </td>
+
+          <td>
+            <div class="fw-semibold">{{ d.productName|default('Produit') }}</div>
+
+            {# résumé mobile < lg #}
+            <div class="d-lg-none small text-muted mt-1">
+              <span class="badge bg-light text-dark border me-1">TVA {{ tvaP }}%</span>
+              <span class="badge bg-light text-dark border me-1">PU HT {{ ui.euro(puh) }}</span>
+              <span class="badge bg-light text-dark border">Ligne HT {{ ui.euro(lht) }}</span>
+              <div class="mt-1">
+                <span class="me-2">Qté: <strong>{{ q }}</strong></span>
+                <span class="me-2">PU TTC: <strong>{{ ui.euro(put) }}</strong></span>
+                <span>Ligne TVA: <strong>{{ ui.euro(ltv) }}</strong></span>
+              </div>
+            </div>
+          </td>
+
+          <td class="text-center">{{ q }}</td>
+          <td class="text-end">{{ ui.euro(put) }}</td>
+
+          {# colonnes desktop #}
+          <td class="text-end d-none d-lg-table-cell">{{ ui.euro(puh) }}</td>
+          <td class="text-end d-none d-lg-table-cell">{{ tvaP }}%</td>
+          <td class="text-end d-none d-lg-table-cell">{{ ui.euro(lht) }}</td>
+          <td class="text-end d-none d-lg-table-cell">{{ ui.euro(ltv) }}</td>
+
+          <td class="text-end fw-semibold">{{ ui.euro(lttc) }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="9" class="text-center text-muted py-4">Aucune ligne</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{# ===================== RÉCAP TOTAUX + Annuler ===================== #}
+{% set livraison_ttc = order.carrierPrice|default(0) %}
+{% set total_ttc_cmd = order.totalWt|default(total_ht + total_tva + livraison_ttc) %}
+
+<div class="row mt-3 g-3">
+  <div class="col-12 col-lg-6 order-2 order-lg-1">
+    {# zone libre (note, tracking, etc.) #}
+  </div>
+
+  <div class="col-12 col-lg-6 order-1 order-lg-2">
+    <div class="table-responsive">
+      <table class="table table-sm mb-2">
+        <tbody>
+          <tr>
+            <th class="text-end w-50">Sous-total HT</th>
+            <td class="text-end">{{ ui.euro(total_ht) }}</td>
+          </tr>
+          <tr>
+            <th class="text-end">TVA (produits)</th>
+            <td class="text-end">{{ ui.euro(total_tva) }}</td>
+          </tr>
+          <tr>
+            <th class="text-end">Livraison TTC</th>
+            <td class="text-end">{{ ui.euro(livraison_ttc) }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr class="table-light">
+            <th class="text-end">Total TTC</th>
+            <th class="text-end">{{ ui.euro(total_ttc_cmd) }}</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    {% if order.state < 3 %}
+      <div class="d-flex justify-content-lg-end">
+        <a class="btn btn-outline-danger"
+           onclick="return confirm('Confirmer l\\'annulation de la commande #{{ order.id }} ?');"
+           href="{{ ea_url().setController(crud).setAction('toCanceled').setEntityId(order.id) }}">
+          Annuler la commande
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>

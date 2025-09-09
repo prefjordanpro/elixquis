@@ -207,8 +207,21 @@
 
         <div class="d-grid mt-3">
         <a href="{{ path('app_cart') }}" class="btn btn-outline-secondary">Modifier</a>
-        {# TODO: remplace '#' par ta route de paiement quand elle sera prête (ex: app_payment_start) #}
-        <a href="#" class="btn btn-success mt-2">Payer</a>
+
+        {# ✅ Checkbox confirmation d’âge #}
+        <div class="form-check mt-5">
+            <input class="form-check-input" type="checkbox" id="ageCheck">
+            <label class="form-check-label small" for="ageCheck">
+            Je confirme avoir plus de 18 ans.
+            </label>
+        </div>
+
+        <a href="{{ path('app_payment', { 'id_order' : order.id } ) }}" 
+            class="btn btn-success mt-3 disabled" 
+            id="payBtn" 
+            aria-disabled="true">
+            Payer
+        </a>
         </div>
     </div>
     </div>
@@ -216,4 +229,20 @@
 </div>
 
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const ageCheck = document.getElementById("ageCheck");
+        const payBtn   = document.getElementById("payBtn");
+
+        ageCheck.addEventListener("change", () => {
+        if (ageCheck.checked) {
+            payBtn.classList.remove("disabled");
+            payBtn.removeAttribute("aria-disabled");
+        } else {
+            payBtn.classList.add("disabled");
+            payBtn.setAttribute("aria-disabled", "true");
+        }
+        });
+    });
+</script>
 {% endblock %}

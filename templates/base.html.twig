@@ -17,67 +17,109 @@
 <body>
 
     <header data-bs-theme="dark">
-    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
         <div class="container-fluid">
-        <a class="navbar-brand" href="{{ path('app_home') }}">Elixquis</a>
+          <a class="navbar-brand" href="{{ path('app_home') }}">Elixquis</a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
-        </button>
+          </button>
 
-        <div class="collapse navbar-collapse" id="navbarCollapse">
+          <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
-            <li class="nav-item">
+              <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="{{ path('app_home') }}">Accueil</a>
-            </li>
-            {% for category in allCategories %}
+              </li>
+              {% for category in allCategories %}
                 <li class="nav-item">
-                <a class="nav-link" href="{{ path('app_category', { slug : category.slug } ) }}">{{ category.name }}</a>
+                  <a class="nav-link" href="{{ path('app_category', { slug : category.slug } ) }}">{{ category.name }}</a>
                 </li>
-            {% endfor %}
+              {% endfor %}
             </ul>
 
             <div class="speed-menu">
-            {% if app.user %}
+              {% if app.user %}
                 <a href="{{ path('app_account') }}">
-                <i data-feather="user"></i> {{ app.user.firstname }}
+                  <i data-feather="user"></i> {{ app.user.firstname }}
                 </a>
-            {% else %}
+              {% else %}
                 <a href="{{ path('app_login') }}">
-                <i data-feather="user"></i>
+                  <i data-feather="user"></i>
                 </a>
-            {% endif %}
+              {% endif %}
 
-            <a href="{{ path ('app_cart') }}">
+              <a href="{{ path ('app_cart') }}">
                 <i data-feather="shopping-cart"></i>
                 <span class="badge text-bg-light"> {{ fullCartQuantity }}</span>
-            </a>
+              </a>
             </div>
+          </div>
         </div>
-        </div>
-    </nav>
+      </nav>
     </header>
 
     <main>
-    <div class="container">
+      <div class="container">
         {% for label, messages in app.flashes %}
-        {% for message in messages %}
+          {% for message in messages %}
             <div class="alert mt-4 alert-{{ label }}">
-            {{ message }}
+              {{ message }}
             </div>
+          {% endfor %}
         {% endfor %}
-        {% endfor %}
-    </div>
+      </div>
 
-    {% block body %}{% endblock %}
+      {% block body %}{% endblock %}
 
-    <!-- FOOTER -->
-    <footer class="container">
-        <p>&copy; 2025 Elixquis <a href="#">CGV</a> &middot; <a href="#">CGU</a></p>
-    </footer>
+      <!-- FOOTER -->
+      <footer class="container">
+        <p class="mb-1">&copy; 2025 Elixquis <a href="#">CGV</a> &middot; <a href="#">CGU</a></p>
+        <p class="text-muted small mb-0">
+          L’abus d’alcool est dangereux pour la santé, à consommer avec modération. Vente interdite aux mineurs de moins de 18 ans.
+        </p>
+      </footer>
     </main>
 
     <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('assets/js/global.js') }}"></script>
+    <script>feather.replace();</script>
+
+    {# Modal vérification âge (classique) #}
+    <div class="modal fade" id="ageModal" tabindex="-1" aria-labelledby="ageModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="ageModalLabel">Vérification de l’âge</h5>
+          </div>
+          <div class="modal-body">
+            Ce site vend des boissons alcoolisées.<br>
+            Vous devez avoir plus de 18 ans pour continuer.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-success" id="btn-age-yes">J’ai plus de 18 ans</button>
+            <button type="button" class="btn btn-outline-danger" id="btn-age-no">Non</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        if (!localStorage.getItem("ageVerified")) {
+          const modalEl = document.getElementById('ageModal');
+          const ageModal = new bootstrap.Modal(modalEl);
+          ageModal.show();
+
+          document.getElementById("btn-age-yes").addEventListener("click", function(){
+            localStorage.setItem("ageVerified", "true");
+            ageModal.hide();
+          });
+
+          document.getElementById("btn-age-no").addEventListener("click", function(){
+            window.location.href = "https://www.service-public.fr/particuliers/vosdroits/F34463";
+          });
+        }
+      });
+    </script>
 </body>
 </html>
