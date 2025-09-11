@@ -1,0 +1,183 @@
+    {# templates/account/order_show.html.twig #}
+    {% extends 'base.html.twig' %}
+
+    {% block body %}
+    <div class="container my-5">
+    <h1 class="mb-4">Espace membre</h1>
+
+    <div class="row">
+        <!-- Menu gauche -->
+        <div class="col-md-3">
+        {% include 'account/_menu.html.twig' %}
+        </div>
+
+        <!-- Contenu -->
+        <div class="col-md-9">
+        <!-- En-tête commande -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0">
+            <i data-feather="shopping-bag" class="me-2 text-primary"></i>
+            CMD-{{ order.createdAt|date('dmy') }}-{{ '%05d'|format(order.id) }}
+            </h2>
+            <a href="{{ path('app_account') }}" class="btn btn-outline-secondary btn-sm rounded-pill">← Retour</a>
+        </div>
+
+        <div class="row g-3">
+            <!-- Colonne articles + livraison EN DESSOUS -->
+            <div class="col-lg-8">
+
+            {# --- Articles --- #}
+            <div class="card border-0 shadow-sm rounded-4 mb-3">
+                <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                    <div class="text-muted small">
+                    Passée le {{ order.createdAt|date('d/m/Y \\à H\\hi') }}
+                    </div>
+                    <div>
+                    {{ include('admin/state.html.twig', { field : { 'value' : order.state } })|raw }}
+                    </div>
+                </div>
+
+                <hr class="my-3">
+
+                {# --- Tableau articles avec calculs HT/TVA --- #}
+                {% set articles_ht = 0 %}
+                {% set articles_tva = 0 %}
+
+                <div class="table-responsive">
+                    <table class="table align-middle table-hover">
+                    <thead class="table-light">
+                        <tr>
+                        <th style="width:72px">Illustration</th>
+                        <th>Produit</th>
+                        <th class="text-center" style="width:80px">Qté</th>
+                        <th class="text-end d-none d-lg-table-cell" style="width:110px">PU H.T</th>
+                        <th class="text-end d-none d-lg-table-cell" style="width:90px">TVA</th>
+                        <th class="text-end" style="width:140px">Total T.T.C</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order.orderDetails %}
+                        {% set q    = item.productQuantity|default(0) %}
+                        {% set put  = item.productPrice|default(0) %}     {# PU TTC #}
+                        {% set rate = item.productTva|default(20) %}      {# % TVA (adapte si autre champ) #}
+                        {% set coef = 1 + (rate/100) %}
+                        {% set puh  = (coef > 0) ? (put / coef) : put %}  {# PU HT #}
+                        {% set lht  = puh * q %}
+                        {% set lttc = put * q %}
+                        {% set ltv  = lttc - lht %}
+
+                        {% set articles_ht  = articles_ht  + lht %}
+                        {% set articles_tva = articles_tva + ltv %}
+
+                        <tr>
+                            <td>
+                            {% if item.productIllustration %}
+                                <img src="{{ asset('uploads/' ~ item.productIllustration) }}"
+                                    alt="{{ item.productName }}"
+                                    class="rounded border"
+                                    style="width:56px;height:56px;object-fit:cover"
+                                    loading="lazy">
+                            {% else %}
+                                <div class="rounded border bg-body-tertiary d-flex align-items-center justify-content-center"
+                                    style="width:56px;height:56px;">🛍️</div>
+                            {% endif %}
+                            </td>
+                            <td>
+                            <div class="fw-semibold">{{ item.productName }}</div>
+                            <div class="text-muted small d-lg-none">
+                                PU TTC {{ put|price }} · TVA {{ rate }}%
+                            </div>
+                            </td>
+                            <td class="text-center">{{ q }}</td>
+                            <td class="text-end d-none d-lg-table-cell">{{ puh|price }}</td>
+                            <td class="text-end d-none d-lg-table-cell">{{ rate }}%</td>
+                            <td class="text-end fw-semibold">{{ lttc|price }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" class="text-center text-muted py-4">Aucun article</td></tr>
+                        {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+                {# --- Fin tableau --- #}
+                </div>
+            </div>
+
+            {# --- Livraison (sous les articles) --- #}
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+                <h6 class="fw-semibold mb-2">Livraison</h6>
+                {% if order.delivery is defined and order.delivery %}
+                    <div class="text-muted small">{{ order.delivery|raw }}</div>
+                {% else %}
+                    <div class="text-muted small">
+                    Méthode : {{ order.carrierName }}<br>
+                    Adresse de livraison non disponible.
+                    </div>
+                {% endif %}
+                </div>
+            </div>
+
+            </div>
+
+            <!-- Colonne résumé -->
+            <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-3">
+                <div class="card-body">
+                {# Calculs livraison & totaux (utilise les cumuls articles_ht/articles_tva) #}
+                {% set carrier_rate = order.carrierTvaRate|default(20) %}
+                {% set carrier_ht  = order.carrierPrice / (1 + (carrier_rate/100)) %}
+                {% set carrier_tva = order.carrierPrice - carrier_ht %}
+                {% set total_ht  = articles_ht + carrier_ht %}
+                {% set total_tva = articles_tva + carrier_tva %}
+
+                <h6 class="fw-semibold mb-3">Résumé</h6>
+
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Sous-total H.T (articles)</span>
+                    <span>{{ articles_ht|price }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">TVA (articles)</span>
+                    <span>{{ articles_tva|price }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">Livraison H.T ({{ order.carrierName }})</span>
+                    <span>{{ carrier_ht|price }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted">TVA livraison ({{ carrier_rate }}%)</span>
+                    <span>{{ carrier_tva|price }}</span>
+                </div>
+
+                <hr>
+
+                <div class="d-flex justify-content-between">
+                    <span class="fw-semibold">Total H.T</span>
+                    <span class="fw-bold">{{ total_ht|price }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-semibold">TVA totale</span>
+                    <span class="fw-bold">{{ total_tva|price }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="fw-semibold">Total T.T.C</span>
+                    <span class="fw-bold">{{ order.totalWt|price }}</span>
+                </div>
+
+                <div>
+                    <a href="{{ path('app_home') }}" class="btn btn-outline-secondary rounded-pill mt-3">
+                    Continuer mes achats
+                    </a>
+                </div>
+                </div>
+            </div>
+            </div>
+
+        </div> {# /.row g-3 #}
+        </div>   {# /.col-md-9 #}
+    </div>     {# /.row #}
+    </div>       {# /.container #}
+    {% endblock %}

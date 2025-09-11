@@ -1,11 +1,11 @@
 {% if field.value == 0 %}
     <span class="badge text-bg-secondary">En attente de paiement</span>
 {% elseif field.value == 1 %}
-    <span class="badge text-bg-info">Payée</span>
+    <span class="badge text-bg-success">Payée</span>
 {% elseif field.value == 2 %}
-    <span class="badge text-bg-warning">En cours de préparation</span>
+    <span class="badge bg-warning text-dark">En préparation</span>
 {% elseif field.value == 3 %}
-    <span class="badge text-bg-success">Expédiée</span>
+    <span class="badge text-bg-primary">Expédiée</span>
 {% elseif field.value == 4 %}
     <span class="badge text-bg-danger">Annulée</span>
 {% endif %}

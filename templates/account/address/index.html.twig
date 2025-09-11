@@ -1,39 +1,70 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
+<div class="container my-5">
+  <h1 class="mb-4">Espace membre</h1>
 
-    <div class="container my-5">
-        <h1>Espace membre </h1>
-
-        <div class="row">
-            <div class="col-md-3">
-                {% include 'account/_menu.html.twig' %}
-            </div>
-            <div class="col-md-9">
-                <div class="d-flex justify-content-between mt-2">
-                    <h5>Mes adresses</h5>
-                    <a href="{{ path('app_account_address_form') }}" class="btn btn-light">Ajouter une adresse</a>
-                </div>
-                    {% if app.user.addresses|length == 0 %}
-                        <p>Vous n'avez pas encore enregistré d'adresse sur la boutique Elixquis</p>
-                    {% else %}
-                        <div class="row">
-                        {% for address in app.user.addresses %}
-                            <div class="col-md-6 mt-2">
-                                <div class="bg-light p-2 text-center">
-                                    <strong>{{ address.firstname }} {{ address.lastname }}</strong><br/>
-                                    {{ address.address }} <br/>
-                                    {{ address.postal }}, {{ address.city }}<br/>
-                                    {{ address.country }}<br/>
-                                    <a href="{{ path('app_account_address_form', { id : address.id } ) }}" class="small text-secondary">Éditer</a>
-                                    <a href="{{ path('app_account_address_delete', { id : address.id } ) }}" class="small text-secondary">Supprimer</a>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-            </div>
-        </div>
+  <div class="row">
+    <div class="col-md-3">
+      {% include 'account/_menu.html.twig' %}
     </div>
 
+    <div class="col-md-9">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Mes adresses</h5>
+        <a href="{{ path('app_account_address_form') }}" class="btn btn-sm btn-primary rounded-pill">
+          + Ajouter une adresse
+        </a>
+      </div>
+
+      {% if app.user.addresses|length == 0 %}
+        <div class="alert alert-info text-center p-4 rounded-3">
+          <p class="mb-0">Vous n'avez pas encore enregistré d'adresse sur la boutique <strong>Elixquis</strong>.</p>
+        </div>
+      {% else %}
+        <div class="row g-3">
+          {% for address in app.user.addresses %}
+            <div class="col-md-6">
+              <div class="card address-card shadow-sm h-100 border-0 rounded-4">
+                <div class="card-body d-flex flex-column">
+                  <h6 class="fw-bold mb-1">
+                    <i data-feather="map-pin" class="text-primary me-1"></i>
+                    {{ address.firstname }} {{ address.lastname }}
+                  </h6>
+                  <p class="text-muted small mb-3">
+                    {{ address.address }}<br>
+                    {{ address.postal }} {{ address.city }}<br>
+                    {{ address.country }}
+                  </p>
+                  <div class="mt-auto d-flex justify-content-between">
+                    <a href="{{ path('app_account_address_form', { id : address.id }) }}" 
+                       class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                      ✏️ Éditer
+                    </a>
+                    <a href="{{ path('app_account_address_delete', { id : address.id }) }}" 
+                       class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                       onclick="return confirm('Supprimer cette adresse ?');">
+                      🗑️ Supprimer
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+  .address-card {
+    transition: all .2s ease-in-out;
+  }
+  .address-card:hover {
+    background-color: #f8f9fa !important; /* gris clair bootstrap */
+    transform: translateY(-2px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important;
+  }
+</style>
 {% endblock %}

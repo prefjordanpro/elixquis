@@ -1,14 +1,44 @@
-<ul class="nav flex-column bg-light-blue">
-    <li class="nav-item">
-        <a class="nav-link" href="{{ path('app_account') }}">Mes commandes</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{{ path('app_account_addresses') }}">Mes adresses</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{{ path('app_account_modify_pwd') }}">Modifier mon mot de passe</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="{{ path('app_logout') }}">Me déconnecter</a>
-    </li>
-</ul>
+{# templates/account/_menu_right.html.twig #}
+{% set current = app.request.attributes.get('_route') %}
+
+<aside class="sticky-top mt-3">
+  <div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body p-3">
+      <nav class="nav nav-pills flex-column gap-2">
+
+        <a href="{{ path('app_account') }}"
+           class="nav-link d-flex align-items-center gap-2 rounded-pill px-3 py-2
+                  {{ current in ['app_account','app_account_order'] ? 'active' : 'bg-body-tertiary' }}">
+          <i data-feather="shopping-bag"></i>
+          <span>Mes commandes</span>
+          {% if ordersCount is defined %}
+            <span class="badge text-bg-secondary ms-auto">{{ ordersCount }}</span>
+          {% endif %}
+        </a>
+
+        <a href="{{ path('app_account_addresses') }}"
+           class="nav-link d-flex align-items-center gap-2 rounded-pill px-3 py-2
+                  {{ current in ['app_account_addresses','app_account_address_form'] ? 'active' : 'bg-body-tertiary' }}">
+          <i data-feather="map-pin"></i>
+          <span>Mes adresses</span>
+        </a>
+
+        <a href="{{ path('app_account_modify_pwd') }}"
+           class="nav-link d-flex align-items-center gap-2 rounded-pill px-3 py-2
+                  {{ current == 'app_account_modify_pwd' ? 'active' : 'bg-body-tertiary' }}">
+          <i data-feather="lock"></i>
+          <span>Modifier mon mot de passe</span>
+        </a>
+
+        <hr class="my-2">
+
+        <a href="{{ path('app_logout') }}"
+           class="nav-link d-flex align-items-center gap-2 rounded-pill px-3 py-2 text-danger bg-body-tertiary">
+          <i data-feather="log-out"></i>
+          <span>Me déconnecter</span>
+        </a>
+
+      </nav>
+    </div>
+  </div>
+</aside>

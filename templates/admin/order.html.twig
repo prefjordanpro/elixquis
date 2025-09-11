@@ -16,7 +16,7 @@
 {# --- Entête --- #}
 {% set badge = labels[order.state|default(0)]|default(['Statut inconnu','badge bg-secondary']) %}
 <div class="mb-2"><span class="{{ badge[1] }}">{{ badge[0] }}</span></div>
-<div class="mb-2"><strong>Commande #{{ order.id }}</strong> — {{ order.createdAt|date('d/m/Y H:i') }}</div>
+<div class="mb-2">Stripe Session ID : {{ order.stripeSessionId }}<strong>{{ order.id }}</strong> — {{ order.createdAt|date('d/m/Y H:i') }}</div>
 {% if order.user %}
   <div class="mb-3">Client : <strong>{{ order.user.firstname|default('') }} {{ order.user.lastname|default('') }}</strong></div>
 {% endif %}
