@@ -22,6 +22,9 @@ final class PaymentController extends AbstractController
             'user' => $this->getUser()
         ]);
 
+        if (!$order) {
+            return $this->redirectToRoute('app_home');
+        }
 
         $products_for_stripe = [];
 
@@ -55,7 +58,7 @@ final class PaymentController extends AbstractController
         ];
 
 
-        $checkout_session = Session::create([
+        $checkout_session = $stripe->checkout->sessions->create([
             'customer_email' => $this->getUser()->getEmail(),
             'line_items' => $products_for_stripe, // ✅ on passe directement le tableau
             'mode' => 'payment',
