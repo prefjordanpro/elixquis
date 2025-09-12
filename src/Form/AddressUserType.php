@@ -8,6 +8,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\CountryType;
@@ -52,11 +53,13 @@ class AddressUserType extends AbstractType
                 'label' => 'Votre pays',
                 'preferred_choices' => ['FR']
             ])
-            ->add('phone', TextType::class, [
+            ->add('phone', TelType::class, [
                 'label' => 'Votre téléphone',
                 'attr' => [
-                    'placeholder' => 'Indiquez votre numéro de téléphone'
-                ]
+                    'placeholder' => '06 12 34 56 78',
+                    'maxlength' => 10,
+                    'pattern' => '^0[1-9][0-9]{8}$',
+                ],
             ])
             ->add('submit', SubmitType::class, [
                 'label' => "Sauvegarder",
