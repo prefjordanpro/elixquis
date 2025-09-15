@@ -15,6 +15,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
 
 class ProductCrudController extends AbstractCrudController
 {
@@ -44,6 +45,7 @@ class ProductCrudController extends AbstractCrudController
             TextField::new('name')
                 ->setLabel('Nom')
                 ->setHelp('Nom de votre produit'),
+            BooleanField::new('isHomepage')->setLabel('Produit à la une ?')->setHelp("Vous permet d'afficher un produit sur la homepage"),
             SlugField::new('slug')
                 ->setTargetFieldName('name')
                 ->setLabel('URL')->setHelp('URL de votre catégorie générée automatiquement'),
