@@ -13,21 +13,65 @@
   4: ['Annulée','badge bg-danger']
 } %}
 
-{# --- Entête --- #}
+{# --- En-tête + actions --- #}
 {% set badge = labels[order.state|default(0)]|default(['Statut inconnu','badge bg-secondary']) %}
-<div class="mb-2"><span class="{{ badge[1] }}">{{ badge[0] }}</span></div>
-<div class="mb-2">Stripe Session ID : {{ order.stripeSessionId }}<strong>{{ order.id }}</strong> — {{ order.createdAt|date('d/m/Y H:i') }}</div>
-{% if order.user %}
-  <div class="mb-3">Client : <strong>{{ order.user.firstname|default('') }} {{ order.user.lastname|default('') }}</strong></div>
-{% endif %}
+<div class="d-flex flex-wrap justify-content-between align-items-start mb-3">
+  <div class="me-3">
+    <div class="mb-1"><span class="{{ badge[1] }}">{{ badge[0] }}</span></div>
+    <div class="mb-1">
+      Stripe Session ID : {{ order.stripeSessionId }}
+      <strong>#{{ order.id }}</strong> — {{ order.createdAt|date('d/m/Y H:i') }}
+    </div>
+    {% if order.user %}
+      <div>Client : <strong>{{ order.user.firstname|default('') }} {{ order.user.lastname|default('') }}</strong></div>
+    {% endif %}
+  </div>
 
-{# --- Adresse de livraison (Order::delivery peut contenir des <br>) --- #}
-<div class="mb-3">
-  <div><strong>Adresse de livraison</strong></div>
-  <div class="text-muted">
-    {% if order.delivery %}{{ order.delivery|raw }}{% else %}<em>Non renseignée</em>{% endif %}
+  <div class="d-flex gap-2">
+    <a target="_blank"
+      href="{{ path('app_invoice_admin', { id_order : order.id }) }}"
+      class="btn btn-primary btn-sm rounded-pill">
+      Facture
+    </a>
   </div>
 </div>
+
+{# --- Adresse de livraison (affichage clair) --- #}
+<div class="mb-3">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+    <h5 class="mb-0">Adresse de livraison</h5>
+    <div class="d-flex gap-2">
+      {% if order.carrierName %}
+        <span class="badge rounded-pill text-bg-secondary">Transporteur : {{ order.carrierName }}</span>
+      {% endif %}
+      <span class="badge rounded-pill text-bg-primary">Commande n° {{ order.id }}</span>
+    </div>
+  </div>
+
+  <div class="p-3 bg-light rounded-3 border">
+    <div class="row g-3">
+      <div class="col-sm-6 col-lg-4">
+        <div class="text-muted small">Nom</div>
+        <div class="fw-semibold">{{ order.user ? order.user.lastname : '—' }}</div>
+      </div>
+      <div class="col-sm-6 col-lg-4">
+        <div class="text-muted small">Prénom</div>
+        <div class="fw-semibold">{{ order.user ? order.user.firstname : '—' }}</div>
+      </div>
+      <div class="col-12">
+        <div class="text-muted small">Adresse</div>
+        <div class="fw-semibold">
+          {% if order.delivery %}
+            {{ order.delivery|raw }} {# garde les <br> si présents #}
+          {% else %}
+            —
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 {# ===================== LIGNES PRODUITS (responsive) ===================== #}
 <div class="table-responsive">
@@ -37,7 +81,9 @@
         <th style="width:56px;"></th>
         <th>Produit</th>
         <th class="text-center" style="width:90px;">Qté</th>
-        <th class="text-end" style="width:110px;">PU TTC</th>
+
+        {# PU TTC masqué en < lg pour simplifier le mobile #}
+        <th class="text-end d-none d-lg-table-cell" style="width:110px;">PU TTC</th>
 
         {# colonnes visibles seulement ≥ lg #}
         <th class="text-end d-none d-lg-table-cell" style="width:110px;">PU HT</th>
@@ -54,7 +100,7 @@
 
       {% for d in order.orderDetails %}
         {% set q    = d.productQuantity|default(0) %}
-        {% set put  = d.productPrice|default(0) %}        {# PU TTC stocké #}
+        {% set put  = d.productPrice|default(0) %}        {# PU TTC stocké (même unité que ailleurs) #}
         {% set tvaP = d.productTva|default(0) %}
         {% set coef = 1 + (tvaP/100) %}
         {% set puh  = (coef > 0) ? (put / coef) : put %}  {# PU HT recalculé #}
@@ -68,28 +114,24 @@
           <td>
             {% if d.productIllustration %}
               <img src="{{ asset('uploads/' ~ d.productIllustration) }}" alt=""
-                   class="rounded" style="width:48px;height:48px;object-fit:cover">
+                  class="rounded" style="width:48px;height:48px;object-fit:cover">
+            {% else %}
+              <div class="rounded border bg-light d-flex align-items-center justify-content-center"
+                  style="width:48px;height:48px;">🛍️</div>
             {% endif %}
           </td>
 
           <td>
             <div class="fw-semibold">{{ d.productName|default('Produit') }}</div>
 
-            {# résumé mobile < lg #}
+            {# résumé mobile < lg : léger et sans doublons #}
             <div class="d-lg-none small text-muted mt-1">
-              <span class="badge bg-light text-dark border me-1">TVA {{ tvaP }}%</span>
-              <span class="badge bg-light text-dark border me-1">PU HT {{ ui.euro(puh) }}</span>
-              <span class="badge bg-light text-dark border">Ligne HT {{ ui.euro(lht) }}</span>
-              <div class="mt-1">
-                <span class="me-2">Qté: <strong>{{ q }}</strong></span>
-                <span class="me-2">PU TTC: <strong>{{ ui.euro(put) }}</strong></span>
-                <span>Ligne TVA: <strong>{{ ui.euro(ltv) }}</strong></span>
-              </div>
+              TVA {{ tvaP }}% · PU HT {{ ui.euro(puh) }}
             </div>
           </td>
 
           <td class="text-center">{{ q }}</td>
-          <td class="text-end">{{ ui.euro(put) }}</td>
+          <td class="text-end d-none d-lg-table-cell">{{ ui.euro(put) }}</td>
 
           {# colonnes desktop #}
           <td class="text-end d-none d-lg-table-cell">{{ ui.euro(puh) }}</td>
@@ -102,12 +144,48 @@
       {% else %}
         <tr><td colspan="9" class="text-center text-muted py-4">Aucune ligne</td></tr>
       {% endfor %}
+
+      {# ===================== LIGNE TRANSPORTEUR ===================== #}
+      {% set carrier_rate = (order.carrierTvaRate is defined and order.carrierTvaRate is not null)
+          ? order.carrierTvaRate
+          : ((order.carrierTva is defined and order.carrierTva is not null) ? order.carrierTva : 0) %}
+      {% set carrier_coef = 1 + (carrier_rate/100) %}
+      {% set carrier_put  = order.carrierPrice|default(0) %}          {# TTC #}
+      {% set carrier_puh  = (carrier_coef > 0) ? (carrier_put / carrier_coef) : carrier_put %}
+      {% set carrier_lht  = carrier_puh %}                            {# Qté = 1 #}
+      {% set carrier_lttc = carrier_put %}
+      {% set carrier_ltv  = carrier_lttc - carrier_lht %}
+
+      {% if carrier_put > 0 %}
+        <tr class="table-light">
+          <td>
+            <div class="rounded border bg-light d-flex align-items-center justify-content-center"
+                style="width:48px;height:48px;">🚚</div>
+          </td>
+          <td>
+            <div class="fw-semibold">{{ order.carrierName|default('Transporteur') }}</div>
+            <div class="d-lg-none small text-muted mt-1">
+              TVA {{ carrier_rate }}% · PU HT {{ ui.euro(carrier_puh) }}
+            </div>
+          </td>
+          <td class="text-center">1</td>
+          <td class="text-end d-none d-lg-table-cell">{{ ui.euro(carrier_put) }}</td>
+
+          <td class="text-end d-none d-lg-table-cell">{{ ui.euro(carrier_puh) }}</td>
+          <td class="text-end d-none d-lg-table-cell">{{ carrier_rate }}%</td>
+          <td class="text-end d-none d-lg-table-cell">{{ ui.euro(carrier_lht) }}</td>
+          <td class="text-end d-none d-lg-table-cell">{{ ui.euro(carrier_ltv) }}</td>
+
+          <td class="text-end fw-semibold">{{ ui.euro(carrier_lttc) }}</td>
+        </tr>
+      {% endif %}
     </tbody>
   </table>
 </div>
 
 {# ===================== RÉCAP TOTAUX + Annuler ===================== #}
 {% set livraison_ttc = order.carrierPrice|default(0) %}
+{# total_ttc_cmd : si order.totalWt existe, on le respecte ; sinon on recompose #}
 {% set total_ttc_cmd = order.totalWt|default(total_ht + total_tva + livraison_ttc) %}
 
 <div class="row mt-3 g-3">
@@ -120,11 +198,11 @@
       <table class="table table-sm mb-2">
         <tbody>
           <tr>
-            <th class="text-end w-50">Sous-total HT</th>
+            <th class="text-end w-50">Sous-total HT (articles)</th>
             <td class="text-end">{{ ui.euro(total_ht) }}</td>
           </tr>
           <tr>
-            <th class="text-end">TVA (produits)</th>
+            <th class="text-end">TVA (articles)</th>
             <td class="text-end">{{ ui.euro(total_tva) }}</td>
           </tr>
           <tr>
@@ -144,8 +222,8 @@
     {% if order.state < 3 %}
       <div class="d-flex justify-content-lg-end">
         <a class="btn btn-outline-danger"
-           onclick="return confirm('Confirmer l\\'annulation de la commande #{{ order.id }} ?');"
-           href="{{ ea_url().setController(crud).setAction('toCanceled').setEntityId(order.id) }}">
+          onclick="return confirm('Confirmer l\\'annulation de la commande #{{ order.id }} ?');"
+          href="{{ ea_url().setController(crud).setAction('toCanceled').setEntityId(order.id) }}">
           Annuler la commande
         </a>
       </div>

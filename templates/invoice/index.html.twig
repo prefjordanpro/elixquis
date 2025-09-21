@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Facture n°{{ order.id }}</title>
+  <style>
+    :root{
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --line:#e2e8f0;
+      --primary:#111827;
+      --accent:#eef2ff;
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      background:var(--bg);
+      color:var(--ink);
+      font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+    }
+    .invoice{
+      max-width:900px;
+      margin:28px auto;
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:0 8px 30px rgba(2,6,23,.08);
+      overflow:hidden;
+    }
+    .topbar{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:24px;
+      padding:28px 32px 16px 32px;
+      border-bottom:1px solid var(--line);
+    }
+    .brand h1{
+      margin:0 0 6px 0;
+      font-size:22px;
+      letter-spacing:.3px;
+    }
+    .brand p, .ship p{
+      margin:.5px 0;
+      color:var(--muted);
+    }
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:18px;
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .pill{
+      background:var(--accent);
+      border-radius:999px;
+      padding:6px 12px;
+      font-weight:600;
+      color:#3730a3;
+    }
+
+    h5{
+      margin:0;
+      padding:18px 32px 8px 32px;
+      color:var(--primary);
+      font-size:15px;
+      letter-spacing:.2px;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+    }
+    .items{
+      width:100%;
+      margin:0;
+      border-top:1px solid var(--line);
+      border-bottom:1px solid var(--line);
+    }
+    .items thead th{
+      text-align:left;
+      font-weight:600;
+      color:#0b1324;
+      background:#fafbff;
+      border-bottom:1px solid var(--line);
+      padding:12px 16px;
+      font-size:13px;
+    }
+    .items tbody td{
+      padding:12px 16px;
+      border-top:1px solid var(--line);
+      vertical-align:top;
+    }
+    .items tbody tr:first-child td{border-top:none}
+    .text-right{text-align:right}
+    .text-center{text-align:center}
+    .muted{color:var(--muted)}
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 320px;
+      gap:24px;
+      padding:18px 32px 28px 32px;
+    }
+
+    .totals{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      overflow:hidden;
+    }
+    .totals tr td{
+      padding:10px 14px;
+      border-top:1px solid var(--line);
+    }
+    .totals tr:first-child td{border-top:none}
+    .totals tr td:first-child{
+      color:var(--muted);
+    }
+    .totals .grand td{
+      background:#0b1324;
+      color:#fff;
+      font-weight:700;
+    }
+
+    .note{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:8px;
+    }
+
+    /* Impression */
+    @media print{
+      body{background:#fff}
+      .invoice{box-shadow:none;margin:0;border:0}
+      .topbar{padding:18px 24px}
+      .grid{padding:16px 24px}
+      h5{padding:12px 24px 8px}
+      .items thead th{background:#fff}
+    }
+  </style>
+</head>
+<body>
+
+<div class="invoice">
+
+  <!-- En-tête -->
+  <div class="topbar">
+    <div class="brand">
+      <h1>Elixquis</h1>
+      <p>mon adresse,</p>
+      <p>code postal, ville. France.</p>
+      <p>email@elixquis.com — 06 06 06 06 06</p>
+      <div class="meta">
+        <span class="pill">Facture n°{{ order.id }}</span>
+      </div>
+    </div>
+    <div class="ship">
+      {{ order.delivery|raw }}
+    </div>
+  </div>
+
+  <h5>Votre commande</h5>
+
+{# ================= CALCULS (ENTRÉE EN EUROS) ================= #}
+{% set total_ht_c  = 0 %}   {# en CENTIMES #}
+{% set total_tva_c = 0 %}
+{% set total_ttc_c = 0 %}
+
+<table class="items">
+  <thead>
+    <tr>
+      <th style="width:45%">Produit</th>
+      <th style="width:10%">Quantité</th>
+      <th style="width:18%">Prix unitaire H.T</th>
+      <th style="width:10%">TVA</th>
+      <th class="text-right" style="width:17%">Total T.T.C</th>
+    </tr>
+  </thead>
+  <tbody>
+
+  {% for product in order.orderDetails %}
+    {% set q     = product.productQuantity|default(0) %}
+    {% set put_c = (product.productPrice * 100)|round(0, 'common') %}   {# PU TTC en CENTIMES #}
+    {% set rate  = product.productTva|default(20) %}
+    {% set coeff = 1 + (rate / 100) %}
+
+    {# PU HT en CENTIMES : on TRONQUE (floor) pour garantir 19,99 plutôt que 20,00 #}
+    {% set unit_ht_c = (put_c / coeff)|round(0, 'floor') %}
+
+    {% set line_ht_c  = unit_ht_c * q %}
+    {% set line_ttc_c = put_c * q %}
+    {% set line_tva_c = line_ttc_c - line_ht_c %}
+
+    {% set total_ht_c  = total_ht_c  + line_ht_c %}
+    {% set total_tva_c = total_tva_c + line_tva_c %}
+    {% set total_ttc_c = total_ttc_c + line_ttc_c %}
+
+    <tr>
+      <td><strong>{{ product.productName }}</strong></td>
+      <td>{{ q }}</td>
+      <td>{{ (unit_ht_c / 100)|number_format(2, ',', ' ') ~ ' €' }}</td>
+      <td>{{ rate }}%</td>
+      <td class="text-right">{{ (line_ttc_c / 100)|number_format(2, ',', ' ') ~ ' €' }}</td>
+    </tr>
+  {% endfor %}
+
+  {# --- Transport (prend carrierTva ou carrierTvaRate) --- #}
+  {% set carrier_rate = (order.carrierTva is defined and order.carrierTva is not null)
+                        ? order.carrierTva
+                        : (order.carrierTvaRate|default(20)) %}
+  {% set coeff_carrier   = 1 + (carrier_rate / 100) %}
+  {% set carrier_price_c = (order.carrierPrice * 100)|round(0, 'common') %}
+  {% set carrier_ht_c    = (carrier_price_c / coeff_carrier)|round(0, 'floor') %}
+  {% set carrier_tva_c   = carrier_price_c - carrier_ht_c %}
+
+  {% set total_ht_c  = total_ht_c  + carrier_ht_c %}
+  {% set total_tva_c = total_tva_c + carrier_tva_c %}
+  {% set total_ttc_c = total_ttc_c + carrier_price_c %}
+
+    <tr>
+      <td><strong>{{ order.carrierName }}</strong></td>
+      <td>1</td>
+      <td>{{ (carrier_ht_c / 100)|number_format(2, ',', ' ') ~ ' €' }}</td>
+      <td>{{ carrier_rate }}%</td>
+      <td class="text-right">{{ (carrier_price_c / 100)|number_format(2, ',', ' ') ~ ' €' }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="grid">
+  <div>
+    <table class="totals">
+      <tr>
+        <td>Total H.T</td>
+        <td class="text-right"><strong>{{ (total_ht_c / 100)|number_format(2, ',', ' ') ~ ' €' }}</strong></td>
+      </tr>
+      <tr>
+        <td>Total T.V.A</td>
+        <td class="text-right"><strong>{{ (total_tva_c / 100)|number_format(2, ',', ' ') ~ ' €' }}</strong></td>
+      </tr>
+      <tr class="grand">
+        <td>Total T.T.C</td>
+        <td class="text-right">{{ (total_ttc_c / 100)|number_format(2, ',', ' ') ~ ' €' }}</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+</div>
+
+</body>
+</html>
