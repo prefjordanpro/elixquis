@@ -23,7 +23,8 @@ final class OrderController extends AbstractController
         $request->getSession()->remove('current_order_id');
         $form = $this->createForm(OrderType::class, null, ['addresses' => $user->getAddresses(),
             'action' => $this->generateUrl('app_order_summary')]);
-        return $this->render('order/index.html.twig', ['deliverForm' => $form->createView()]);
+        return $this->render('order/index.html.twig', ['deliverForm' => $form->createView(),
+            'cart' => $cart->getCart(), 'totalWt' => $cart->getTotalWt()]);
     }
 
     #[Route('/commande/recapitulatif', name: 'app_order_summary', methods: ['POST'])]

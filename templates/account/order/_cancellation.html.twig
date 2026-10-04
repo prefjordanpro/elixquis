@@ -18,6 +18,7 @@
 <div class="alert alert-info">Votre demande d’annulation a été refusée. Votre commande reprend son traitement.</div>
 {% endif %}
 {% if order.canRequestCancellation %}
+<details class="cancellation-panel"><summary>Demander l’annulation de cette commande</summary>
 <form class="card card-body my-3" method="post" action="{{ path('app_account_order_cancel', {id_order: order.id}) }}"
       onsubmit="return confirm('Confirmer votre demande d’annulation ?');">
   <input type="hidden" name="_token" value="{{ csrf_token('cancel_' ~ order.id) }}">
@@ -26,6 +27,7 @@
   <p class="text-muted">{{ order.state == 0 ? 'Votre commande impayée sera annulée immédiatement.' : 'Notre équipe examinera votre demande. Aucun remboursement n’est déclenché lors de son envoi.' }}</p>
   <button class="btn btn-outline-danger align-self-start" type="submit">Demander l’annulation</button>
 </form>
+</details>
 {% elseif order.state not in [7, 6] %}
 <p class="text-muted">Cette commande ne peut plus être annulée en ligne.</p>
 {% endif %}

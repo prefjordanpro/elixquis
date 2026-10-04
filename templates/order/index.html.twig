@@ -1,91 +1,43 @@
 {% extends 'base.html.twig' %}
-
+{% block title %}Adresse et livraison — Elixquis{% endblock %}
 {% block body %}
-<div class="container-md my-5">
-  <h1 class="h3 mb-4">Ma commande</h1>
-
+<div class="container my-5">
+  {% include 'components/_steps.html.twig' with {step: 2} %}
+  <div class="page-heading"><div><p class="section-label">Préparer ma commande</p><h1>Adresse & livraison</h1><p>Choisissez où recevoir votre commande, puis votre transporteur.</p></div></div>
   {{ form_start(deliverForm) }}
-
-  <style>
-    /* Chaque radio ou checkbox affiché par Symfony */
-    .form-check {
-      display: block;
-      margin-bottom: .5rem;
-    }
-    /* On met un effet "card" sur le conteneur */
-    .form-check.card {
-      border: 1px solid var(--bs-border-color);
-      border-radius: .5rem;
-      background: #fff;
-      padding: 1rem;
-      transition: .15s ease;
-    }
-    .form-check.card:hover {
-      background: #f8f9fa;
-    }
-    .form-check.card input:checked + label {
-      font-weight: 600;
-      color: var(--bs-primary);
-    }
-  </style>
-
-  {# Adresse #}
-  {% if deliverForm.addresses is defined %}
-    <div class="card shadow border-1 mb-3 bg-body-secondary">
-      <div class="card-body">
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <i data-feather="map-pin"></i>
-          <h2 class="h5 mb-0">Adresse de livraison</h2>
-        </div>
-        <p class="text-muted small mb-3">Sélectionnez l’adresse à laquelle vous souhaitez recevoir votre commande.</p>
-        
-        <div class="vstack gap-2">
-          {% for choice in deliverForm.addresses %}
-            <div class="form-check card">
-              {{ form_widget(choice) }}
-              {{ form_label(choice) }}
-            </div>
-          {% endfor %}
-        </div>
-
+  <div class="checkout-layout">
+    <div>
+      <fieldset class="card card-body mb-4">
+        <legend>Votre adresse de livraison</legend>
+        <p class="text-muted small">Sélectionnez une adresse enregistrée.</p>
+        {% for choice in deliverForm.addresses %}
+        <div class="form-check choice-card">{{ form_widget(choice) }}{{ form_label(choice) }}</div>
+        {% endfor %}
         {{ form_errors(deliverForm.addresses) }}
-      </div>
-    </div>
-  {% endif %}
-
-  <a href="{{ path('app_account_address_form') }}" class="small btn btn-secondary mb-3">Ajouter une nouvelle adresse de livraison</a>
-  <hr>
-
-  {# Transporteur #}
-  {% if deliverForm.carriers is defined %}
-    <div class="card shadow border-1 mb-4 bg-body-secondary">
-      <div class="card-body">
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <i data-feather="truck"></i>
-          <h2 class="h5 mb-0">Transporteur</h2>
-        </div>
-        <p class="text-muted small mb-3">Choisissez votre mode de livraison.</p>
-
-        <div class="vstack gap-2">
-          {% for choice in deliverForm.carriers %}
-            <div class="form-check card">
-              {{ form_widget(choice) }}
-              {{ form_label(choice) }}
-            </div>
-          {% endfor %}
-        </div>
-
+        <a href="{{ path('app_account_address_form') }}" class="btn btn-outline-primary align-self-start mt-2">Ajouter une adresse</a>
+      </fieldset>
+      <fieldset class="card card-body">
+        <legend>Votre mode de livraison</legend>
+        <p class="text-muted small">Le tarif associé à chaque transporteur est indiqué ci-dessous.</p>
+        {% for choice in deliverForm.carriers %}
+        <div class="form-check choice-card">{{ form_widget(choice) }}{{ form_label(choice) }}</div>
+        {% endfor %}
         {{ form_errors(deliverForm.carriers) }}
-      </div>
+      </fieldset>
     </div>
-  {% endif %}
-
-  {{ form_row(deliverForm._token) }}
-  <div class="d-grid d-sm-flex justify-content-sm-end gap-2">
-    <a href="{{ path('app_cart') }}" class="btn btn-outline-secondary">Retour au panier</a>
-    <button type="submit" class="btn btn-success">Continuer</button>
+    <aside class="card summary-card"><div class="card-body">
+      <h2>Votre sélection</h2>
+      {% for item in cart %}
+      <div class="d-flex justify-content-between gap-3 mb-3"><span>{{ item.object.name }} <span class="text-muted">× {{ item.qty }}</span></span><strong class="text-nowrap">{{ (item.object.pricewt * item.qty)|price }}</strong></div>
+      {% endfor %}
+      <div class="summary-total d-flex justify-content-between gap-2"><strong>Sous-total TTC</strong><strong>{{ totalWt|price }}</strong></div>
+      <p class="small text-muted mt-3">Le total avec livraison sera présenté sur le récapitulatif, avant le paiement.</p>
+      {{ form_row(deliverForm._token) }}
+      <button type="submit" class="btn btn-success btn-lg w-100">Continuer</button>
+      <a href="{{ path('app_cart') }}" class="d-block text-center mt-3">Retour au panier</a>
+      <p class="small text-muted mt-3 mb-0"><i data-feather="lock"></i> Vous validerez le montant avant d’être redirigé vers Stripe.</p>
+    </div></aside>
   </div>
-
-  {{ form_end(deliverForm, { render_rest: false }) }}
+  {{ form_end(deliverForm, {render_rest: false}) }}
 </div>
 {% endblock %}

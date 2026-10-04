@@ -1,0 +1,14 @@
+/* Corrections mobiles ciblées ; thème et actions EasyAdmin conservés. */
+.content-body .btn { min-height: 44px; }
+.content-body .alert, .content-body details { overflow-wrap: anywhere; }
+@media (max-width: 575px) {
+  .content-search,
+  .content-search .form-action-search,
+  .content-search .form-group,
+  .content-search .form-widget { min-width: 0 !important; max-width: 100%; width: 100%; }
+  .content-search input { min-width: 0 !important; max-width: 100%; }
+  .content-body .field-group { min-width: 0; }
+  .content-body .badge { white-space: normal; }
+  .content-body .d-flex { flex-wrap: wrap; }
+  .content-body .table-responsive { max-width: 100%; }
+}

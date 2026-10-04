@@ -1,31 +1,18 @@
 {% extends 'base.html.twig' %}
-
+{% block title %}Confirmation de commande — Elixquis{% endblock %}
 {% block body %}
 <div class="container my-5">
-    <div class="card shadow-lg border-0 rounded-4 text-center p-5">
-        <div class="mb-4">
-        <i data-feather="check-circle" class="text-success" style="width:64px; height:64px;"></i>
-        </div>
-        <h1 class="h3 mb-3">Merci pour votre commande 🎉</h1>
-        <p class="text-muted mb-4">
-        Votre commande a bien été enregistrée.<br>
-        Retrouvez les détails et le suivi dans votre espace client.
-        </p>
-        <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-2 mt-4">
-        <a href="{{ path('app_home') }}" class="btn btn-primary btn-md rounded-pill px-3">
-            Accueil
-        </a>
-
-        {# séparateur : trait vertical ≥ sm #}
-        <span class="vr d-none d-sm-inline mx-2 opacity-50" style="height:20px;"></span>
-
-        {# séparateur : trait horizontal en mobile #}
-        <div class="d-sm-none w-50 my-2 border-top opacity-50"></div>
-
-        <a href="{{ path('app_account') }}" class="btn btn-success btn-md rounded-pill px-3">
-            Mes commandes
-        </a>
-        </div>
+  {% include 'components/_steps.html.twig' with {step: 5} %}
+  <div class="card card-body text-center py-5">
+    <div class="mb-4"><i data-feather="check-circle" class="text-success" aria-hidden="true"></i></div>
+    <p class="section-label">Confirmation Stripe reçue</p>
+    <h1 class="mb-3">Merci pour votre commande.</h1>
+    <p class="lead">{{ order.reference }}</p>
+    <p class="text-muted">Votre paiement a été confirmé.<br>Retrouvez le détail et le suivi de votre commande dans votre espace client.</p>
+    <div class="hero-actions justify-content-center">
+      <a href="{{ path('app_account_order', {id_order: order.id}) }}" class="btn btn-success btn-lg">Voir ma commande</a>
+      <a href="{{ path('app_catalogue') }}" class="btn btn-outline-primary btn-lg">Retour à la boutique</a>
     </div>
-    </div>
+  </div>
+</div>
 {% endblock %}

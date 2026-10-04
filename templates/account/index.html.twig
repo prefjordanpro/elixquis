@@ -1,70 +1,34 @@
 {% extends 'base.html.twig' %}
-
+{% block title %}Mes commandes — Elixquis{% endblock %}
 {% block body %}
 <div class="container my-5">
-  <h1 class="mb-4">Espace membre</h1>
-
-  <div class="row">
-    <div class="col-md-3">
-      {% include 'account/_menu.html.twig' %}
-    </div>
-
+  <div class="page-heading"><div><p class="section-label">Votre espace Elixquis</p><h1>Bonjour {{ app.user.firstname }}.</h1><p>Retrouvez vos commandes et leur suivi.</p></div><a class="btn btn-outline-primary" href="{{ path('app_catalogue') }}">Retour à la boutique</a></div>
+  <div class="row account-layout">
+    <div class="col-md-3">{% include 'account/_menu.html.twig' %}</div>
     <div class="col-md-9">
-      <div class="d-flex align-items-center justify-content-between mb-3">
-        <h5 class="mb-0">Mes commandes</h5>
-      </div>
-
-      {% if orders|length == 0 %}
-        <div class="text-center p-5 border rounded-4 shadow-sm bg-body">
-          <div class="mb-2" style="font-size:42px;">🛍️</div>
-          <h6 class="fw-semibold mb-1">Aucune commande pour le moment</h6>
-          <p class="text-muted mb-3">Découvrez nos produits et lancez-vous.</p>
-          <a href="{{ path('app_home') }}" class="btn btn-primary rounded-pill px-4">Voir la boutique</a>
-        </div>
+      <h2 class="h4 mb-4">Mes commandes</h2>
+      {% if orders is empty %}
+      <div class="card card-body text-center py-5"><h3 class="h5">Aucune commande pour le moment</h3><p class="text-muted">Découvrez les produits de la boutique et composez votre première sélection.</p><a href="{{ path('app_catalogue') }}" class="btn btn-success align-self-center">Voir la boutique</a></div>
       {% else %}
-<ul class="list-unstyled m-0">
-  {% for order in orders %}
-    <li class="order-item d-flex align-items-center gap-3 p-3 mb-3 border rounded-4 bg-body shadow-sm">
-      <div class="order-badge flex-shrink-0 d-inline-flex align-items-center justify-content-center rounded-3">
-        <i data-feather="shopping-bag"></i>
-      </div>
-
-      <div class="flex-grow-1">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-          <div class="d-flex align-items-center gap-2">
-            <span class="fw-semibold">
-            <i data-feather="" class="me-1 text-primary"></i>
-            {{ order.reference }}
-            </span>
-            <span class="text-muted small">· {{ order.createdAt|date('d/m/Y \\à H\\hi') }}</span>
+      <ul class="list-unstyled">
+      {% for order in orders %}
+        <li class="order-item d-flex align-items-center gap-3 p-3 mb-3 border rounded-4 bg-body">
+          <div class="order-badge flex-shrink-0 d-inline-flex align-items-center justify-content-center rounded-3"><i data-feather="shopping-bag"></i></div>
+          <div class="flex-grow-1">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+              <div><strong>{{ order.reference }}</strong><span class="text-muted small d-block">{{ order.createdAt|date('d/m/Y à H:i') }}</span></div>
+              <strong>{{ order.totalWt|price }} TTC</strong>
+            </div>
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
+              {{ include('admin/state.html.twig', {field: {value: order.state}}) }}
+              <a class="btn btn-sm btn-outline-success" href="{{ path('app_account_order', {id_order: order.id}) }}">Voir le détail →</a>
+            </div>
           </div>
-          <div class="text-end">
-            <div class="fw-bold fs-6">{{ order.totalWt|price }} T.T.C</div>
-          </div>
-        </div>
-
-        <div class="d-flex align-items-center justify-content-between mt-1">
-          <div>
-            {{ include('admin/state.html.twig', { field : { 'value' : order.state } }) }}
-          </div>
-          <a class="btn btn-sm btn-outline-success rounded-pill"
-            href="{{ path('app_account_order', { 'id_order' : order.id }) }}">
-            Voir le détail →
-          </a>
-        </div>
-      </div>
-    </li>
-  {% endfor %}
-</ul>
+        </li>
+      {% endfor %}
+      </ul>
       {% endif %}
     </div>
   </div>
 </div>
-
-{# —— mini-CSS —— #}
-<style>
-  .order-item:hover { transform: translateY(-1px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important; }
-  .order-badge { width:44px; height:44px; background:linear-gradient(135deg, rgba(25,135,84,.12), rgba(25,135,84,.06)); color:#198754; }
-  .order-badge svg { width:20px; height:20px; }
-</style>
 {% endblock %}
