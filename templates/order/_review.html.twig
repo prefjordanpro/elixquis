@@ -1,0 +1,33 @@
+<div class="container my-5 purchase-page checkout-review">
+  {% include 'components/_steps.html.twig' with {step: 4} %}
+  <div class="page-heading"><div><p class="section-label">Dernière vérification</p><h1>Votre commande, en détail</h1><p>Vérifiez votre sélection et la livraison avant de passer au paiement sécurisé.</p></div></div>
+  <div class="checkout-layout">
+    <div>
+      <section class="card card-body mb-4" aria-labelledby="review-products">
+        <div class="review-heading"><h2 id="review-products">Vos articles</h2><span class="small text-muted">{{ order.reference }}</span></div>
+        {% for item in order.orderDetails %}
+        <div class="review-product">
+          {% if item.productIllustration %}<img src="{{ asset('uploads/' ~ item.productIllustration) }}" alt="{{ item.productName }}" width="80" height="80">{% else %}<div class="review-image-placeholder" aria-hidden="true"><i data-feather="shopping-bag"></i></div>{% endif %}
+          <div><h3>{{ item.productName }}</h3><p class="small text-muted mb-0">Quantité : {{ item.productQuantity }} · Prix unitaire TTC : {{ item.productPrice|price }}</p></div>
+          <strong>{{ (item.productPrice * item.productQuantity)|price }}</strong>
+        </div>
+        {% endfor %}
+        <a class="purchase-document-link" href="{{ path('app_invoice_customer', {id_order: order.id}) }}" target="_blank" rel="noopener">Document PDF <span class="visually-hidden">(nouvel onglet)</span></a>
+      </section>
+      <section class="card card-body mb-4" aria-labelledby="review-delivery">
+        <h2 id="review-delivery">Adresse & livraison</h2>
+        <p class="mb-2"><strong>{{ order.carrierName }}</strong></p>
+        {% if order.delivery %}<div class="delivery-address">{{ order.delivery|striptags|nl2br }}</div>{% else %}<p class="text-muted mb-0">Adresse de livraison non disponible.</p>{% endif %}
+      </section>
+      {% include 'account/order/_cancellation.html.twig' %}
+    </div>
+    <aside class="card summary-card"><div class="card-body">
+      <h2>Le montant de votre commande</h2>
+      <div class="summary-row"><span>Articles TTC</span><strong>{{ (order.totalWt - order.carrierPrice)|price }}</strong></div>
+      <div class="summary-row"><span>Livraison TTC</span><strong>{{ order.carrierPrice|price }}</strong></div>
+      <div class="summary-total d-flex justify-content-between align-items-center gap-2"><strong>Total TTC</strong><strong>{{ order.totalWt|price }}</strong></div>
+      <p class="small text-muted mt-2">Dont TVA : {{ order.totalTva|price }}</p>
+      {% include 'account/order/_payment.html.twig' %}
+    </div></aside>
+  </div>
+</div>

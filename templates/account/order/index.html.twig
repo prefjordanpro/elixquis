@@ -1,7 +1,11 @@
     {# templates/account/order_show.html.twig #}
     {% extends 'base.html.twig' %}
+    {% block stylesheets %}{% if order.state == 0 %}<link href="{{ asset('assets/css/purchase.css') }}" rel="stylesheet">{% endif %}{% endblock %}
 
     {% block body %}
+    {% if order.state == 0 %}
+      {% include 'order/_review.html.twig' %}
+    {% else %}
     <div class="container my-5">
     <h1 class="mb-4">Ma commande</h1>
     {% if order.state == 0 %}{% include 'components/_steps.html.twig' with {step: 3} %}{% endif %}
@@ -187,4 +191,5 @@
         </div>   {# /.col-md-9 #}
     </div>     {# /.row #}
     </div>       {# /.container #}
+    {% endif %}
     {% endblock %}

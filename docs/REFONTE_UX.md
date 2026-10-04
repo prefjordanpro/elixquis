@@ -46,7 +46,7 @@ Les contrastes calculés sur blanc sont de **6,50:1** pour le vert, **6,32:1** p
 
 ### 4. Principaux choix UX
 
-Le carrousel photographique est conservé **uniquement à l’accueil**, sans rotation automatique. Un seul titre principal structure chaque page publique et client. Les actions d’achat utilisent le vert, les liens et actions secondaires le bleu, les avertissements et annulations leurs couleurs sémantiques existantes. Les formulaires restent côté serveur, avec les mêmes protections. Les améliorations de recherche/tri sont progressives : le catalogue reste exploitable sans JavaScript.
+Le carrousel photographique est conservé **uniquement à l’accueil**. À la demande du client, il tourne désormais toutes les cinq secondes, avec pause au survol souris, pendant l’interaction et tant que le clavier reste dans le carrousel. La rotation reprend ensuite ; elle est désactivée lorsque le mouvement réduit est demandé. Un seul titre principal structure chaque page publique et client. Les actions d’achat utilisent le vert, les liens et actions secondaires le bleu, les avertissements et annulations leurs couleurs sémantiques existantes. Les formulaires restent côté serveur, avec les mêmes protections. Les améliorations de recherche/tri sont progressives : le catalogue reste exploitable sans JavaScript.
 
 ### 5. Accueil
 

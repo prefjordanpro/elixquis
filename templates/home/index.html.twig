@@ -21,7 +21,7 @@
             <img src="{{ asset('uploads/' ~ header.illustration) }}" alt="{{ header.title }}" width="800" height="650" loading="{{ loop.first ? 'eager' : 'lazy' }}" fetchpriority="{{ loop.first ? 'high' : 'auto' }}">
             <div class="hero-caption"><h2>{{ header.title }}</h2>
               {% if header.content %}<p>{{ header.content }}</p>{% endif %}
-              {% if header.buttonLink and header.buttonTitle %}<a href="{{ header.buttonLink }}">{{ header.buttonTitle }} →</a>{% endif %}
+              {% if header.buttonLink and header.buttonTitle %}<a href="{{ header.buttonLink }}">{{ 'parfum' in header.buttonTitle|lower ? 'Découvrir nos rhums' : header.buttonTitle }} →</a>{% endif %}
             </div>
           </div>
           {% endfor %}
@@ -43,7 +43,7 @@
 <div class="container">
   {% if productsInHomepage|length %}
   <section class="section-space" aria-labelledby="selection-title">
-    <div class="section-heading"><div><p class="section-label">La sélection Elixquis</p><h2 id="selection-title">À découvrir, à savourer.</h2><p>Explorez les produits mis en avant dans notre boutique.</p></div><a href="{{ path('app_catalogue') }}">Tous les produits →</a></div>
+    <div class="section-heading"><div><p class="section-label">La sélection Elixquis</p><h2 id="selection-title">À découvrir, à savourer.</h2><p>Explorez les produits mis en avant dans notre boutique.</p></div><a class="btn btn-outline-secondary" href="{{ path('app_catalogue') }}">Voir toute la boutique →</a></div>
     <div class="product-grid">
       {% for product in productsInHomepage|slice(0, 8) %}<div class="product-cell">{% include 'components/_product_card.html.twig' with {product: product, heading: 'h3'} %}</div>{% endfor %}
     </div>

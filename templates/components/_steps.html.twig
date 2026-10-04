@@ -1,9 +1,9 @@
 <nav aria-label="Étapes de votre commande">
   <ol class="checkout-steps">
-    {% for label in ['Panier', 'Adresse', 'Validation', 'Paiement', 'Confirmation'] %}
-    <li {{ loop.index == step ? 'aria-current="step"'|raw : '' }}>
+    {% for label in ['Panier', 'Adresse', 'Livraison', 'Paiement', 'Confirmation'] %}
+    <li class="{{ loop.index < step ? 'step-complete' : '' }}" {{ loop.index == step ? 'aria-current="step"'|raw : '' }}>
       <span class="step-number" aria-hidden="true">{{ loop.index }}</span>
-      {% if loop.index == 1 and step != 1 %}<a href="{{ path('app_cart') }}">{{ label }}</a>{% else %}<span>{{ label }}</span>{% endif %}
+      {% if loop.index == 1 and step != 1 %}<a href="{{ path('app_cart') }}">{{ label }}</a>{% elseif loop.index == 3 and step == 2 %}<a href="#checkout-delivery">{{ label }}</a>{% else %}<span>{{ label }}</span>{% endif %}
     </li>
     {% endfor %}
   </ol>

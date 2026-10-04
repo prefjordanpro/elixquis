@@ -1,7 +1,8 @@
 {% extends 'base.html.twig' %}
 {% block title %}Mon panier — Elixquis{% endblock %}
+{% block stylesheets %}<link href="{{ asset('assets/css/purchase.css') }}" rel="stylesheet">{% endblock %}
 {% block body %}
-<div class="container my-5">
+<div class="container my-5 purchase-page cart-page">
   {% include 'components/_steps.html.twig' with {step: 1} %}
   <div class="page-heading"><div><p class="section-label">Votre sélection</p><h1>Mon panier</h1><p>{{ fullCartQuantity }} article{{ fullCartQuantity > 1 ? 's' : '' }}</p></div><a href="{{ path('app_catalogue') }}">Continuer mes achats →</a></div>
   {% if cart is empty %}
@@ -14,12 +15,12 @@
         <div class="row g-3 align-items-center">
           <div class="col-3 col-md-2"><div class="ratio ratio-1x1"><img src="{{ asset('uploads/' ~ product.object.illustration) }}" alt="{{ product.object.name }}" class="img-fluid rounded" width="120" height="120"></div></div>
           <div class="col-9 col-md-5"><h2 class="h6 mb-1"><a class="text-reset text-decoration-none" href="{{ path('app_product', {slug: product.object.slug}) }}">{{ product.object.name }}</a></h2><span class="small text-muted">Prix unitaire : {{ product.object.pricewt|price }}</span></div>
-          <div class="col-7 col-md-3"><div class="quantity-controls" role="group" aria-label="Quantité de {{ product.object.name }}">
+          <div class="col-7 col-md-3"><span class="cart-field-label">Quantité</span><div class="quantity-controls" role="group" aria-label="Quantité de {{ product.object.name }}">
             <form method="post" action="{{ path('app_cart_decrease', {id: product.object.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('cart') }}"><button type="submit" class="btn btn-outline-secondary btn-sm" aria-label="Diminuer la quantité de {{ product.object.name }}" {{ product.qty == 1 ? 'disabled' : '' }}>&minus;</button></form>
             <span class="badge text-bg-secondary" aria-label="{{ product.qty }} unité{{ product.qty > 1 ? 's' : '' }}">x{{ product.qty }}</span>
             <form method="post" action="{{ path('app_cart_add', {id: product.object.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('cart') }}"><button type="submit" class="btn btn-outline-secondary btn-sm" aria-label="Augmenter la quantité de {{ product.object.name }}" {{ product.qty >= product.object.stock ? 'disabled' : '' }}>+</button></form>
           </div></div>
-          <div class="col-5 col-md-2 text-end"><strong>{{ (product.qty * product.object.pricewt)|price }}</strong><form method="post" action="{{ path('app_cart_delete', {id: product.object.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('cart') }}"><button type="submit" class="btn btn-link btn-sm text-danger" aria-label="Supprimer {{ product.object.name }} du panier">Supprimer</button></form></div>
+          <div class="col-5 col-md-2 text-end"><span class="cart-field-label">Sous-total TTC</span><strong>{{ (product.qty * product.object.pricewt)|price }}</strong><form method="post" action="{{ path('app_cart_delete', {id: product.object.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('cart') }}"><button type="submit" class="btn btn-link btn-sm text-danger" aria-label="Supprimer {{ product.object.name }} du panier">Supprimer</button></form></div>
         </div>
       </div></article>
       {% endfor %}
@@ -27,10 +28,11 @@
     </div>
     <div class="col-lg-4"><aside class="card summary-card"><div class="card-body">
       <h2>Votre récapitulatif</h2>
-      <div class="d-flex justify-content-between gap-2"><span>{{ fullCartQuantity }} article{{ fullCartQuantity > 1 ? 's' : '' }}</span><strong>{{ totalWt|price }}</strong></div>
-      <p class="text-muted small mt-3">Les frais de livraison seront affichés après le choix du transporteur. Aucun paiement à cette étape.</p>
-      <div class="summary-total d-flex justify-content-between align-items-center gap-2"><strong>Sous-total TTC</strong><strong>{{ totalWt|price }}</strong></div>
-      <a href="{{ path('app_order') }}" class="btn btn-success w-100 mt-4 btn-lg">Commander</a>
+      <div class="summary-row"><span>Sous-total · {{ fullCartQuantity }} article{{ fullCartQuantity > 1 ? 's' : '' }}</span><strong>{{ totalWt|price }}</strong></div>
+      <div class="summary-row"><span>Livraison</span><span class="text-muted">À choisir</span></div>
+      <p class="text-muted small mt-3">Les frais seront précisés à l’étape livraison. Aucun paiement à cette étape.</p>
+      <div class="summary-total d-flex justify-content-between align-items-center gap-2"><strong>Total hors livraison</strong><strong>{{ totalWt|price }}</strong></div>
+      <a href="{{ path('app_order') }}" class="btn btn-success w-100 mt-4 btn-lg">Poursuivre ma commande <i data-feather="arrow-right" aria-hidden="true"></i></a>
       <p class="text-muted small text-center mt-3 mb-0"><i data-feather="lock"></i> Paiement via Stripe · TVA incluse</p>
     </div></aside></div>
   </div>

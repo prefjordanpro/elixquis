@@ -1,11 +1,11 @@
 {% if order.state == 0 %}
-<div class="card card-body my-3">
-  <h2 class="h4">Valider et payer ma commande</h2>
-  <p>Vérifiez les articles, l’adresse et le montant ci-dessous avant le paiement. Votre commande est en attente de paiement. Ouvrez le paiement dans les 28 minutes ; la réservation expire après une heure.</p>
+<div class="card card-body my-3 payment-panel">
+  <h2 class="h4">Passer au paiement</h2>
+  <p class="small text-muted">Votre commande est en attente de paiement. Ouvrez le paiement dans les 28 minutes ; la réservation expire après une heure.</p>
   <form method="post" action="{{ path('app_payment', {id_order: order.id}) }}">
     <input type="hidden" name="_token" value="{{ csrf_token('payment_' ~ order.id) }}">
     <label class="form-check mb-3"><input class="form-check-input" type="checkbox" name="age_confirmed" value="1" required> Je confirme avoir au moins 18 ans.</label>
-    <button class="btn btn-success btn-lg" type="submit"><i data-feather="lock"></i> Payer {{ order.totalWt|price }}</button>
+    <button class="btn btn-success btn-lg w-100" type="submit"><i data-feather="lock" aria-hidden="true"></i> Payer {{ order.totalWt|price }}</button>
     <p class="text-muted small mt-3 mb-0">Le paiement s’effectue sur la page sécurisée de Stripe. La commande est payée uniquement après confirmation du règlement.</p>
   </form>
 </div>

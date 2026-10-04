@@ -8,9 +8,10 @@
   <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/css/custom.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/css/elixquis.css') }}" rel="stylesheet">
+  {% block stylesheets %}{% endblock %}
 </head>
 {% set route = app.request.attributes.get('_route')|default('') %}
-{% set checkout = route in ['app_order', 'app_payment_success'] %}
+{% set checkout = route in ['app_order', 'app_payment_success'] or (route == 'app_account_order' and order is defined and order.state == 0) %}
 <body class="elixquis-site {{ checkout ? 'checkout-page' : '' }}">
   <a class="skip-link" href="#contenu">Aller au contenu</a>
   <header class="site-header" data-bs-theme="dark">
@@ -25,8 +26,9 @@
           <a class="header-action header-cart" href="{{ path('app_cart') }}" aria-label="Panier, {{ fullCartQuantity }} article{{ fullCartQuantity > 1 ? 's' : '' }}">
             <i data-feather="shopping-cart" aria-hidden="true"></i><span>Panier</span><span class="badge cart-count">{{ fullCartQuantity }}</span>
           </a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Afficher la navigation"><span class="navbar-toggler-icon"></span></button>
+          {% if not checkout %}<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Afficher la navigation"><span class="navbar-toggler-icon"></span></button>{% endif %}
         </div>
+        {% if checkout %}<span class="checkout-header-note"><i data-feather="lock" aria-hidden="true"></i> Votre commande en toute simplicité</span>{% else %}
         <div class="collapse navbar-collapse order-lg-2" id="navbarCollapse">
           <ul class="navbar-nav mx-lg-auto gap-lg-2">
             <li class="nav-item"><a class="nav-link {{ route == 'app_home' ? 'active' : '' }}" {{ route == 'app_home' ? 'aria-current="page"'|raw : '' }} href="{{ path('app_home') }}">Accueil</a></li>
@@ -42,6 +44,7 @@
             {% if app.user and not checkout %}<li class="nav-item"><a class="nav-link" href="{{ path('app_account') }}">Mes commandes</a></li>{% endif %}
           </ul>
         </div>
+        {% endif %}
       </div>
     </nav>
   </header>
@@ -55,7 +58,7 @@
   </main>
   <footer class="site-footer" data-bs-theme="dark">
     <div class="container">
-      <div class="row g-4">
+      {% if not checkout %}<div class="row g-4">
         <div class="col-lg-5">
           <a class="navbar-brand" href="{{ path('app_home') }}">Elixquis</a>
           <p class="footer-intro">Des rhums arrangés, du caractère et de la gourmandise.</p>
@@ -75,6 +78,7 @@
           </ul>
         </div>
       </div>
+      {% endif %}
       <div class="footer-bottom">
         <p>© {{ "now"|date("Y") }} Elixquis</p>
         <p>L’abus d’alcool est dangereux pour la santé, à consommer avec modération. Vente interdite aux mineurs de moins de 18 ans.</p>
@@ -98,5 +102,6 @@
     </div></div>
   </div>
   <script src="{{ asset('assets/js/elixquis.js') }}"></script>
+  {% block javascripts %}{% endblock %}
 </body>
 </html>

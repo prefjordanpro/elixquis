@@ -1,8 +1,9 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ product.name }} — Elixquis{% endblock %}
 {% block description %}{{ product.description|striptags|slice(0, 150) }}{% endblock %}
+{% block stylesheets %}<link href="{{ asset('assets/css/purchase.css') }}" rel="stylesheet">{% endblock %}
 {% block body %}
-<div class="container my-5">
+<div class="container my-5 purchase-page product-page">
   <nav aria-label="Fil d’Ariane"><ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{{ path('app_catalogue') }}">Boutique</a></li>
     {% if product.category %}<li class="breadcrumb-item"><a href="{{ path('app_category', {slug: product.category.slug}) }}">{{ product.category.name }}</a></li>{% endif %}
@@ -13,22 +14,25 @@
     <div class="product-detail-info">
       <p class="section-label">{{ product.category ? product.category.name : 'La boutique Elixquis' }}</p>
       <h1>{{ product.name }}</h1>
-      <div><span class="detail-price">{{ product.pricewt|price }}</span><span class="text-muted ms-2">TTC</span></div>
+      <div class="product-price-line"><span class="detail-price">{{ product.pricewt|price }}</span><span class="text-muted">TTC · TVA incluse</span></div>
       <div class="buy-box">
         <p class="availability {{ product.stock < 1 ? 'unavailable' : '' }}">{{ product.stock > 0 ? 'Disponible' : 'Rupture de stock' }}</p>
         <p class="text-muted small mt-1">{{ product.stock > 0 ? product.stock ~ ' unité' ~ (product.stock > 1 ? 's' : '') ~ ' en stock' : 'Ce produit ne peut pas être ajouté au panier pour le moment.' }}</p>
         <div class="buy-row">
-          <div class="fixed-quantity"><small>Quantité</small><strong>1</strong></div>
+          <div class="fixed-quantity"><small>Quantité</small><strong>1 <span class="small fw-normal">par ajout</span></strong></div>
           <form method="post" action="{{ path('app_cart_add', {id: product.id}) }}">
             <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
             <button type="submit" class="btn btn-success btn-lg w-100" {{ product.stock < 1 ? 'disabled' : '' }}><i data-feather="shopping-bag"></i> Ajouter au panier</button>
           </form>
         </div>
-        <p class="small text-muted mt-3 mb-0">Une unité par ajout. Ajustez les quantités dans votre panier.</p>
+        <p class="small text-muted mt-3 mb-0">Après l’ajout, ajustez facilement la quantité avec les boutons − et + du panier.</p>
       </div>
-      <p class="small text-muted"><i data-feather="lock"></i> Paiement via Stripe · Livraison choisie avant le règlement.</p>
+      <ul class="purchase-reassurance">
+        <li><i data-feather="truck" aria-hidden="true"></i><span><strong>Livraison au choix</strong><small>Transporteur et tarif présentés avant le règlement.</small></span></li>
+        <li><i data-feather="lock" aria-hidden="true"></i><span><strong>Paiement via Stripe</strong><small>Le montant total est affiché avant de payer.</small></span></li>
+      </ul>
       <div class="product-description"><h2>À propos de ce produit</h2><div>{{ product.description|striptags|nl2br }}</div></div>
-      <a class="d-inline-block mt-4" href="{{ product.category ? path('app_category', {slug: product.category.slug}) : path('app_catalogue') }}">← Continuer la découverte</a>
+      <a class="btn btn-outline-secondary mt-4" href="{{ product.category ? path('app_category', {slug: product.category.slug}) : path('app_catalogue') }}">{{ product.category ? 'Explorer cette catégorie' : 'Continuer la découverte' }} →</a>
     </div>
   </div>
 </div>

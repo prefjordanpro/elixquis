@@ -59,6 +59,17 @@ final class UxPresentationTest extends WebTestCase
         $this->client->submit($form); self::assertResponseRedirects('/mon-panier');
         $this->client->followRedirect(); self::assertSelectorTextContains('body', '24,00 €');
         $this->export('panier');
+        $crawler = $this->client->getCrawler();
+        $this->client->submit($crawler->filter('main form[action="/cart/add/'.$this->product->getId().'"]')->form());
+        $this->client->followRedirect();
+        self::assertSelectorTextContains('.quantity-controls', 'x2');
+        self::assertSelectorTextContains('.summary-total', '48,00 €');
+        $this->client->submit($this->client->getCrawler()->filter('main form[action="/cart/decrease/'.$this->product->getId().'"]')->form());
+        $this->client->followRedirect();
+        self::assertSelectorTextContains('.quantity-controls', 'x1');
+        $this->client->submit($this->client->getCrawler()->filter('main form[action="/cart/delete/'.$this->product->getId().'"]')->form());
+        $this->client->followRedirect();
+        self::assertSelectorTextContains('main', 'Votre panier est vide');
         self::assertSame(5, (int) $this->em->getConnection()->fetchOne('SELECT stock FROM product'));
     }
 
@@ -88,6 +99,8 @@ final class UxPresentationTest extends WebTestCase
         self::assertSelectorTextContains('body', '24,00 €');
         self::assertSelectorTextContains('body', 'Transporteur de test');
         self::assertSelectorExists('input[name="order[_token]"]');
+        self::assertSelectorExists('input[name="order[carriers]"][data-delivery-cents="500"]');
+        self::assertSelectorTextContains('#checkout-delivery label', '5,00 € TTC');
         $currentUser = $this->em->find(User::class, $this->user->getId());
         $order = static::getContainer()->get(OrderManager::class)->create($currentUser, $this->em->find(Address::class, $this->address->getId()),
             $this->em->find(Carrier::class, $this->carrier->getId()), [['object' => $this->em->find(Product::class, $this->product->getId()), 'qty' => 1]]);
@@ -95,6 +108,9 @@ final class UxPresentationTest extends WebTestCase
         self::assertSame(200, $this->client->getResponse()->getStatusCode());
         self::assertNotEmpty($crawler->selectButton('Demander l’annulation')->form()['_token']->getValue());
         self::assertSelectorExists('input[name="age_confirmed"][required]');
+        self::assertNotEmpty($crawler->selectButton('Payer 29,00 €')->form()['_token']->getValue());
+        self::assertSelectorTextContains('.checkout-review', 'Livraison TTC');
+        self::assertSelectorTextContains('.checkout-steps [aria-current="step"]', 'Paiement');
         $this->export('commande-validation');
         $saved = $this->em->find(Order::class, $order->getId());
         $saved->setStripeSessionId('cs_ux_confirmation'); $this->em->flush();

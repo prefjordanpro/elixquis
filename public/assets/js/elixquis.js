@@ -1,5 +1,37 @@
 /* Améliorations progressives de présentation ; prix, stock et actions restent validés par le serveur. */
 (() => {
+  const carouselEl = document.getElementById('homeCarousel');
+  if (carouselEl && window.bootstrap && carouselEl.querySelectorAll('.carousel-item').length > 1) {
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const carousel = new bootstrap.Carousel(carouselEl, { interval: 5000, ride: false, pause: false });
+    const pauses = new Set();
+    const updateAutoplay = () => {
+      carousel.pause();
+      if (!motion.matches && !document.hidden && pauses.size === 0) carousel.cycle();
+    };
+    carouselEl.addEventListener('pointerenter', event => {
+      if (event.pointerType === 'mouse') { pauses.add('hover'); updateAutoplay(); }
+    });
+    carouselEl.addEventListener('pointerleave', () => { pauses.delete('hover'); updateAutoplay(); });
+    carouselEl.addEventListener('focusin', event => {
+      if (event.target.matches(':focus-visible')) pauses.add('keyboard');
+      updateAutoplay();
+    });
+    carouselEl.addEventListener('focusout', event => {
+      if (!carouselEl.contains(event.relatedTarget)) pauses.delete('keyboard');
+      updateAutoplay();
+    });
+    carouselEl.addEventListener('pointerdown', () => { pauses.add('pointer'); updateAutoplay(); });
+    const releasePointer = () => {
+      if (pauses.delete('pointer')) updateAutoplay();
+    };
+    window.addEventListener('pointerup', releasePointer);
+    window.addEventListener('pointercancel', releasePointer);
+    carouselEl.addEventListener('click', updateAutoplay);
+    document.addEventListener('visibilitychange', updateAutoplay);
+    motion.addEventListener('change', updateAutoplay);
+    updateAutoplay();
+  }
   const catalogue = document.querySelector('[data-catalogue]');
   if (catalogue && catalogue.querySelector('[data-product-grid]')) {
     const tools = catalogue.querySelector('[data-catalogue-tools]');

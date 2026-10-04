@@ -1,14 +1,16 @@
 {% extends 'base.html.twig' %}
 {% block title %}Adresse et livraison — Elixquis{% endblock %}
+{% block stylesheets %}<link href="{{ asset('assets/css/purchase.css') }}" rel="stylesheet">{% endblock %}
+{% block javascripts %}<script src="{{ asset('assets/js/purchase.js') }}"></script>{% endblock %}
 {% block body %}
-<div class="container my-5">
+<div class="container my-5 purchase-page checkout-selection">
   {% include 'components/_steps.html.twig' with {step: 2} %}
   <div class="page-heading"><div><p class="section-label">Préparer ma commande</p><h1>Adresse & livraison</h1><p>Choisissez où recevoir votre commande, puis votre transporteur.</p></div></div>
   {{ form_start(deliverForm) }}
   <div class="checkout-layout">
     <div>
-      <fieldset class="card card-body mb-4">
-        <legend>Votre adresse de livraison</legend>
+      <fieldset class="card card-body mb-4" id="checkout-address">
+        <legend><span class="checkout-section-number" aria-hidden="true">1</span> Votre adresse de livraison</legend>
         <p class="text-muted small">Sélectionnez une adresse enregistrée.</p>
         {% for choice in deliverForm.addresses %}
         <div class="form-check choice-card">{{ form_widget(choice) }}{{ form_label(choice) }}</div>
@@ -16,11 +18,12 @@
         {{ form_errors(deliverForm.addresses) }}
         <a href="{{ path('app_account_address_form') }}" class="btn btn-outline-primary align-self-start mt-2">Ajouter une adresse</a>
       </fieldset>
-      <fieldset class="card card-body">
-        <legend>Votre mode de livraison</legend>
-        <p class="text-muted small">Le tarif associé à chaque transporteur est indiqué ci-dessous.</p>
+      <fieldset class="card card-body" id="checkout-delivery">
+        <legend><span class="checkout-section-number" aria-hidden="true">2</span> Votre mode de livraison</legend>
+        <p class="text-muted small">Les tarifs ci-dessous incluent la TVA. Le montant final est confirmé avant le paiement.</p>
         {% for choice in deliverForm.carriers %}
-        <div class="form-check choice-card">{{ form_widget(choice) }}{{ form_label(choice) }}</div>
+        {% set carrier = null %}{% for option in deliverForm.carriers.vars.choices %}{% if option.value == choice.vars.value %}{% set carrier = option.data %}{% endif %}{% endfor %}
+        <div class="form-check choice-card">{{ form_widget(choice, {label: carrier ? carrier.name ~ ' · ' ~ (carrier.price|price) ~ ' TTC — ' ~ carrier.description : choice.vars.label, attr: {'data-delivery-cents': carrier ? (carrier.price * 100)|round : ''}}) }}{{ form_label(choice) }}</div>
         {% endfor %}
         {{ form_errors(deliverForm.carriers) }}
       </fieldset>
@@ -28,12 +31,16 @@
     <aside class="card summary-card"><div class="card-body">
       <h2>Votre sélection</h2>
       {% for item in cart %}
-      <div class="d-flex justify-content-between gap-3 mb-3"><span>{{ item.object.name }} <span class="text-muted">× {{ item.qty }}</span></span><strong class="text-nowrap">{{ (item.object.pricewt * item.qty)|price }}</strong></div>
+      <div class="checkout-product"><img src="{{ asset('uploads/' ~ item.object.illustration) }}" alt="{{ item.object.name }}" width="56" height="56"><span>{{ item.object.name }}<small class="text-muted">Quantité : {{ item.qty }}</small></span><strong>{{ (item.object.pricewt * item.qty)|price }}</strong></div>
       {% endfor %}
       <div class="summary-total d-flex justify-content-between gap-2"><strong>Sous-total TTC</strong><strong>{{ totalWt|price }}</strong></div>
-      <p class="small text-muted mt-3">Le total avec livraison sera présenté sur le récapitulatif, avant le paiement.</p>
+      <div class="delivery-estimate" data-delivery-estimate data-subtotal-cents="{{ (totalWt * 100)|round }}" hidden>
+        <div class="summary-row"><span>Livraison TTC</span><output data-delivery-price aria-label="Frais de livraison"></output></div>
+        <div class="summary-total d-flex justify-content-between align-items-center gap-2"><strong>Total avec livraison</strong><strong><output data-checkout-total aria-label="Total avec livraison" aria-live="polite"></output></strong></div>
+      </div>
+      <p class="small text-muted mt-3">Choisissez votre transporteur pour connaître le total. Le récapitulatif confirme le montant avant le paiement.</p>
       {{ form_row(deliverForm._token) }}
-      <button type="submit" class="btn btn-success btn-lg w-100">Continuer</button>
+      <button type="submit" class="btn btn-success btn-lg w-100">Vérifier ma commande <i data-feather="arrow-right" aria-hidden="true"></i></button>
       <a href="{{ path('app_cart') }}" class="d-block text-center mt-3">Retour au panier</a>
       <p class="small text-muted mt-3 mb-0"><i data-feather="lock"></i> Vous validerez le montant avant d’être redirigé vers Stripe.</p>
     </div></aside>
