@@ -60,7 +60,7 @@ class OrderManager
                 }
                 $order->setStripePaymentIntentId($intent);
             }
-            if (in_array($order->getState(), [1, 2, 3, 4, 5, 6], true)) { return; }
+            if (in_array($order->getState(), [1, 2, 3, 4, 5, 6, 7], true)) { return; }
             if ($order->getState() !== 0 || !$order->isStockReserved()) {
                 throw new \DomainException('Cette commande ne peut plus être payée.');
             }
@@ -98,7 +98,7 @@ class OrderManager
     {
         $this->em->wrapInTransaction(function () use ($order, $refund): void {
             $this->em->refresh($order, LockMode::PESSIMISTIC_WRITE);
-            if (!in_array($order->getState(), [1, 2, 3, 4, 5, 6], true)
+            if (!in_array($order->getState(), [1, 2, 3, 4, 5, 6, 7], true)
                 || !$order->getStripePaymentIntentId()
                 || $refund->payment_intent !== $order->getStripePaymentIntentId()
                 || $refund->currency !== 'eur' || $refund->amount !== $order->getTotalCents()
@@ -109,6 +109,12 @@ class OrderManager
             }
             $order->setStripeRefundId($refund->id)->setStripeRefundStatus($refund->status);
             if ($refund->status === 'succeeded' && $order->getState() !== 6) {
+                if ($order->getState() === 7) {
+                    // Un remboursement externe confirmé résout aussi la demande, sans la perdre.
+                    $pending = $this->em->getRepository(\App\Entity\CancellationRequest::class)->findOneBy(['order' => $order, 'decision' => 'pending']);
+                    $pending?->resolve('accepted');
+                    $order->setState(4);
+                }
                 $order->setStateBeforeRefund($order->getState());
                 // Les articles expédiés/livrés ne reviennent pas physiquement par un remboursement.
                 if (in_array($order->getState(), [1, 2, 4], true)) { $this->releaseStock($order); }

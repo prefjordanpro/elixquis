@@ -131,7 +131,7 @@ Suite : `php vendor/phpunit/phpunit/phpunit --testdox`.
 
 ## 13. Résultats
 
-**50 tests réussis, 773 assertions** après ajout de l’action distincte de remboursement Stripe. Composer valide, aucun avis de sécurité connu dans l’audit de finalisation, mapping et base Doctrine cohérents, lint Twig/YAML/PHP et conteneur valides.
+**74 tests réussis, 1 259 assertions** après ajout des demandes d’annulation client. Composer valide, aucun avis de sécurité connu dans l’audit de finalisation, mapping et base Doctrine cohérents, lint Twig/YAML/PHP et conteneur valides.
 
 Les tests utilisent exclusivement **SQLite en mémoire**, créée à chaque test. Ils ne touchent pas à la base locale ni à une base de production et n’envoient aucun e-mail. Ils couvrent notamment les formulaires, les droits d’accès, les prix actualisés, les instantanés historiques, le rollback de stock, les annulations répétées, les versions concurrentes, les montants falsifiés, la majorité, la génération PDF et un webhook signé envoyé deux fois.
 
@@ -183,3 +183,19 @@ Migration additive `Version20261004120000` appliquée à la base locale ; mappin
 Validation : **50 tests, 773 assertions**, templates Twig et conteneur valides. Les 25 nouveaux cas utilisent le vrai SDK Stripe avec son transport HTTP simulé et une clé factice : aucun appel réseau Stripe, remboursement réel ou e-mail. Ils couvrent succès, attente, refus, erreurs réseau/API, répétitions, stock, anciennes sessions, montants falsifiés, remboursements externes, webhooks signés/répétés/désordonnés et échec bancaire tardif. Les dépréciations indirectes Doctrine restent signalées. Un parcours complet avec le webhook et le tableau de bord Stripe de test reste à valider après configuration des événements.
 
 Références : [remboursements et événements Stripe](https://docs.stripe.com/refunds), [création d’un remboursement](https://docs.stripe.com/api/refunds/create), [idempotence](https://docs.stripe.com/api/idempotent_requests).
+
+## 18. Demandes d’annulation client
+
+Dans le détail d’une commande du propriétaire connecté, « Demander l’annulation » propose une raison facultative, limitée à 1 000 caractères côté serveur. Le POST exige un jeton CSRF de la commande. Le contrôleur recherche systématiquement la commande par identifiant **et propriétaire** ; le service vérifie à nouveau ce propriétaire après verrouillage. Aucun statut, montant ou décision envoyé par le navigateur n’est accepté comme instruction de changement d’état.
+
+Une commande impayée est annulée immédiatement, après expiration de sa session Stripe éventuelle ; son stock est restitué une seule fois. Une commande payée ou en préparation passe à **7 — Demande d’annulation**, sans remboursement ni restitution de stock. Le client voit « Votre demande d’annulation a bien été enregistrée. » puis « Votre demande est en cours de traitement. ». L’action est masquée pour les statuts incompatibles et pour une commande dont un remboursement est déjà enregistré. Une requête répétée ne crée pas de nouvelle demande et ne remplace pas sa raison ou sa date.
+
+L’administration signale les demandes par un badge et un panneau contenant le motif échappé. Les actions dédiées « Accepter et rembourser » et « Refuser la demande » exigent `ROLE_ADMIN`, POST et des jetons CSRF distincts liés à la commande et à la demande. Un refus restaure exactement le statut payé/en préparation antérieur, sans opération Stripe ni modification du stock. Une nouvelle demande après refus conserve la précédente dans l’historique ; un ancien formulaire de résolution ne modifie pas la nouvelle demande.
+
+L’acceptation conserve atomiquement la résolution, annule la commande et restitue le stock, puis utilise le service de remboursement Stripe existant. La commande n’est « Remboursée » et le message « Votre commande a été annulée et remboursée. » n’est affiché qu’après confirmation Stripe. En cas d’attente ou d’erreur API, elle reste annulée avec un message client de traitement en cours ; l’administrateur peut synchroniser/reprendre via l’action existante, avec la même protection contre les doublons. Un webhook confirmant un remboursement externe pendant une demande résout aussi celle-ci comme acceptée. Une confirmation de paiement tardive ne réinitialise pas une demande en cours.
+
+La table `cancellation_request` conserve chaque raison, date de demande, date de résolution, statut antérieur, décision et administrateur ayant résolu la demande. Les décisions sont également journalisées. Commandes, lignes et instantanés historiques restent conservés ; aucun double remboursement ni double recrédit du stock n’est introduit.
+
+Migration additive `Version20261004130000` simulée puis appliquée à la base locale. Schéma Doctrine synchronisé ; branche `codex/finalisation-site`, `main` et `.env.local` inchangés.
+
+Validation : **74 tests PHPUnit, 1 259 assertions**, 22 templates Twig, conteneur et syntaxe PHP valides. Les 24 nouveaux cas couvrent propriétaire ordinaire et accès d’un autre client, POST/CSRF/rôles, demandes payées et impayées, motif facultatif/longueur/échappement, répétitions, statuts incompatibles, acceptation/refus, historique après refus, remboursements réussis/en attente/en erreur et stock restitué une seule fois. SQLite reste en mémoire et le transport Stripe simulé : aucun remboursement réel ou e-mail exécuté. Les dépréciations indirectes Doctrine existantes et l’absence de test de concurrence réelle MariaDB restent les limites de la validation.

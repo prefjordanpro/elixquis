@@ -4,7 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Order;
 use App\Repository\OrderRepository;
-use App\Service\{OrderManager, StripePayment, StripeRefund};
+use App\Service\{OrderCancellation, OrderManager, StripePayment, StripeRefund};
 use EasyCorp\Bundle\EasyAdminBundle\Config\{Action, Actions, Crud};
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\{AssociationField, DateField, Field, IdField, NumberField, TextField};
@@ -61,6 +61,48 @@ class OrderCrudController extends AbstractCrudController
             $this->addFlash('success', 'Statut de la commande mis à jour.');
         } catch (\DomainException $e) { $this->addFlash('warning', $e->getMessage()); }
         catch (\Stripe\Exception\ApiErrorException $e) { $this->addFlash('warning', 'Le service de paiement est indisponible.'); }
+        return $this->redirectToRoute('admin_order_detail', ['entityId' => $id]);
+    }
+
+    #[Route('/admin/commande/{id}/demande-annulation/{requestId}/accepter', name: 'app_admin_cancellation_accept', methods: ['POST'])]
+    public function acceptCancellation(int $id, int $requestId, Request $request, OrderRepository $repository, OrderCancellation $cancellations, StripeRefund $refunds, \Psr\Log\LoggerInterface $logger): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        if (!$this->isCsrfTokenValid('cancellation_accept_'.$id.'_'.$requestId, $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton de sécurité invalide.');
+        }
+        $order = $repository->find($id);
+        if (!$order) { throw $this->createNotFoundException('Commande introuvable.'); }
+        try {
+            $cancellations->resolve($order, $requestId, true, $this->getUser());
+            $status = $refunds->refund($order);
+            if ($status === 'succeeded') { $this->addFlash('success', 'Demande acceptée : commande annulée et remboursée, confirmation Stripe reçue.'); }
+            elseif (in_array($status, ['failed', 'canceled'], true)) {
+                $this->addFlash('danger', 'Demande acceptée et commande annulée, mais Stripe a refusé le remboursement. Vérifiez l’opération dans Stripe.');
+            } else {
+                $this->addFlash('warning', 'Demande acceptée et commande annulée. Le remboursement est en attente de confirmation Stripe.');
+            }
+        } catch (\DomainException $e) { $this->addFlash('danger', $e->getMessage()); }
+        catch (\Stripe\Exception\ApiErrorException $e) {
+            $logger->error('Remboursement après demande d’annulation non confirmé.', ['order' => $id, 'request' => $requestId]);
+            $this->addFlash('danger', 'La commande a été annulée, mais Stripe n’a pas confirmé le remboursement. Utilisez l’action de remboursement pour vérifier ou réessayer sans créer de doublon.');
+        }
+        return $this->redirectToRoute('admin_order_detail', ['entityId' => $id]);
+    }
+
+    #[Route('/admin/commande/{id}/demande-annulation/{requestId}/refuser', name: 'app_admin_cancellation_refuse', methods: ['POST'])]
+    public function refuseCancellation(int $id, int $requestId, Request $request, OrderRepository $repository, OrderCancellation $cancellations): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        if (!$this->isCsrfTokenValid('cancellation_refuse_'.$id.'_'.$requestId, $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton de sécurité invalide.');
+        }
+        $order = $repository->find($id);
+        if (!$order) { throw $this->createNotFoundException('Commande introuvable.'); }
+        try {
+            $cancellations->resolve($order, $requestId, false, $this->getUser());
+            $this->addFlash('success', 'Demande d’annulation refusée. Le statut précédent de la commande est conservé.');
+        } catch (\DomainException $e) { $this->addFlash('danger', $e->getMessage()); }
         return $this->redirectToRoute('admin_order_detail', ['entityId' => $id]);
     }
 

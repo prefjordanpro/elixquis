@@ -40,6 +40,16 @@ class Order
     #[ORM\OneToMany(targetEntity: OrderDetail::class, mappedBy: 'myOrder', orphanRemoval: true, cascade:['persist'])]
     private Collection $orderDetails;
 
+    /** @var Collection<int, CancellationRequest> */
+    #[ORM\OneToMany(targetEntity: CancellationRequest::class, mappedBy: 'order', cascade: ['persist'])]
+    #[ORM\OrderBy(['id' => \SortDirection::Ascending])]
+    private Collection $cancellationRequests;
+
+    public function getCancellationRequests(): Collection { return $this->cancellationRequests; }
+    public function getLatestCancellationRequest(): ?CancellationRequest { return $this->cancellationRequests->last() ?: null; }
+    public function addCancellationRequest(CancellationRequest $request): void { $this->cancellationRequests->add($request); }
+    public function canRequestCancellation(): bool { return in_array($this->state, [0, 1, 2], true) && !$this->stripeRefundId; }
+
     #[ORM\ManyToOne(inversedBy: 'orders')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
@@ -92,6 +102,7 @@ class Order
     public function __construct()
     {
         $this->orderDetails = new ArrayCollection();
+        $this->cancellationRequests = new ArrayCollection();
     }
 
     public function getTotalWt(): float

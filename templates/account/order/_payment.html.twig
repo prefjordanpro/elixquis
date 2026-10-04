@@ -6,9 +6,5 @@
     <label class="form-check mb-3"><input class="form-check-input" type="checkbox" name="age_confirmed" value="1" required> Je confirme avoir au moins 18 ans.</label>
     <button class="btn btn-success" type="submit">Payer {{ order.totalWt|price }}</button>
   </form>
-  <form class="mt-3" method="post" action="{{ path('app_account_order_cancel', {id_order: order.id}) }}">
-    <input type="hidden" name="_token" value="{{ csrf_token('cancel_' ~ order.id) }}">
-    <button class="btn btn-outline-danger" type="submit">Annuler la commande et libérer le stock</button>
-  </form>
 </div>
 {% endif %}

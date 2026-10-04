@@ -290,6 +290,273 @@ final class StripeRefundTest extends WebTestCase
         $this->assertStored(1, 3, null);
     }
 
+    private function cancellationForm()
+    {
+        $crawler = $this->client->request('GET', '/compte/commande/'.$this->order->getId());
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        return $crawler->selectButton('Demander l’annulation')->form();
+    }
+
+    private function requestCancellation(string $reason = 'Changement de projet'): void
+    {
+        $form = $this->cancellationForm(); $form['reason'] = $reason;
+        $this->client->submit($form); self::assertResponseRedirects('/compte/commande/'.$this->order->getId());
+    }
+
+    private function resolutionForm(bool $accept = true)
+    {
+        $crawler = $this->client->request('GET', '/admin/order/'.$this->order->getId());
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        return $crawler->selectButton($accept ? 'Accepter et rembourser' : 'Refuser la demande')->form();
+    }
+
+    /** @dataProvider clientCancellableStates */
+    public function testOwnerCanRequestCancellationWithoutRefund(int $state): void
+    {
+        $this->order->setState($state);
+        if ($state === 0) { $this->order->setStripeSessionId(null)->setStripePaymentIntentId(null); }
+        $this->em->flush();
+        $form = $this->cancellationForm(); $form['reason'] = '<script>alert(1)</script> Mon motif';
+        $this->client->request('POST', $form->getUri(), $form->getPhpValues() + ['state' => 6, 'amount' => 1, 'decision' => 'accepted']);
+        self::assertResponseRedirects('/compte/commande/'.$this->order->getId());
+        $this->client->followRedirect();
+        self::assertSelectorTextContains('body', $state === 0 ? 'Votre commande a été annulée.' : 'Votre demande d’annulation a bien été enregistrée.');
+        if ($state !== 0) { self::assertSelectorTextContains('body', 'Votre demande est en cours de traitement.'); }
+        self::assertSelectorNotExists('button:contains("Demander l’annulation")');
+        $this->assertStored($state === 0 ? 4 : 7, $state === 0 ? 5 : 3, null);
+        $saved = $this->em->find(Order::class, $this->order->getId());
+        self::assertCount(1, $saved->getCancellationRequests());
+        $request = $saved->getLatestCancellationRequest();
+        self::assertSame($state, $request->getPreviousState());
+        self::assertSame('<script>alert(1)</script> Mon motif', $request->getReason());
+        self::assertSame($state === 0 ? 'accepted' : 'pending', $request->getDecision());
+        self::assertNotNull($request->getRequestedAt());
+        self::assertSame($state === 0, $request->getResolvedAt() !== null);
+        if ($state !== 0) {
+            $this->client->request('GET', '/admin/order'); self::assertSelectorTextContains('body', 'Demande d’annulation');
+            $this->client->request('GET', '/admin/order/'.$this->order->getId());
+            self::assertSelectorNotExists('script:contains("alert(1)")');
+            self::assertSelectorTextContains('body', 'Mon motif');
+        }
+    }
+
+    public static function clientCancellableStates(): array { return ['unpaid' => [0], 'paid' => [1], 'preparation' => [2]]; }
+
+    public function testDoubleClientRequestDoesNotOverwriteHistoryOrRestoreStock(): void
+    {
+        $form = $this->cancellationForm(); $form['reason'] = 'Motif initial'; $this->client->submit($form);
+        $requestedAt = $this->em->getConnection()->fetchOne('SELECT requested_at FROM cancellation_request');
+        $form['reason'] = 'Motif modifié'; $this->client->submit($form);
+        self::assertResponseRedirects('/compte/commande/'.$this->order->getId()); $this->client->followRedirect();
+        self::assertSelectorTextContains('body', 'Votre demande est en cours de traitement.');
+        self::assertSame(1, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM cancellation_request'));
+        self::assertSame('Motif initial', $this->em->getConnection()->fetchOne('SELECT reason FROM cancellation_request'));
+        self::assertSame($requestedAt, $this->em->getConnection()->fetchOne('SELECT requested_at FROM cancellation_request'));
+        $this->assertStored(7, 3, null);
+    }
+
+    public function testAnotherClientCannotViewOrCancelOwnersOrder(): void
+    {
+        $form = $this->cancellationForm();
+        $other = (new User())->setEmail('other@example.test')->setFirstname('Other')->setLastname('Client')->setPassword('hash');
+        $this->em->persist($other); $this->em->flush(); $this->client->loginUser($other);
+        $this->client->request('GET', '/compte/commande/'.$this->order->getId()); self::assertResponseRedirects('/');
+        $this->client->submit($form); self::assertSame(404, $this->client->getResponse()->getStatusCode());
+        self::assertSame(0, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM cancellation_request'));
+        $this->assertStored(1, 3, null);
+    }
+
+    /** @dataProvider incompatibleClientStates */
+    public function testIncompatibleClientStatusIsHiddenAndRejectedEvenWithValidToken(int $state): void
+    {
+        $form = $this->cancellationForm();
+        $this->em->find(Order::class, $this->order->getId())->setState($state); $this->em->flush();
+        $this->client->submit($form); self::assertResponseRedirects('/compte/commande/'.$this->order->getId());
+        $this->client->followRedirect(); self::assertSelectorTextContains('body', 'Cette commande ne peut plus être annulée en ligne.');
+        self::assertSelectorNotExists('button:contains("Demander l’annulation")');
+        self::assertSame(0, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM cancellation_request'));
+        $this->assertStored($state, 3, null);
+    }
+
+    public static function incompatibleClientStates(): array { return ['shipped' => [3], 'cancelled' => [4], 'delivered' => [5], 'refunded' => [6]]; }
+
+    public function testClientCancellationRequiresPostCsrfAndAuthentication(): void
+    {
+        $url = '/compte/commande/'.$this->order->getId().'/annuler';
+        $this->client->request('GET', $url); self::assertSame(405, $this->client->getResponse()->getStatusCode());
+        foreach ([[], ['_token' => 'invalid']] as $parameters) {
+            $this->client->request('POST', $url, $parameters); self::assertSame(403, $this->client->getResponse()->getStatusCode());
+        }
+        $this->client->getCookieJar()->clear(); $this->client->request('POST', $url);
+        self::assertResponseRedirects('/connexion');
+        $this->assertStored(1, 3, null);
+    }
+
+    public function testReasonIsOptionalAndLengthIsCheckedByServer(): void
+    {
+        $form = $this->cancellationForm();
+        $this->client->request('POST', $form->getUri(), ['_token' => $form['_token']->getValue(), 'reason' => str_repeat('a', 1001)]);
+        self::assertResponseRedirects('/compte/commande/'.$this->order->getId());
+        self::assertSame(0, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM cancellation_request'));
+        $this->client->submit($form); self::assertResponseRedirects('/compte/commande/'.$this->order->getId());
+        self::assertNull($this->em->getConnection()->fetchOne('SELECT reason FROM cancellation_request'));
+        $this->assertStored(7, 3, null);
+    }
+
+    public function testAdminAcceptanceRefundsOnceAndPreservesRequestHistory(): void
+    {
+        $this->requestCancellation(); $form = $this->resolutionForm(); $this->expectPaymentAndRefund();
+        $this->client->submit($form); self::assertResponseRedirects('/admin/order/'.$this->order->getId());
+        $resolvedAt = $this->em->getConnection()->fetchOne('SELECT resolved_at FROM cancellation_request');
+        self::assertNotNull($resolvedAt);
+        $this->client->submit($form); self::assertResponseRedirects('/admin/order/'.$this->order->getId());
+        $this->assertStored(6, 5, 'succeeded');
+        $request = $this->em->find(Order::class, $this->order->getId())->getLatestCancellationRequest();
+        self::assertSame('accepted', $request->getDecision()); self::assertSame($this->admin->getId(), $request->getResolvedBy()->getId());
+        self::assertSame('Changement de projet', $request->getReason());
+        self::assertSame($resolvedAt, $this->em->getConnection()->fetchOne('SELECT resolved_at FROM cancellation_request'));
+        $this->client->request('GET', '/compte/commande/'.$this->order->getId());
+        self::assertSelectorTextContains('body', 'Votre commande a été annulée et remboursée.');
+    }
+
+    /** @dataProvider paidClientStates */
+    public function testAdminRefusalRestoresPreviousStateWithoutRefundOrStockChange(int $state): void
+    {
+        $this->order->setState($state); $this->em->flush();
+        $this->requestCancellation(); $form = $this->resolutionForm(false);
+        $this->client->submit($form); self::assertResponseRedirects('/admin/order/'.$this->order->getId());
+        $resolvedAt = $this->em->getConnection()->fetchOne('SELECT resolved_at FROM cancellation_request');
+        $this->client->submit($form); self::assertResponseRedirects('/admin/order/'.$this->order->getId());
+        $this->assertStored($state, 3, null);
+        $request = $this->em->find(Order::class, $this->order->getId())->getLatestCancellationRequest();
+        self::assertSame('refused', $request->getDecision()); self::assertNotNull($request->getResolvedAt());
+        self::assertSame($resolvedAt, $this->em->getConnection()->fetchOne('SELECT resolved_at FROM cancellation_request'));
+        $this->client->request('GET', '/compte/commande/'.$this->order->getId());
+        self::assertSelectorTextContains('body', 'Votre demande d’annulation a été refusée.');
+    }
+
+    public static function paidClientStates(): array { return [[1], [2]]; }
+
+    public function testNewRequestAfterRefusalKeepsEarlierHistoryAndStaleResolutionIsHarmless(): void
+    {
+        $this->requestCancellation('Premier motif'); $oldForm = $this->resolutionForm(false); $this->client->submit($oldForm);
+        $this->requestCancellation('Second motif'); $this->client->submit($oldForm);
+        self::assertResponseRedirects('/admin/order/'.$this->order->getId());
+        self::assertSame(['refused', 'pending'], $this->em->getConnection()->fetchFirstColumn('SELECT decision FROM cancellation_request ORDER BY id'));
+        self::assertSame(['Premier motif', 'Second motif'], $this->em->getConnection()->fetchFirstColumn('SELECT reason FROM cancellation_request ORDER BY id'));
+        $this->assertStored(7, 3, null);
+    }
+
+    public function testAcceptedRequestKeepsCancellationOnStripeFailureAndCanRecover(): void
+    {
+        $this->requestCancellation(); $form = $this->resolutionForm();
+        $this->expectPaymentAndRefund('succeeded', ['error' => ['type' => 'invalid_request_error', 'message' => 'Simulated failure']]);
+        $this->client->submit($form); self::assertResponseRedirects('/admin/order/'.$this->order->getId());
+        self::assertSame('accepted', $this->em->getConnection()->fetchOne('SELECT decision FROM cancellation_request'));
+        self::assertSame(4, (int) $this->em->getConnection()->fetchOne('SELECT state FROM `order`'));
+        self::assertSame(5, (int) $this->em->getConnection()->fetchOne('SELECT stock FROM product'));
+        $this->client->request('GET', '/compte/commande/'.$this->order->getId());
+        self::assertSelectorNotExists('.alert-success:contains("annulée et remboursée")');
+        $refundForm = $this->form(); $this->expectPaymentAndRefund(); $this->client->submit($refundForm);
+        self::assertResponseRedirects('/admin/order/'.$this->order->getId()); $this->assertStored(6, 5, 'succeeded');
+    }
+
+    public function testAcceptedPendingRefundIsConfirmedByWebhookWithoutStockDuplication(): void
+    {
+        $this->requestCancellation(); $form = $this->resolutionForm(); $this->expectPaymentAndRefund('pending'); $this->client->submit($form);
+        self::assertSame(4, (int) $this->em->getConnection()->fetchOne('SELECT state FROM `order`'));
+        self::assertSame(5, (int) $this->em->getConnection()->fetchOne('SELECT stock FROM product'));
+        $this->expectStripe('get', '/v1/refunds/re_test_order', $this->refundObject('pending'));
+        $this->client->submit($form); self::assertResponseRedirects('/admin/order/'.$this->order->getId());
+        $this->expectStripe('get', '/v1/refunds/re_test_order', $this->refundObject());
+        $this->webhook($this->refundObject()); self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        $this->assertStored(6, 5, 'succeeded');
+    }
+
+    public function testExternalRefundResolvesPendingClientRequest(): void
+    {
+        $this->requestCancellation(); $this->expectStripe('get', '/v1/refunds/re_test_order', $this->refundObject());
+        $this->webhook($this->refundObject()); self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        self::assertSame('accepted', $this->em->getConnection()->fetchOne('SELECT decision FROM cancellation_request'));
+        $this->assertStored(6, 5, 'succeeded');
+    }
+
+    public function testAdminResolutionRequiresRolePostAndDedicatedCsrfTokens(): void
+    {
+        $this->requestCancellation(); $accept = $this->resolutionForm(); $refuse = $this->resolutionForm(false);
+        foreach ([$accept, $refuse] as $form) {
+            $this->client->request('GET', $form->getUri()); self::assertSame(405, $this->client->getResponse()->getStatusCode());
+            foreach ([[], ['_token' => 'invalid']] as $params) {
+                $this->client->request('POST', $form->getUri(), $params); self::assertSame(403, $this->client->getResponse()->getStatusCode());
+            }
+        }
+        $this->client->request('POST', $accept->getUri(), $refuse->getPhpValues()); self::assertSame(403, $this->client->getResponse()->getStatusCode());
+        $user = (new User())->setEmail('not-admin@example.test')->setFirstname('Client')->setLastname('Test')->setPassword('hash');
+        $this->em->persist($user); $this->em->flush(); $this->client->loginUser($user);
+        foreach ([$accept, $refuse] as $form) { $this->client->submit($form); self::assertSame(403, $this->client->getResponse()->getStatusCode()); }
+        $this->assertStored(7, 3, null);
+    }
+
+    public function testOrdinaryOwnerCanRequestButCannotResolveCancellation(): void
+    {
+        $this->admin->setRoles([]); $this->em->flush(); $this->client->loginUser($this->admin);
+        $this->requestCancellation();
+        $id = $this->em->getConnection()->fetchOne('SELECT id FROM cancellation_request');
+        foreach (['accepter', 'refuser'] as $action) {
+            $this->client->request('POST', '/admin/commande/'.$this->order->getId().'/demande-annulation/'.$id.'/'.$action, ['state' => 6]);
+            self::assertSame(403, $this->client->getResponse()->getStatusCode());
+        }
+        $this->assertStored(7, 3, null);
+    }
+
+    public function testUnpaidCancellationExpiresStripeSessionAndRestoresStockOnce(): void
+    {
+        $this->order->setState(0)->setStripePaymentIntentId(null); $this->em->flush();
+        $form = $this->cancellationForm();
+        $this->expectStripe('get', '/v1/checkout/sessions/cs_test_order', ['id' => 'cs_test_order', 'object' => 'checkout.session', 'status' => 'open']);
+        $this->expectStripe('post', '/v1/checkout/sessions/cs_test_order/expire', ['id' => 'cs_test_order', 'object' => 'checkout.session', 'status' => 'expired']);
+        $this->client->submit($form); self::assertResponseRedirects('/compte/commande/'.$this->order->getId());
+        $this->client->submit($form); self::assertResponseRedirects('/compte/commande/'.$this->order->getId());
+        self::assertSame(1, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM cancellation_request'));
+        $this->assertStored(4, 5, null);
+    }
+
+    public function testAdminCannotResolveARequestAttachedToAnotherOrder(): void
+    {
+        $this->requestCancellation(); $form = $this->resolutionForm();
+        $address = $this->em->getRepository(Address::class)->findOneBy([]);
+        $carrier = $this->em->getRepository(Carrier::class)->findOneBy([]);
+        $other = static::getContainer()->get(OrderManager::class)->create($this->em->find(User::class, $this->admin->getId()), $address, $carrier,
+            [['object' => $this->em->find(Product::class, $this->product->getId()), 'qty' => 1]]);
+        $other->setState(1); $this->em->flush();
+        $this->em->getConnection()->executeStatement('UPDATE cancellation_request SET order_id = ?', [$other->getId()]);
+        $this->client->submit($form); self::assertResponseRedirects('/admin/order/'.$this->order->getId());
+        $this->assertStored(7, 2, null);
+        self::assertSame('pending', $this->em->getConnection()->fetchOne('SELECT decision FROM cancellation_request'));
+    }
+
+    public function testLatePaymentConfirmationDoesNotErasePendingRequest(): void
+    {
+        $this->requestCancellation();
+        $current = $this->em->find(Order::class, $this->order->getId());
+        static::getContainer()->get(OrderManager::class)->confirmPayment($current, (object) [
+            'id' => 'cs_test_order', 'payment_status' => 'paid', 'currency' => 'eur', 'amount_total' => $this->order->getTotalCents(),
+            'client_reference_id' => (string) $this->order->getId(), 'payment_intent' => 'pi_test_order',
+        ]);
+        self::assertSame('pending', $this->em->getConnection()->fetchOne('SELECT decision FROM cancellation_request'));
+        $this->assertStored(7, 3, null);
+    }
+
+    public function testPendingRequestCannotBeShippedThroughForgedStatePost(): void
+    {
+        $crawler = $this->client->request('GET', '/admin/order/'.$this->order->getId());
+        $form = $crawler->selectButton('Passer en préparation')->form();
+        $this->requestCancellation();
+        $parameters = $form->getPhpValues(); $parameters['state'] = 3;
+        $this->client->request('POST', $form->getUri(), $parameters);
+        self::assertResponseRedirects('/admin/order/'.$this->order->getId()); $this->assertStored(7, 3, null);
+    }
+
     public function testUnpaidOrderCannotBeRefundedEvenWithValidToken(): void
     {
         $form = $this->form(); $this->order->setState(0); $this->em->flush();

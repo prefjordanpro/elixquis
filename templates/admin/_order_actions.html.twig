@@ -1,4 +1,36 @@
 {% set next = {0: [1, 'Vérifier le paiement Stripe'], 1: [2, 'Passer en préparation'], 2: [3, 'Expédier'], 3: [5, 'Marquer livrée']} %}
+{% if order.state == 7 and order.latestCancellationRequest %}
+{% set cancellation = order.latestCancellationRequest %}
+<div class="alert alert-warning">
+  <strong>Demande d’annulation en attente de traitement.</strong>
+  <div>Demandée le {{ cancellation.requestedAt|date('d/m/Y H:i') }}.</div>
+  {% if cancellation.reason %}<p class="mt-2 mb-0">Raison : {{ cancellation.reason|nl2br }}</p>{% endif %}
+  <div class="d-flex gap-2 flex-wrap mt-3">
+    <form method="post" action="{{ path('app_admin_cancellation_accept', {id: order.id, requestId: cancellation.id}) }}"
+          onsubmit="return confirm('Accepter la demande, annuler la commande et demander son remboursement total à Stripe ?');">
+      <input type="hidden" name="_token" value="{{ csrf_token('cancellation_accept_' ~ order.id ~ '_' ~ cancellation.id) }}">
+      <button type="submit" class="btn btn-danger">Accepter et rembourser</button>
+    </form>
+    <form method="post" action="{{ path('app_admin_cancellation_refuse', {id: order.id, requestId: cancellation.id}) }}"
+          onsubmit="return confirm('Refuser cette demande d’annulation et reprendre le traitement de la commande ?');">
+      <input type="hidden" name="_token" value="{{ csrf_token('cancellation_refuse_' ~ order.id ~ '_' ~ cancellation.id) }}">
+      <button type="submit" class="btn btn-outline-secondary">Refuser la demande</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% if order.cancellationRequests|length %}
+<details class="my-3"><summary>Historique des demandes d’annulation</summary>
+  {% for cancellation in order.cancellationRequests %}
+  <p>Demande du {{ cancellation.requestedAt|date('d/m/Y H:i') }} —
+    {{ {'pending': 'En attente', 'accepted': 'Acceptée', 'refused': 'Refusée'}[cancellation.decision] }}
+    {% if cancellation.resolvedAt %}le {{ cancellation.resolvedAt|date('d/m/Y H:i') }}{% endif %}
+    {% if cancellation.resolvedBy %}par {{ cancellation.resolvedBy.email }}{% endif %}.
+    {% if cancellation.reason %}<br>Raison : {{ cancellation.reason|nl2br }}{% endif %}
+  </p>
+  {% endfor %}
+</details>
+{% endif %}
 <div class="d-flex gap-2 flex-wrap my-3">
 {% if next[order.state] is defined and order.stripeRefundStatus not in ['pending', 'requires_action'] %}
   <form method="post" action="{{ path('app_admin_order_state', {id: order.id}) }}">
