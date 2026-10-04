@@ -19,6 +19,35 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+            - '../src/Shipping/'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    sendcloud.http_client:
+        class: Symfony\Contracts\HttpClient\HttpClientInterface
+        factory: ['Symfony\Component\HttpClient\HttpClient', 'create']
+
+    App\Service\SendcloudService:
+        arguments:
+            $http: '@sendcloud.http_client'
+            $publicKey: '%env(default:sendcloud.empty:SENDCLOUD_PUBLIC_KEY)%'
+            $secretKey: '%env(default:sendcloud.empty:SENDCLOUD_SECRET_KEY)%'
+            $allowLabelCreation: '%sendcloud.allow_label_creation%'
+
+    App\Service\ShippingConfiguration:
+        arguments:
+            $enabled: '%sendcloud.enabled%'
+            $sender: '%sendcloud.sender%'
+            $parcel: '%sendcloud.parcel%'
+            $taxRate: '%sendcloud.tax_rate%'
+            $quoteIncludesTax: '%sendcloud.quote_includes_tax%'
+            $legacyFallbackEnabled: '%sendcloud.legacy_fallback_enabled%'
+
+    App\Service\SendcloudWebhook:
+        arguments:
+            $enabled: '%sendcloud.webhooks_enabled%'
+            $signatureKey: '%env(default:sendcloud.empty:SENDCLOUD_SECRET_KEY)%'
+
+    App\Service\SendcloudMethodPolicy:
+        arguments:
+            $rules: '%sendcloud.method_rules%'

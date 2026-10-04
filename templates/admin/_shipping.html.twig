@@ -1,0 +1,20 @@
+<section class="card card-body my-4" aria-labelledby="shipping-title">
+  <h2 class="h5" id="shipping-title">Expédition</h2>
+  {% set snapshot = order.shippingSnapshot %}{% set shipment = order.shipment %}
+  {% if snapshot and snapshot.provider == 'sendcloud' %}
+    <p><strong>{{ snapshot.carrier_name }}</strong> · {{ snapshot.method_name }}<br>{{ snapshot.kind }} · {{ (snapshot.price_cents / 100)|price }} TTC</p>
+    {% if snapshot.service_point %}<p>Point relais : <strong>{{ snapshot.service_point.name }}</strong><br>{{ snapshot.service_point.address.street }} {{ snapshot.service_point.address.house_number|default('') }}<br>{{ snapshot.service_point.address.postal_code }} {{ snapshot.service_point.address.city }}</p>{% endif %}
+    {% if shipment %}
+      <p>État : {{ shipment.state == 'ready' ? shipment.customerStatus : 'Confirmation à vérifier auprès de Sendcloud' }}{% if shipment.trackingNumber %}<br>Numéro de suivi : <strong>{{ shipment.trackingNumber }}</strong>{% endif %}</p>
+      <p class="small text-muted">Demandée le {{ shipment.requestedAt|date('d/m/Y H:i') }}{% if shipment.updatedAt %} · Actualisée le {{ shipment.updatedAt|date('d/m/Y H:i') }}{% endif %}</p>
+      {% if shipment.active and order.state in [1, 2] %}<p class="small">Pour annuler la commande, annulez d’abord l’expédition dans Sendcloud, puis cliquez sur « Vérifier l’expédition ». Le remboursement ne remet pas automatiquement un colis en stock.</p>{% endif %}
+      <div class="d-flex flex-wrap gap-2">
+        <form method="post" action="{{ path('app_admin_shipping_sync', {id: order.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('shipping_sync_' ~ order.id) }}"><button class="btn btn-outline-secondary" type="submit">Vérifier l’expédition</button></form>
+        {% if shipment.hasLabel %}<a class="btn btn-outline-primary" href="{{ path('app_admin_shipping_label', {id: order.id}) }}">Télécharger l’étiquette</a>{% endif %}
+        {% if shipment.trackingUrl %}<a class="btn btn-outline-primary" href="{{ shipment.trackingUrl }}" target="_blank" rel="noopener noreferrer">Suivre le colis</a>{% endif %}
+      </div>
+    {% elseif order.state in [1, 2] and order.stripePaymentIntentId and not order.stripeRefundId %}
+      <form method="post" action="{{ path('app_admin_shipping_create', {id: order.id}) }}" onsubmit="return confirm('Créer cette expédition Sendcloud ? Une étiquette peut être facturée.');"><input type="hidden" name="_token" value="{{ csrf_token('shipping_create_' ~ order.id) }}"><button class="btn btn-primary" type="submit">Créer l’expédition</button></form>
+    {% else %}<p class="text-muted mb-0">La création est disponible uniquement pour une commande payée, avant expédition et sans annulation en cours.</p>{% endif %}
+  {% else %}<p class="text-muted mb-0">{{ order.carrierName }} · Commande conservée avec son mode de livraison historique.</p>{% endif %}
+</section>

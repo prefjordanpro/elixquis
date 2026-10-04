@@ -11,6 +11,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[\Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity(fields: ['slug'], message: 'Ce lien produit est déjà utilisé.')]
 class Product
 {
+    #[ORM\Column(nullable: true)]
+    #[\Symfony\Component\Validator\Constraints\Positive]
+    private ?int $shippingWeightGrams = null;
+    public function getShippingWeightGrams(): ?int { return $this->shippingWeightGrams; }
+    public function setShippingWeightGrams(?int $grams): static { $this->shippingWeightGrams = $grams; return $this; }
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

@@ -14,6 +14,15 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\UniqueConstraint(name: 'UNIQ_ORDER_REFUND', columns: ['stripe_refund_id'])]
 class Order
 {
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $shippingSnapshot = null;
+    public function getShippingSnapshot(): ?array { return $this->shippingSnapshot; }
+    public function setShippingSnapshot(?array $snapshot): static { $this->shippingSnapshot = $snapshot; return $this; }
+
+    #[ORM\OneToOne(mappedBy: 'order', targetEntity: Shipment::class)]
+    private ?Shipment $shipment = null;
+    public function getShipment(): ?Shipment { return $this->shipment; }
+    public function setShipment(Shipment $shipment): void { $this->shipment = $shipment; }
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -48,7 +57,7 @@ class Order
     public function getCancellationRequests(): Collection { return $this->cancellationRequests; }
     public function getLatestCancellationRequest(): ?CancellationRequest { return $this->cancellationRequests->last() ?: null; }
     public function addCancellationRequest(CancellationRequest $request): void { $this->cancellationRequests->add($request); }
-    public function canRequestCancellation(): bool { return in_array($this->state, [0, 1, 2], true) && !$this->stripeRefundId; }
+    public function canRequestCancellation(): bool { return in_array($this->state, [0, 1, 2], true) && !$this->stripeRefundId && !$this->shipment?->isActive(); }
 
     #[ORM\ManyToOne(inversedBy: 'orders')]
     #[ORM\JoinColumn(nullable: false)]

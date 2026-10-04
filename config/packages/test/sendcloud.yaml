@@ -1,0 +1,3 @@
+parameters:
+    # Les tests historiques vérifient le fallback ; SendcloudTest injecte sa configuration simulée.
+    sendcloud.enabled: false

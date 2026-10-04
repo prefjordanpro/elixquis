@@ -39,7 +39,7 @@
     <button type="submit" class="btn btn-primary">{{ next[order.state][1] }}</button>
   </form>
 {% endif %}
-{% if order.state in [0, 1, 2] %}
+{% if order.state in [0, 1, 2] and not (order.shipment and order.shipment.active) %}
   <form method="post" action="{{ path('app_admin_order_state', {id: order.id}) }}"
         onsubmit="return confirm(this.dataset.confirmation);"
         data-confirmation="{{ order.state in [1, 2] ? 'Confirmer l’annulation de cette commande payée ? Le stock réservé sera restitué. Le remboursement devra être demandé séparément ; aucun remboursement automatique ne sera déclenché.' : 'Confirmer l’annulation de cette commande ? Le stock réservé sera restitué.' }}">

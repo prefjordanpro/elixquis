@@ -23,6 +23,7 @@
               {{ include('admin/state.html.twig', {field: {value: order.state}}) }}
               <a class="btn btn-sm btn-outline-success" href="{{ path('app_account_order', {id_order: order.id}) }}">Voir le détail →</a>
             </div>
+            {% if order.shipment %}<div class="mt-3 small"><strong>{{ order.carrierName }}</strong> · {{ order.shipment.customerStatus }}{% if order.shipment.trackingNumber %}<span class="d-block">Numéro de suivi : {{ order.shipment.trackingNumber }}</span>{% endif %}{% if order.shipment.trackingUrl %}<a class="btn btn-sm btn-outline-primary mt-2" href="{{ order.shipment.trackingUrl }}" target="_blank" rel="noopener noreferrer">Suivre mon colis</a>{% endif %}</div>{% endif %}
           </div>
         </li>
       {% endfor %}

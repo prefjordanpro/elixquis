@@ -10,23 +10,32 @@ class OrderManager
 {
     public function __construct(private EntityManagerInterface $em) {}
 
-    public function create(User $user, Address $address, Carrier $carrier, array $lines): Order
+    public function create(User $user, Address $address, Carrier $carrier, array $lines, ?\App\Shipping\DeliverySelection $delivery = null): Order
     {
         if (!$lines || $address->getUser()?->getId() !== $user->getId()) {
             throw new \DomainException('Le panier ou l’adresse de livraison est invalide.');
         }
-        return $this->em->wrapInTransaction(function () use ($user, $address, $carrier, $lines): Order {
+        return $this->em->wrapInTransaction(function () use ($user, $address, $carrier, $lines, $delivery): Order {
+            if ($delivery) { $carrier = $delivery->carrier(); }
             $order = (new Order())->setUser($user)->setCreatedAt(new \DateTime())
                 ->setState(0)->setCarrierName($carrier->getName())->setCarrierPrice($carrier->getPrice())
                 ->setCarrierTvaRate($carrier->getTva())->setStockReserved(true)
                 ->setDelivery(sprintf("%s %s\n%s\n%s %s — %s\n%s", $address->getFirstname(), $address->getLastname(),
                     $address->getAddress(), $address->getPostal(), $address->getCity(), $address->getCountry(), $address->getPhone()));
+            if ($delivery) { $order->setShippingSnapshot($delivery->snapshot); }
             ksort($lines);
             foreach ($lines as $line) {
                 $product = $this->em->find(Product::class, $line['object']->getId());
                 if (!$product) { throw new \DomainException('Un produit n’est plus disponible.'); }
                 $this->em->refresh($product, LockMode::PESSIMISTIC_WRITE);
                 $qty = $line['qty'];
+                if ($delivery) {
+                    $facts = array_values(array_filter($delivery->snapshot['items'], static fn ($item) => $item['id'] === $product->getId()))[0] ?? null;
+                    if (!$facts || $facts['qty'] !== $qty || $facts['weight_grams'] !== $product->getShippingWeightGrams()
+                        || $facts['price_cents'] !== (int) round($product->getPriceWt() * 100)) {
+                        throw new \DomainException('Votre sélection a changé. Vérifiez à nouveau le panier et la livraison.');
+                    }
+                }
                 if (!is_int($qty) || $qty < 1 || !$product->isActive() || $qty > $product->getStock()) {
                     throw new \DomainException('Stock insuffisant pour '.$product->getName().'.');
                 }
@@ -85,6 +94,8 @@ class OrderManager
         $this->em->wrapInTransaction(function () use ($order, $allowedStates): void {
             $this->em->refresh($order, LockMode::PESSIMISTIC_WRITE);
             if ($order->getState() === 4) { return; }
+            $shipment = $this->em->getRepository(\App\Entity\Shipment::class)->findOneBy(['order' => $order]);
+            if ($shipment?->isActive()) { throw new \DomainException('Une expédition Sendcloud existe ou reste à vérifier. Annulez-la dans Sendcloud puis actualisez son suivi avant d’annuler la commande.'); }
             if (!in_array($order->getState(), $allowedStates, true)) {
                 throw new \DomainException('L’annulation n’est pas autorisée pour le statut actuel de cette commande.');
             }
@@ -129,6 +140,8 @@ class OrderManager
     private function releaseStock(Order $order): void
     {
         if (!$order->isStockReserved()) { return; }
+        $shipment = $this->em->getRepository(\App\Entity\Shipment::class)->findOneBy(['order' => $order]);
+        if ($shipment?->isActive()) { return; } // Un remboursement ne remet pas physiquement un colis en stock.
         $details = $order->getOrderDetails()->toArray();
         usort($details, static fn ($a, $b) => ($a->getProduct()?->getId() ?? 0) <=> ($b->getProduct()?->getId() ?? 0));
         foreach ($details as $detail) {

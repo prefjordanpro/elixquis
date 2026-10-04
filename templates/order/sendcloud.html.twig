@@ -1,0 +1,49 @@
+{% extends 'base.html.twig' %}
+{% block title %}Votre livraison — Elixquis{% endblock %}
+{% block stylesheets %}<link href="{{ asset('assets/css/purchase.css') }}" rel="stylesheet">{% endblock %}
+{% block body %}
+<div class="container my-5 purchase-page">
+  {% include 'components/_steps.html.twig' with {step: offers|length ? 3 : 2} %}
+  <div class="page-heading"><div><p class="section-label">Préparer ma commande</p><h1>Votre livraison</h1><p>{{ selected ? 'Choisissez où retirer votre colis.' : (offers|length ? 'Choisissez la livraison qui vous convient.' : 'Sélectionnez votre adresse pour découvrir les livraisons disponibles.') }}</p></div></div>
+  {% if error %}<div class="alert alert-warning" role="alert">{{ error }}</div>{% endif %}
+  <form method="post" action="{{ path('app_sendcloud_checkout') }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('sendcloud_checkout') }}">
+    <div class="checkout-layout">
+      <div>
+        {% if not offers|length %}
+        <fieldset class="card card-body"><legend>Votre adresse de livraison</legend>
+          {% for item in addresses %}<div class="form-check choice-card"><input class="form-check-input" type="radio" name="address" id="shipping-address-{{ item.id }}" value="{{ item.id }}" {{ address and address.id == item.id ? 'checked' : '' }} required><label for="shipping-address-{{ item.id }}">{{ item.firstname }} {{ item.lastname }}<br>{{ item.address }}<br>{{ item.postal }} {{ item.city }} · {{ item.country }}</label></div>{% endfor %}
+          <a href="{{ path('app_account_address_form') }}" class="btn btn-outline-primary align-self-start">Ajouter une adresse</a>
+        </fieldset>
+        {% else %}
+        <input type="hidden" name="address" value="{{ address.id }}">
+        <div class="card card-body mb-4"><h2 class="h5">Livrer à cette adresse</h2><p>{{ address.address }}<br>{{ address.postal }} {{ address.city }}</p><a href="{{ path('app_sendcloud_checkout') }}">Changer d’adresse</a></div>
+        <fieldset class="card card-body" id="checkout-delivery"><legend>{{ selected ? 'Votre point relais' : 'Votre mode de livraison' }}</legend>
+          {% if selected %}
+          <input type="hidden" name="method" value="{{ selected.key }}">
+          <p>{{ selected.carrier_name }} · {{ selected.method_name }}<br><strong>{{ (selected.price_cents / 100)|price }} TTC</strong></p>
+          {% for point in points %}<div class="form-check choice-card"><input class="form-check-input" type="radio" name="point" id="shipping-point-{{ point.id }}" value="{{ point.id }}" required><label for="shipping-point-{{ point.id }}"><strong>{{ point.name }}</strong><br>{{ point.address.street }} {{ point.address.house_number|default('') }}<br>{{ point.address.postal_code }} {{ point.address.city }}</label></div>{% endfor %}
+          <a href="{{ path('app_sendcloud_checkout') }}">Choisir une autre livraison</a>
+          {% else %}
+          {% for category, label in {'relay': 'Livraison en point relais', 'standard': 'Livraison standard à domicile', 'express': 'Livraison express'} %}
+            {% set categoryOffers = offers|filter(offer => offer.category == category) %}
+            {% if categoryOffers|length %}<h2 class="h5 mt-3">{{ label }}</h2>
+            {% for offer in categoryOffers %}<div class="form-check choice-card"><input class="form-check-input" type="radio" name="method" id="shipping-method-{{ offer.key }}" value="{{ offer.key }}" required><label for="shipping-method-{{ offer.key }}"><strong>{{ offer.carrier_name }}</strong><br>{{ offer.method_name }}<br><span class="small text-muted">{{ offer.kind }}</span><br><strong>{{ (offer.price_cents / 100)|price }} TTC</strong>{% if offer.lead_time_hours %}<span class="small text-muted d-block">Délai indicatif : {{ (offer.lead_time_hours / 24)|round(0, 'ceil') }} jour{{ offer.lead_time_hours > 24 ? 's' : '' }}</span>{% endif %}</label></div>{% endfor %}
+            {% endif %}
+          {% endfor %}
+          {% endif %}
+        </fieldset>
+        {% endif %}
+      </div>
+      <aside class="card summary-card"><div class="card-body"><h2>Votre sélection</h2>
+        {% for item in cart %}<div class="checkout-product"><img src="{{ asset('uploads/' ~ item.object.illustration) }}" alt="{{ item.object.name }}" width="56" height="56"><span>{{ item.object.name }}<small>Quantité : {{ item.qty }}</small></span><strong>{{ (item.object.pricewt * item.qty)|price }}</strong></div>{% endfor %}
+        <div class="summary-row"><span>Articles TTC</span><strong>{{ totalWt|price }}</strong></div>
+        {% if selected %}<div class="summary-row"><span>Livraison TTC</span><strong>{{ (selected.price_cents / 100)|price }}</strong></div><div class="summary-total d-flex justify-content-between gap-2"><strong>Total TTC</strong><strong>{{ (totalWt + selected.price_cents / 100)|price }}</strong></div>{% else %}<p class="small text-muted">La livraison est ajoutée au récapitulatif selon votre choix.</p>{% endif %}
+        <button class="btn btn-success btn-lg w-100 mt-3" type="submit" name="action" value="{{ selected ? 'confirm' : (offers|length ? 'method' : 'address') }}" {{ selected and not points|length ? 'disabled' : '' }}>{{ offers|length ? 'Vérifier ma commande' : 'Voir les livraisons disponibles' }}</button>
+        <a href="{{ path('app_cart') }}" class="d-block text-center mt-3">Retour au panier</a><p class="small text-muted mt-3 mb-0">Le paiement s’effectue ensuite via Stripe. Aucun débit à cette étape.</p>
+        {% if legacyFallbackEnabled|default(false) %}<a href="{{ path('app_order', {fallback: 1}) }}" class="d-block text-center mt-3">Utiliser la livraison classique</a><p class="small text-muted">Solution de secours avec les tarifs historiques de la boutique.</p>{% endif %}
+      </div></aside>
+    </div>
+  </form>
+</div>
+{% endblock %}

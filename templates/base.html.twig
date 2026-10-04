@@ -11,7 +11,7 @@
   {% block stylesheets %}{% endblock %}
 </head>
 {% set route = app.request.attributes.get('_route')|default('') %}
-{% set checkout = route in ['app_order', 'app_payment_success'] or (route == 'app_account_order' and order is defined and order.state == 0) %}
+{% set checkout = route in ['app_order', 'app_sendcloud_checkout', 'app_payment_success'] or (route == 'app_account_order' and order is defined and order.state == 0) %}
 <body class="elixquis-site {{ checkout ? 'checkout-page' : '' }}">
   <a class="skip-link" href="#contenu">Aller au contenu</a>
   <header class="site-header" data-bs-theme="dark">

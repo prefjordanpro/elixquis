@@ -19,6 +19,9 @@ final class OrderCancellation
             if ($order->getState() === 7) { return 'pending'; }
             if ($order->getState() === 4 && $order->getLatestCancellationRequest()?->getPreviousState() === 0) { return 'cancelled'; }
             if (!$order->canRequestCancellation()) { throw new \DomainException('Cette commande ne peut plus être annulée en ligne.'); }
+            if ($this->em->getRepository(\App\Entity\Shipment::class)->findOneBy(['order' => $order])?->isActive()) {
+                throw new \DomainException('Cette commande ne peut plus être annulée en ligne : son expédition est en cours.');
+            }
             $reason = trim($reason ?? '');
             if (mb_strlen($reason) > 1000) { throw new \DomainException('La raison doit contenir au maximum 1 000 caractères.'); }
             $request = new CancellationRequest($order, $reason === '' ? null : $reason, $order->getState());

@@ -18,6 +18,7 @@
         <h2 id="review-delivery">Adresse & livraison</h2>
         <p class="mb-2"><strong>{{ order.carrierName }}</strong></p>
         {% if order.delivery %}<div class="delivery-address">{{ order.delivery|striptags|nl2br }}</div>{% else %}<p class="text-muted mb-0">Adresse de livraison non disponible.</p>{% endif %}
+        {% if order.shippingSnapshot and order.shippingSnapshot.service_point %}{% set point = order.shippingSnapshot.service_point %}<hr><p class="mb-0">Point relais : <strong>{{ point.name }}</strong><br>{{ point.address.street }} {{ point.address.house_number|default('') }}<br>{{ point.address.postal_code }} {{ point.address.city }}</p>{% endif %}
       </section>
       {% include 'account/order/_cancellation.html.twig' %}
     </div>

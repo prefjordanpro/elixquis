@@ -1,0 +1,42 @@
+parameters:
+    sendcloud.enabled: true
+    sendcloud.legacy_fallback_enabled: true # Passer à false après validation de Sendcloud.
+    sendcloud.allow_label_creation: false # À activer uniquement après autorisation explicite.
+    sendcloud.webhooks_enabled: false
+    sendcloud.empty: ''
+    sendcloud.default_quote_includes_tax: false
+    # Codes techniques API, jamais noms commerciaux. '*' peut être remplacé par
+    # des codes exacts validés pour les bouteilles (ou préfixes avec '*').
+    sendcloud.method_rules:
+        relay:
+            carriers: [mondial_relay, colissimo, chronopost]
+            methods: ['*']
+            preferred_methods: []
+        standard:
+            carriers: [colissimo]
+            methods: ['*']
+            preferred_methods: []
+        express:
+            carriers: [chronopost]
+            methods: ['*']
+            preferred_methods: []
+    # Recopier le profil expéditeur choisi dans Sendcloud (API v3 : adresse complète).
+    sendcloud.sender:
+        name: '%env(default:sendcloud.empty:SENDCLOUD_SENDER_NAME)%'
+        company_name: '%env(default:sendcloud.empty:SENDCLOUD_SENDER_COMPANY)%'
+        address_line_1: '%env(default:sendcloud.empty:SENDCLOUD_SENDER_ADDRESS)%'
+        address_line_2: '%env(default:sendcloud.empty:SENDCLOUD_SENDER_ADDRESS_EXTRA)%'
+        postal_code: '%env(default:sendcloud.empty:SENDCLOUD_SENDER_POSTAL_CODE)%'
+        city: '%env(default:sendcloud.empty:SENDCLOUD_SENDER_CITY)%'
+        country_code: '%env(default:sendcloud.empty:SENDCLOUD_SENDER_COUNTRY)%'
+        phone_number: '%env(default:sendcloud.empty:SENDCLOUD_SENDER_PHONE)%'
+        email: '%env(default:sendcloud.empty:SENDCLOUD_SENDER_EMAIL)%'
+    sendcloud.parcel:
+        length_cm: '%env(default:sendcloud.empty:SENDCLOUD_PARCEL_LENGTH_CM)%'
+        width_cm: '%env(default:sendcloud.empty:SENDCLOUD_PARCEL_WIDTH_CM)%'
+        height_cm: '%env(default:sendcloud.empty:SENDCLOUD_PARCEL_HEIGHT_CM)%'
+        packaging_weight_g: '%env(default:sendcloud.empty:SENDCLOUD_PACKAGING_WEIGHT_G)%'
+        max_units: '%env(default:sendcloud.empty:SENDCLOUD_PARCEL_MAX_BOTTLES)%'
+    # Tarif API sans marge ni grille supplémentaire. Si HT, seule la TVA est ajoutée.
+    sendcloud.tax_rate: '%env(default:sendcloud.empty:SENDCLOUD_SHIPPING_TAX_RATE)%'
+    sendcloud.quote_includes_tax: '%env(bool:default:sendcloud.default_quote_includes_tax:SENDCLOUD_QUOTE_INCLUDES_TAX)%'

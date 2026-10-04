@@ -1,0 +1,7 @@
+{% if order.shipment %}
+<section class="card card-body my-3" aria-labelledby="customer-shipping-title">
+  <h2 class="h5" id="customer-shipping-title">Suivi de votre colis</h2>
+  <p><strong>{{ order.carrierName }}</strong><br>{{ order.shipment.customerStatus }}{% if order.shipment.trackingNumber %}<br>Numéro de suivi : {{ order.shipment.trackingNumber }}{% endif %}</p>
+  {% if order.shipment.trackingUrl %}<a class="btn btn-outline-primary align-self-start" href="{{ order.shipment.trackingUrl }}" target="_blank" rel="noopener noreferrer">Suivre mon colis</a>{% endif %}
+</section>
+{% endif %}

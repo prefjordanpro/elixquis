@@ -62,6 +62,7 @@ class ProductCrudController extends AbstractCrudController
                 ->setFormTypeOption('data', $this->getContext()?->getEntity()?->getInstance()?->getVersion() ?? 1)
                 ->onlyOnForms(),
             IntegerField::new('stock', 'Stock disponible'),
+            IntegerField::new('shippingWeightGrams', 'Poids d’expédition (g)')->setRequired(false)->setFormTypeOption('attr', ['min' => 1, 'step' => 1])->setHelp('Poids réel d’une unité, bouteille pleine et bouchon compris, en grammes. L’emballage du colis est ajouté séparément.'),
             BooleanField::new('isActive', 'Produit actif'),
             TextField::new('name')
                 ->setLabel('Nom')
