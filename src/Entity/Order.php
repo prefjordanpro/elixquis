@@ -10,6 +10,8 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
 #[ORM\Table(name: '`order`')]
+#[ORM\UniqueConstraint(name: 'UNIQ_ORDER_PAYMENT_INTENT', columns: ['stripe_payment_intent_id'])]
+#[ORM\UniqueConstraint(name: 'UNIQ_ORDER_REFUND', columns: ['stripe_refund_id'])]
 class Order
 {
     #[ORM\Id]
@@ -44,6 +46,27 @@ class Order
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $stripe_session_id = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $stripePaymentIntentId = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $stripeRefundId = null;
+
+    #[ORM\Column(length: 32, nullable: true)]
+    private ?string $stripeRefundStatus = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $stateBeforeRefund = null;
+
+    public function getStripePaymentIntentId(): ?string { return $this->stripePaymentIntentId; }
+    public function setStripePaymentIntentId(?string $id): static { $this->stripePaymentIntentId = $id; return $this; }
+    public function getStripeRefundId(): ?string { return $this->stripeRefundId; }
+    public function setStripeRefundId(?string $id): static { $this->stripeRefundId = $id; return $this; }
+    public function getStripeRefundStatus(): ?string { return $this->stripeRefundStatus; }
+    public function setStripeRefundStatus(?string $status): static { $this->stripeRefundStatus = $status; return $this; }
+    public function getStateBeforeRefund(): ?int { return $this->stateBeforeRefund; }
+    public function setStateBeforeRefund(?int $state): static { $this->stateBeforeRefund = $state; return $this; }
 
     #[ORM\Column(options: ['default' => false])]
     private bool $stockReserved = false;

@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\OrderRepository;
-use App\Service\{OrderManager, StripePayment};
+use App\Service\{OrderManager, StripePayment, StripeRefund};
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\{Request, Response};
@@ -46,7 +46,7 @@ final class PaymentController extends AbstractController
     }
 
     #[Route('/paiement/webhook', name: 'app_payment_webhook', methods: ['POST'])]
-    public function webhook(Request $request, OrderRepository $repository, OrderManager $orders): Response
+    public function webhook(Request $request, OrderRepository $repository, OrderManager $orders, StripeRefund $refunds, LoggerInterface $logger): Response
     {
         $secret = $_ENV['STRIPE_WEBHOOK_SECRET'] ?? $_SERVER['STRIPE_WEBHOOK_SECRET'] ?? '';
         if (!$secret) { return new Response('Paiement indisponible.', 503); }
@@ -54,6 +54,26 @@ final class PaymentController extends AbstractController
             $event = \Stripe\Webhook::constructEvent($request->getContent(), $request->headers->get('Stripe-Signature', ''), $secret);
         } catch (\UnexpectedValueException|\Stripe\Exception\SignatureVerificationException $e) {
             return new Response('Signature invalide.', 400);
+        }
+        if (in_array($event->type, ['refund.created', 'refund.updated', 'refund.failed', 'charge.refund.updated'], true)) {
+            $refund = $event->data->object;
+            $order = $repository->findOneBy(['stripeRefundId' => $refund->id]);
+            if (!$order && is_string($refund->payment_intent)) {
+                $order = $repository->findOneBy(['stripePaymentIntentId' => $refund->payment_intent]);
+            }
+            if (!$order && isset($refund->metadata->order_id) && ctype_digit((string) $refund->metadata->order_id)) {
+                $order = $repository->find((int) $refund->metadata->order_id);
+            }
+            if (!$order) { return new Response('OK'); }
+            try { $refunds->synchronize($order, $refund->id); }
+            catch (\DomainException $e) {
+                $logger->error('Remboursement Stripe incompatible.', ['order' => $order->getId(), 'refund' => $refund->id]);
+                return new Response('Remboursement incompatible avec la commande.', 409);
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                $logger->error('Synchronisation Stripe indisponible.', ['order' => $order->getId(), 'refund' => $refund->id]);
+                return new Response('Stripe indisponible, réessayer.', 503);
+            }
+            return new Response('OK');
         }
         if (!in_array($event->type, ['checkout.session.completed', 'checkout.session.expired'], true)) { return new Response('OK'); }
         $session = $event->data->object;

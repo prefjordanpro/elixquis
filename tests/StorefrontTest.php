@@ -200,7 +200,7 @@ class StorefrontTest extends WebTestCase
         self::assertResponseRedirects('/admin/order/'.$order->getId());
         $this->client->followRedirect();
         if ($state !== 0) {
-            self::assertSelectorTextContains('body', 'remboursement doit être effectué manuellement dans Stripe');
+            self::assertSelectorTextContains('body', 'effectuez le remboursement manuellement dans Stripe');
         }
         self::assertSelectorNotExists('button:contains("Annuler la commande")');
         $this->client->submit($form);

@@ -1,6 +1,6 @@
 {% set next = {0: [1, 'Vérifier le paiement Stripe'], 1: [2, 'Passer en préparation'], 2: [3, 'Expédier'], 3: [5, 'Marquer livrée']} %}
 <div class="d-flex gap-2 flex-wrap my-3">
-{% if next[order.state] is defined %}
+{% if next[order.state] is defined and order.stripeRefundStatus not in ['pending', 'requires_action'] %}
   <form method="post" action="{{ path('app_admin_order_state', {id: order.id}) }}">
     <input type="hidden" name="_token" value="{{ csrf_token('order_state_' ~ order.id) }}">
     <input type="hidden" name="state" value="{{ next[order.state][0] }}">
@@ -10,15 +10,30 @@
 {% if order.state in [0, 1, 2] %}
   <form method="post" action="{{ path('app_admin_order_state', {id: order.id}) }}"
         onsubmit="return confirm(this.dataset.confirmation);"
-        data-confirmation="{{ order.state in [1, 2] ? 'Confirmer l’annulation de cette commande payée ? Le stock réservé sera restitué. Le remboursement doit être effectué manuellement dans Stripe ; aucun remboursement automatique ne sera déclenché.' : 'Confirmer l’annulation de cette commande ? Le stock réservé sera restitué.' }}">
+        data-confirmation="{{ order.state in [1, 2] ? 'Confirmer l’annulation de cette commande payée ? Le stock réservé sera restitué. Le remboursement devra être demandé séparément ; aucun remboursement automatique ne sera déclenché.' : 'Confirmer l’annulation de cette commande ? Le stock réservé sera restitué.' }}">
     <input type="hidden" name="_token" value="{{ csrf_token('order_state_' ~ order.id) }}">
     <input type="hidden" name="state" value="4">
     <button type="submit" class="btn btn-danger">Annuler la commande</button>
   </form>
 {% endif %}
 </div>
+{% if order.state in [1, 2, 3, 4, 5] and (order.stripePaymentIntentId or order.stripeSessionId) %}
+  <form method="post" action="{{ path('app_admin_order_refund', {id: order.id}) }}"
+        onsubmit="return confirm('Confirmer le remboursement total de cette commande via Stripe ?');" class="my-2">
+    <input type="hidden" name="_token" value="{{ csrf_token('order_refund_' ~ order.id) }}">
+    <button type="submit" class="btn btn-danger">{{ order.stripeRefundId ? 'Synchroniser le remboursement' : 'Rembourser la commande' }}</button>
+  </form>
+{% endif %}
+{% if order.stripeRefundId %}
+<p>Remboursement Stripe : <code>{{ order.stripeRefundId }}</code> — {{ order.stripeRefundStatus }}.</p>
+{% if order.stripeRefundStatus in ['pending', 'requires_action'] %}
+<div class="alert alert-warning">Remboursement en attente de confirmation Stripe. La commande n’est pas encore remboursée.</div>
+{% elseif order.stripeRefundStatus in ['failed', 'canceled'] %}
+<div class="alert alert-danger">Le remboursement Stripe a échoué ou a été annulé. Vérifiez l’opération dans Stripe avant toute autre intervention.</div>
+{% endif %}
+{% endif %}
 {% if order.state in [1, 2] %}
-<p class="text-danger">En cas d’annulation, le remboursement doit être effectué manuellement dans Stripe. Aucun remboursement automatique ne sera déclenché.</p>
+<p class="text-danger">L’annulation ne déclenche aucun remboursement automatique. Utilisez ensuite l’action distincte « Rembourser la commande », ou effectuez le remboursement manuellement dans Stripe.</p>
 {% elseif order.state == 4 %}
-<div class="alert alert-warning">Commande annulée. Si un paiement a été encaissé, le remboursement doit être effectué manuellement dans Stripe. L’annulation ne déclenche aucun remboursement automatique.</div>
+<div class="alert alert-warning">Commande annulée. Si un paiement a été encaissé, utilisez l’action distincte « Rembourser la commande », ou effectuez le remboursement manuellement dans Stripe. L’annulation ne déclenche aucun remboursement automatique.</div>
 {% endif %}

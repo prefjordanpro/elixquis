@@ -131,7 +131,7 @@ Suite : `php vendor/phpunit/phpunit/phpunit --testdox`.
 
 ## 13. Résultats
 
-**25 tests réussis, 178 assertions** après ajout de l’annulation administrateur. Composer valide, aucun avis de sécurité connu dans l’audit de finalisation, mapping et base Doctrine cohérents, lint Twig/YAML/PHP et conteneur valides.
+**50 tests réussis, 773 assertions** après ajout de l’action distincte de remboursement Stripe. Composer valide, aucun avis de sécurité connu dans l’audit de finalisation, mapping et base Doctrine cohérents, lint Twig/YAML/PHP et conteneur valides.
 
 Les tests utilisent exclusivement **SQLite en mémoire**, créée à chaque test. Ils ne touchent pas à la base locale ni à une base de production et n’envoient aucun e-mail. Ils couvrent notamment les formulaires, les droits d’accès, les prix actualisés, les instantanés historiques, le rollback de stock, les annulations répétées, les versions concurrentes, les montants falsifiés, la majorité, la génération PDF et un webhook signé envoyé deux fois.
 
@@ -140,7 +140,7 @@ Les appels réseau Stripe réels et la concurrence entre plusieurs connexions Ma
 ## 14. Configurations restant à effectuer
 
 1. Renseigner l’inventaire réel et la TVA effective de chaque transporteur.
-2. Ajouter `STRIPE_WEBHOOK_SECRET` dans l’environnement privé, sans le versionner. Configurer `/paiement/webhook` pour `checkout.session.completed` et `checkout.session.expired`, puis vérifier un paiement Stripe de test. Le retour navigateur vérifie déjà Stripe, mais le webhook est nécessaire pour les clients qui ne reviennent pas sur le site.
+2. Ajouter `STRIPE_WEBHOOK_SECRET` dans l’environnement privé, sans le versionner. Configurer `/paiement/webhook` pour `checkout.session.completed`, `checkout.session.expired`, `refund.created`, `refund.updated` et `refund.failed`, puis vérifier un paiement et un remboursement Stripe de test. Le retour navigateur vérifie déjà Stripe, mais le webhook est nécessaire pour les clients qui ne reviennent pas sur le site et pour les remboursements asynchrones. L’événement historique `charge.refund.updated` est également accepté.
 3. Planifier toutes les cinq minutes `php bin/console app:orders:expire` sur le serveur. Aucun planificateur Windows ou de production n’a été installé sans intervention de l’utilisateur.
 4. Fournir les coordonnées officielles : `COMPANY_NAME`, `COMPANY_ADDRESS`, `COMPANY_REGISTRATION`, `COMPANY_VAT`, `COMPANY_EMAIL`, dans l’environnement privé. Le PDF est présenté comme un **récapitulatif de commande** ; il ne prétend pas être une facture légale finalisée.
 5. Fournir et valider les CGV/CGU et mentions légales : les liens de pied de page existants restent à compléter. Aucun texte juridique ni renseignement d’entreprise n’a été inventé.
@@ -162,6 +162,24 @@ Sur la branche `codex/finalisation-site`, le détail de commande propose un bout
 
 L’annulation conserve la commande, ses lignes et ses instantanés historiques. Le stock réservé est restitué dans une transaction verrouillée, une seule fois, y compris lors d’une répétition de la requête. Le stock des commandes historiques sans réservation n’est pas crédité. Pour une commande impayée, une éventuelle session Stripe ouverte doit d’abord être expirée.
 
-Pour une commande payée, aucun remboursement Stripe automatique n’est déclenché. La confirmation, la page et le message après annulation indiquent que le remboursement doit être effectué manuellement dans Stripe.
+Pour une commande payée, l’annulation ne déclenche aucun remboursement Stripe automatique. La confirmation, la page et le message après annulation indiquent que le remboursement doit être demandé séparément, via l’action de remboursement ou manuellement dans Stripe.
 
 Validation : suite PHPUnit complète réussie (25 tests, 178 assertions) et lint des trois templates administrateur réussi. Les nouveaux tests couvrent les trois statuts autorisés, la répétition, la conservation des lignes, les statuts interdits, les droits, la méthode HTTP, les jetons absents ou invalides et le stock non réservé. Les tests restent isolés dans SQLite en mémoire ; la concurrence MariaDB n’est pas exercée.
+
+## 17. Remboursement Stripe distinct
+
+Le bouton « Rembourser la commande » demande confirmation et effectue un POST protégé par un jeton CSRF propre à la commande et `ROLE_ADMIN`. Le montant et le paiement proviennent exclusivement des données serveur ; les valeurs ajoutées au navigateur sont ignorées. Les commandes payées, en préparation, expédiées, annulées après paiement ou livrées peuvent être remboursées intégralement si Stripe confirme le paiement correspondant. Aucun remboursement partiel n’est créé par le site.
+
+Le PaymentIntent est enregistré lors de la confirmation du paiement. Pour les anciennes commandes, il est retrouvé via la session Checkout déjà enregistrée, après vérification du montant, de la devise, du statut payé et de la référence de commande. Avant création, le service vérifie le paiement encaissé et les remboursements existants dans Stripe. Une clé d’idempotence stable, un verrou de commande et la conservation de l’identifiant `re_…` empêchent les créations répétées. Une réponse réseau perdue peut être récupérée en retrouvant l’opération existante. Les remboursements partiels externes exigent une intervention manuelle.
+
+Seul le statut Stripe `succeeded` déclenche l’état **6 — Remboursée**, distinct de **4 — Annulée**. `pending` et `requires_action` restent visibles sans changer le statut de commande ; le bouton permet alors uniquement de synchroniser l’opération existante. Les erreurs API et les remboursements refusés ne changent pas le statut initial. La préparation/expédition est bloquée pendant un remboursement en attente. La commande, ses lignes et ses instantanés sont conservés ; l’identifiant et le statut du remboursement sont enregistrés et journalisés sans secrets.
+
+Le stock encore réservé est restitué à confirmation pour une commande payée/en préparation/annulée, une seule fois. Les articles expédiés ou livrés ne sont pas recrédités : un remboursement ne constitue pas un retour physique. Si Stripe signale ultérieurement un échec bancaire, le statut antérieur est restauré, l’échec reste visible et aucune nouvelle restitution de stock ni deuxième opération de remboursement n’est lancée automatiquement.
+
+Les webhooks signés relisent l’opération via l’API pour utiliser le statut Stripe actuel même si les événements arrivent dans le désordre. Ils peuvent récupérer une opération non enregistrée localement grâce au PaymentIntent ou à la métadonnée de commande, en vérifiant toujours son rattachement réel au paiement. Une indisponibilité API renvoie HTTP 503 pour permettre une nouvelle livraison du webhook. Les anciennes commandes sans PaymentIntent ni métadonnée sont rapprochées lors de la première action administrateur, puis synchronisables par webhook.
+
+Migration additive `Version20261004120000` appliquée à la base locale ; mapping et schéma synchronisés. Aucun changement de `.env.local`, aucune suppression de commande, aucune modification de `main`.
+
+Validation : **50 tests, 773 assertions**, templates Twig et conteneur valides. Les 25 nouveaux cas utilisent le vrai SDK Stripe avec son transport HTTP simulé et une clé factice : aucun appel réseau Stripe, remboursement réel ou e-mail. Ils couvrent succès, attente, refus, erreurs réseau/API, répétitions, stock, anciennes sessions, montants falsifiés, remboursements externes, webhooks signés/répétés/désordonnés et échec bancaire tardif. Les dépréciations indirectes Doctrine restent signalées. Un parcours complet avec le webhook et le tableau de bord Stripe de test reste à valider après configuration des événements.
+
+Références : [remboursements et événements Stripe](https://docs.stripe.com/refunds), [création d’un remboursement](https://docs.stripe.com/api/refunds/create), [idempotence](https://docs.stripe.com/api/idempotent_requests).

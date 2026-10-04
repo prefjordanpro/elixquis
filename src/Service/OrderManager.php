@@ -53,7 +53,14 @@ class OrderManager
                 || (string) $session->client_reference_id !== (string) $order->getId()) {
                 throw new \DomainException('Le paiement ne correspond pas à la commande.');
             }
-            if (in_array($order->getState(), [1, 2, 3, 5], true)) { return; }
+            if (isset($session->payment_intent)) {
+                $intent = is_string($session->payment_intent) ? $session->payment_intent : $session->payment_intent->id;
+                if ($order->getStripePaymentIntentId() && $order->getStripePaymentIntentId() !== $intent) {
+                    throw new \DomainException('Le paiement Stripe enregistré ne correspond pas à la session.');
+                }
+                $order->setStripePaymentIntentId($intent);
+            }
+            if (in_array($order->getState(), [1, 2, 3, 4, 5, 6], true)) { return; }
             if ($order->getState() !== 0 || !$order->isStockReserved()) {
                 throw new \DomainException('Cette commande ne peut plus être payée.');
             }
@@ -81,26 +88,58 @@ class OrderManager
             if (!in_array($order->getState(), $allowedStates, true)) {
                 throw new \DomainException('L’annulation n’est pas autorisée pour le statut actuel de cette commande.');
             }
-            if ($order->isStockReserved()) {
-                $details = $order->getOrderDetails()->toArray();
-                usort($details, static fn ($a, $b) => ($a->getProduct()?->getId() ?? 0) <=> ($b->getProduct()?->getId() ?? 0));
-                foreach ($details as $detail) {
-                    if ($product = $detail->getProduct()) {
-                        $this->em->refresh($product, LockMode::PESSIMISTIC_WRITE);
-                        $product->setStock($product->getStock() + $detail->getProductQuantity());
-                    }
-                }
-                $order->setStockReserved(false);
-            }
+            $this->releaseStock($order);
             $order->setState(4);
         });
+    }
+
+    /** Appelé uniquement avec un objet de remboursement confirmé par Stripe. */
+    public function synchronizeRefund(Order $order, object $refund): void
+    {
+        $this->em->wrapInTransaction(function () use ($order, $refund): void {
+            $this->em->refresh($order, LockMode::PESSIMISTIC_WRITE);
+            if (!in_array($order->getState(), [1, 2, 3, 4, 5, 6], true)
+                || !$order->getStripePaymentIntentId()
+                || $refund->payment_intent !== $order->getStripePaymentIntentId()
+                || $refund->currency !== 'eur' || $refund->amount !== $order->getTotalCents()
+                || !is_string($refund->id) || !str_starts_with($refund->id, 're_')
+                || !in_array($refund->status, ['succeeded', 'pending', 'requires_action', 'failed', 'canceled'], true)
+                || ($order->getStripeRefundId() && $order->getStripeRefundId() !== $refund->id)) {
+                throw new \DomainException('Le remboursement Stripe ne correspond pas au remboursement total de cette commande.');
+            }
+            $order->setStripeRefundId($refund->id)->setStripeRefundStatus($refund->status);
+            if ($refund->status === 'succeeded' && $order->getState() !== 6) {
+                $order->setStateBeforeRefund($order->getState());
+                // Les articles expédiés/livrés ne reviennent pas physiquement par un remboursement.
+                if (in_array($order->getState(), [1, 2, 4], true)) { $this->releaseStock($order); }
+                $order->setState(6);
+            } elseif ($refund->status !== 'succeeded' && $order->getState() === 6) {
+                // Stripe peut signaler un échec bancaire après une première confirmation.
+                $order->setState($order->getStateBeforeRefund() ?? 4);
+            }
+        });
+    }
+
+    private function releaseStock(Order $order): void
+    {
+        if (!$order->isStockReserved()) { return; }
+        $details = $order->getOrderDetails()->toArray();
+        usort($details, static fn ($a, $b) => ($a->getProduct()?->getId() ?? 0) <=> ($b->getProduct()?->getId() ?? 0));
+        foreach ($details as $detail) {
+            if ($product = $detail->getProduct()) {
+                $this->em->refresh($product, LockMode::PESSIMISTIC_WRITE);
+                $product->setStock($product->getStock() + $detail->getProductQuantity());
+            }
+        }
+        $order->setStockReserved(false);
     }
 
     public function advance(Order $order, int $from, int $to): void
     {
         $this->em->wrapInTransaction(function () use ($order, $from, $to): void {
             $this->em->refresh($order, LockMode::PESSIMISTIC_WRITE);
-            if (!in_array([$from, $to], [[1, 2], [2, 3], [3, 5]], true) || $order->getState() !== $from) {
+            if (in_array($order->getStripeRefundStatus(), ['pending', 'requires_action'], true)
+                || !in_array([$from, $to], [[1, 2], [2, 3], [3, 5]], true) || $order->getState() !== $from) {
                 throw new \DomainException('Ce changement de statut n’est pas autorisé.');
             }
             $order->setState($to);

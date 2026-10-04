@@ -4,7 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Entity\Order;
 use App\Repository\OrderRepository;
-use App\Service\{OrderManager, StripePayment};
+use App\Service\{OrderManager, StripePayment, StripeRefund};
 use EasyCorp\Bundle\EasyAdminBundle\Config\{Action, Actions, Crud};
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\{AssociationField, DateField, Field, IdField, NumberField, TextField};
@@ -53,7 +53,7 @@ class OrderCrudController extends AbstractCrudController
             if ($target === 4) {
                 $manualRefund = $payment->cancelForAdmin($order);
                 if ($manualRefund) {
-                    $this->addFlash('warning', 'Commande payée annulée : le remboursement doit être effectué manuellement dans Stripe. Aucun remboursement automatique n’a été déclenché.');
+                    $this->addFlash('warning', 'Commande payée annulée : aucun remboursement automatique n’a été déclenché. Utilisez l’action distincte « Rembourser la commande » ou effectuez le remboursement manuellement dans Stripe.');
                 }
             }
             elseif ($target === 1) { $payment->verify($order); }
@@ -61,6 +61,31 @@ class OrderCrudController extends AbstractCrudController
             $this->addFlash('success', 'Statut de la commande mis à jour.');
         } catch (\DomainException $e) { $this->addFlash('warning', $e->getMessage()); }
         catch (\Stripe\Exception\ApiErrorException $e) { $this->addFlash('warning', 'Le service de paiement est indisponible.'); }
+        return $this->redirectToRoute('admin_order_detail', ['entityId' => $id]);
+    }
+
+    #[Route('/admin/commande/{id}/rembourser', name: 'app_admin_order_refund', methods: ['POST'])]
+    public function refund(int $id, Request $request, OrderRepository $repository, StripeRefund $refunds, \Psr\Log\LoggerInterface $logger): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        if (!$this->isCsrfTokenValid('order_refund_'.$id, $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton de sécurité invalide.');
+        }
+        $order = $repository->find($id);
+        if (!$order) { throw $this->createNotFoundException('Commande introuvable.'); }
+        try {
+            $status = $refunds->refund($order);
+            if ($status === 'succeeded') { $this->addFlash('success', 'Remboursement total confirmé par Stripe.'); }
+            elseif (in_array($status, ['failed', 'canceled'], true)) {
+                $this->addFlash('danger', 'Stripe a refusé ou annulé le remboursement. Le statut de la commande est conservé. Vérifiez le remboursement dans Stripe.');
+            } else {
+                $this->addFlash('warning', 'Remboursement enregistré dans Stripe, en attente de confirmation. La commande n’est pas encore remboursée.');
+            }
+        } catch (\DomainException $e) { $this->addFlash('danger', $e->getMessage()); }
+        catch (\Stripe\Exception\ApiErrorException $e) {
+            $logger->error('Échec du remboursement Stripe.', ['order' => $id, 'type' => $e::class]);
+            $this->addFlash('danger', 'Stripe n’a pas confirmé le remboursement. Le statut actuel est conservé. Réessayez pour vérifier le résultat de l’opération.');
+        }
         return $this->redirectToRoute('admin_order_detail', ['entityId' => $id]);
     }
 }
