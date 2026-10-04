@@ -1,0 +1,545 @@
+{
+  "results": [
+    {
+      "name": "accueil",
+      "width": 1440,
+      "status": 200,
+      "title": "Du caractère.De la gourmandise.",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "catalogue",
+      "width": 1440,
+      "status": 200,
+      "title": "Tous nos produits",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "produit",
+      "width": 1440,
+      "status": 200,
+      "title": "paysage de maison",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "panier",
+      "width": 1440,
+      "status": 200,
+      "title": "Mon panier",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "connexion",
+      "width": 1440,
+      "status": 200,
+      "title": "Connexion",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "inscription",
+      "width": 1440,
+      "status": 200,
+      "title": "Inscription",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "accueil",
+      "width": 390,
+      "status": 200,
+      "title": "Du caractère.De la gourmandise.",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "catalogue",
+      "width": 390,
+      "status": 200,
+      "title": "Tous nos produits",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "produit",
+      "width": 390,
+      "status": 200,
+      "title": "paysage de maison",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "panier",
+      "width": 390,
+      "status": 200,
+      "title": "Mon panier",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "connexion",
+      "width": 390,
+      "status": 200,
+      "title": "Connexion",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "inscription",
+      "width": 390,
+      "status": 200,
+      "title": "Inscription",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "accueil",
+      "width": 320,
+      "status": 200,
+      "title": "Du caractère.De la gourmandise.",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "catalogue",
+      "width": 320,
+      "status": 200,
+      "title": "Tous nos produits",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "produit",
+      "width": 320,
+      "status": 200,
+      "title": "paysage de maison",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "panier",
+      "width": 320,
+      "status": 200,
+      "title": "Mon panier",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "connexion",
+      "width": 320,
+      "status": 200,
+      "title": "Connexion",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "inscription",
+      "width": 320,
+      "status": 200,
+      "title": "Inscription",
+      "overflow": false,
+      "font": "system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Noto Sans\", \"Liberation Sans\", Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\", \"Noto Color Emoji\"",
+      "headerColor": "rgba(0, 0, 0, 0)",
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "categorie-vide",
+      "width": 1440,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "panier",
+      "width": 1440,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "compte",
+      "width": 1440,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "compte-commandes",
+      "width": 1440,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "profil",
+      "width": 1440,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "adresses",
+      "width": 1440,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "adresse-formulaire",
+      "width": 1440,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "mot-de-passe",
+      "width": 1440,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "checkout",
+      "width": 1440,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "commande-validation",
+      "width": 1440,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "commande-demande",
+      "width": 1440,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "confirmation",
+      "width": 1440,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "administration",
+      "width": 1440,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "categorie-vide",
+      "width": 390,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "panier",
+      "width": 390,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "compte",
+      "width": 390,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "compte-commandes",
+      "width": 390,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "profil",
+      "width": 390,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "adresses",
+      "width": 390,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "adresse-formulaire",
+      "width": 390,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "mot-de-passe",
+      "width": 390,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "checkout",
+      "width": 390,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "commande-validation",
+      "width": 390,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "commande-demande",
+      "width": 390,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "confirmation",
+      "width": 390,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "administration",
+      "width": 390,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "categorie-vide",
+      "width": 320,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "panier",
+      "width": 320,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "compte",
+      "width": 320,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "compte-commandes",
+      "width": 320,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "profil",
+      "width": 320,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "adresses",
+      "width": 320,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "adresse-formulaire",
+      "width": 320,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "mot-de-passe",
+      "width": 320,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "checkout",
+      "width": 320,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "commande-validation",
+      "width": 320,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "commande-demande",
+      "width": 320,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "confirmation",
+      "width": 320,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    },
+    {
+      "name": "administration",
+      "width": 320,
+      "fixture": true,
+      "overflow": false,
+      "missingImages": 0,
+      "horizontalOverflow": []
+    }
+  ],
+  "errors": [],
+  "controls": [
+    {
+      "name": "Recherche sans résultat",
+      "passed": true
+    },
+    {
+      "name": "Tri des prix",
+      "passed": true
+    },
+    {
+      "name": "Filtre disponibilité",
+      "passed": true
+    },
+    {
+      "name": "Menu mobile",
+      "passed": true
+    },
+    {
+      "name": "Catégories mobiles",
+      "passed": true
+    },
+    {
+      "name": "Visibilité du mot de passe",
+      "passed": true
+    },
+    {
+      "name": "Confirmation de majorité",
+      "passed": true
+    }
+  ]
+}
