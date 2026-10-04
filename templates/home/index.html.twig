@@ -1,77 +1,64 @@
 {% extends 'base.html.twig' %}
-
+{% block title %}Elixquis — Découvrez nos rhums arrangés{% endblock %}
 {% block body %}
-<div class="container marketing">
-    {# --- tes colonnes + featurettes inchangées --- #}
-
-<div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-4 text-center justify-content-center">
-  {% for product in productsInHomepage %}
-    <div class="col">
-      <a href="{{ path('app_product', { slug: product.slug }) }}" class="text-decoration-none text-reset d-block">
-        <img
-          src="/uploads/{{ product.illustration }}"
-          alt="{{ product.name }}"
-          class="rounded-circle img-fluid shadow-sm"
-          style="width: 140px; height: 140px; object-fit: cover;"
-          loading="lazy"
-        >
-        <h2 class="h6 fw-semibold mt-3 mb-1 text-truncate">{{ product.name }}</h2>
-
-        {# Optionnel : petite description sur 2 lignes max #}
-        <p class="small text-muted mb-2" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
-          {{ product.description|striptags }}
-        </p>
-
-        <span class="btn btn-sm btn-secondary rounded-pill">
-          Découvrir
-        </span>
-      </a>
+<section class="home-hero">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <p class="section-label">Rhums arrangés artisanaux</p>
+      <h1>Du caractère.<br>De la gourmandise.</h1>
+      <p class="lead">Bienvenue chez Elixquis. Découvrez nos rhums arrangés et trouvez les saveurs qui vous ressemblent.</p>
+      <div class="hero-actions">
+        <a class="btn btn-success btn-lg" href="{{ path('app_catalogue') }}">Découvrir la boutique <i data-feather="arrow-right"></i></a>
+        {% if allCategories|length %}<a class="btn btn-outline-secondary btn-lg" href="#nos-saveurs">Explorer les saveurs</a>{% endif %}
+      </div>
     </div>
-  {% endfor %}
-</div>
-
-    <hr class="featurette-divider">
-
-    <div class="row featurette">
-    <div class="col-md-7">
-        <h2 class="featurette-heading fw-normal lh-1">Découvrez nos rhums arrangés.
-        <span class="text-body-secondary">Choisissez vos saveurs.</span>
-        </h2>
-        <p class="lead">Parcourez notre catalogue et retrouvez la description, le prix et la disponibilité de chaque produit.</p>
+    <div class="hero-image">
+      {% if siteHeaders|length %}
+      <div id="homeCarousel" class="carousel slide" aria-label="L’univers Elixquis">
+        <div class="carousel-inner">
+          {% for header in siteHeaders %}
+          <div class="carousel-item {{ loop.first ? 'active' : '' }}">
+            <img src="{{ asset('uploads/' ~ header.illustration) }}" alt="{{ header.title }}" width="800" height="650" loading="{{ loop.first ? 'eager' : 'lazy' }}" fetchpriority="{{ loop.first ? 'high' : 'auto' }}">
+            <div class="hero-caption"><h2>{{ header.title }}</h2>
+              {% if header.content %}<p>{{ header.content }}</p>{% endif %}
+              {% if header.buttonLink and header.buttonTitle %}<a href="{{ header.buttonLink }}">{{ header.buttonTitle }} →</a>{% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% if siteHeaders|length > 1 %}
+        <div class="carousel-indicators">{% for header in siteHeaders %}<button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="{{ loop.index0 }}" class="{{ loop.first ? 'active' : '' }}" {{ loop.first ? 'aria-current="true"'|raw : '' }} aria-label="Afficher {{ header.title }}"></button>{% endfor %}</div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Précédent</span></button>
+        <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Suivant</span></button>
+        {% endif %}
+      </div>
+      {% elseif productsInHomepage|length %}
+      <img src="{{ asset('uploads/' ~ (productsInHomepage|first).illustration) }}" alt="{{ (productsInHomepage|first).name }}" width="800" height="650" fetchpriority="high">
+      {% else %}
+      <img src="{{ asset('uploads/beach-4405371_640.jpg') }}" alt="Une côte ensoleillée, l’univers Elixquis" width="640" height="427" fetchpriority="high">
+      {% endif %}
     </div>
-    <div class="col-md-5">
-        <svg class="bd-placeholder-img bd-placeholder-img-lg featurette-image img-fluid mx-auto" width="500" height="500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration Elixquis" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Elixquis</title><rect width="100%" height="100%" fill="var(--bs-secondary-bg)"/><text x="50%" y="50%" fill="var(--bs-secondary-color)" dy=".3em">Elixquis</text></svg>
+  </div>
+</section>
+<div class="container">
+  {% if productsInHomepage|length %}
+  <section class="section-space" aria-labelledby="selection-title">
+    <div class="section-heading"><div><p class="section-label">La sélection Elixquis</p><h2 id="selection-title">À découvrir, à savourer.</h2><p>Explorez les produits mis en avant dans notre boutique.</p></div><a href="{{ path('app_catalogue') }}">Tous les produits →</a></div>
+    <div class="product-grid">
+      {% for product in productsInHomepage|slice(0, 8) %}<div class="product-cell">{% include 'components/_product_card.html.twig' with {product: product, heading: 'h3'} %}</div>{% endfor %}
     </div>
-    </div>
-
-    <hr class="featurette-divider">
-
-    <div class="row featurette">
-    <div class="col-md-7 order-md-2">
-        <h2 class="featurette-heading fw-normal lh-1">Commandez en toute simplicité.
-        <span class="text-body-secondary">Préparez votre sélection.</span>
-        </h2>
-        <p class="lead">Ajoutez vos produits au panier, choisissez votre adresse et votre transporteur, puis réglez votre commande.</p>
-    </div>
-    <div class="col-md-5 order-md-1">
-        <svg class="bd-placeholder-img bd-placeholder-img-lg featurette-image img-fluid mx-auto" width="500" height="500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration Elixquis" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Elixquis</title><rect width="100%" height="100%" fill="var(--bs-secondary-bg)"/><text x="50%" y="50%" fill="var(--bs-secondary-color)" dy=".3em">Elixquis</text></svg>
-    </div>
-    </div>
-
-    <hr class="featurette-divider">
-
-    <div class="row featurette">
-    <div class="col-md-7">
-        <h2 class="featurette-heading fw-normal lh-1">Suivez vos commandes.
-        <span class="text-body-secondary">Depuis votre espace client.</span>
-        </h2>
-        <p class="lead">Consultez votre historique, les détails de vos achats et leur statut de préparation ou de livraison.</p>
-    </div>
-    <div class="col-md-5">
-        <svg class="bd-placeholder-img bd-placeholder-img-lg featurette-image img-fluid mx-auto" width="500" height="500" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration Elixquis" preserveAspectRatio="xMidYMid slice" focusable="false"><title>Elixquis</title><rect width="100%" height="100%" fill="var(--bs-secondary-bg)"/><text x="50%" y="50%" fill="var(--bs-secondary-color)" dy=".3em">Elixquis</text></svg>
-    </div>
-    </div>
-
-    <hr class="featurette-divider">
+  </section>
+  {% endif %}
+  {% if allCategories|length %}
+  <section class="section-space pt-0" id="nos-saveurs" aria-labelledby="categories-title">
+    <div class="section-heading"><div><p class="section-label">À chacun ses envies</p><h2 id="categories-title">Choisissez vos saveurs.</h2></div></div>
+    <div class="category-grid">{% for category in allCategories %}<a class="category-tile" href="{{ path('app_category', {slug: category.slug}) }}"><span>{{ category.name }}</span><i data-feather="arrow-right"></i></a>{% endfor %}</div>
+  </section>
+  {% endif %}
+  <section class="story-band" aria-labelledby="story-title">
+    <div><p class="section-label">L’esprit Elixquis</p><h2 id="story-title">Un univers artisanal,<br>des saveurs à explorer.</h2></div>
+    <div><p>Fruits, épices, gourmandise : prenez le temps de découvrir les recettes de notre boutique. Chaque fiche présente sa description, son prix et sa disponibilité.</p><a class="btn btn-outline-primary" href="{{ path('app_catalogue') }}">Trouver mon prochain rhum</a></div>
+  </section>
+  {% include 'components/_reassurance.html.twig' %}
 </div>
 {% endblock %}

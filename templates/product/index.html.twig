@@ -1,80 +1,35 @@
 {% extends 'base.html.twig' %}
-
+{% block title %}{{ product.name }} — Elixquis{% endblock %}
+{% block description %}{{ product.description|striptags|slice(0, 150) }}{% endblock %}
 {% block body %}
-
 <div class="container my-5">
-
-{# Fil d’Ariane #}
-<nav aria-label="breadcrumb" class="mb-4">
-    <ol class="breadcrumb mb-0">
-    {% if product.category %}<li class="breadcrumb-item">
-        <a href="{{ path('app_category', { slug : product.category.slug }) }}">{{ product.category.name }}</a>
-    </li>{% endif %}
+  <nav aria-label="Fil d’Ariane"><ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ path('app_catalogue') }}">Boutique</a></li>
+    {% if product.category %}<li class="breadcrumb-item"><a href="{{ path('app_category', {slug: product.category.slug}) }}">{{ product.category.name }}</a></li>{% endif %}
     <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
-    </ol>
-</nav>
-
-<div class="row g-4">
-    {# Image produit #}
-    <div class="col-lg-6">
-    <div class="card border-0 shadow-sm">
-        <div class="ratio ratio-1x1">
-        <img
-            src="/uploads/{{ product.illustration }}"
-            alt="{{ product.name }}"
-            class="img-fluid rounded-top"
-            loading="lazy">
+  </ol></nav>
+  <div class="product-detail-grid">
+    <div class="product-detail-photo"><img src="{{ asset('uploads/' ~ product.illustration) }}" alt="{{ product.name }}" width="700" height="700" fetchpriority="high" decoding="async"></div>
+    <div class="product-detail-info">
+      <p class="section-label">{{ product.category ? product.category.name : 'La boutique Elixquis' }}</p>
+      <h1>{{ product.name }}</h1>
+      <div><span class="detail-price">{{ product.pricewt|price }}</span><span class="text-muted ms-2">TTC</span></div>
+      <div class="buy-box">
+        <p class="availability {{ product.stock < 1 ? 'unavailable' : '' }}">{{ product.stock > 0 ? 'Disponible' : 'Rupture de stock' }}</p>
+        <p class="text-muted small mt-1">{{ product.stock > 0 ? product.stock ~ ' unité' ~ (product.stock > 1 ? 's' : '') ~ ' en stock' : 'Ce produit ne peut pas être ajouté au panier pour le moment.' }}</p>
+        <div class="buy-row">
+          <div class="fixed-quantity"><small>Quantité</small><strong>1</strong></div>
+          <form method="post" action="{{ path('app_cart_add', {id: product.id}) }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
+            <button type="submit" class="btn btn-success btn-lg w-100" {{ product.stock < 1 ? 'disabled' : '' }}><i data-feather="shopping-bag"></i> Ajouter au panier</button>
+          </form>
         </div>
+        <p class="small text-muted mt-3 mb-0">Une unité par ajout. Ajustez les quantités dans votre panier.</p>
+      </div>
+      <p class="small text-muted"><i data-feather="lock"></i> Paiement via Stripe · Livraison choisie avant le règlement.</p>
+      <div class="product-description"><h2>À propos de ce produit</h2><div>{{ product.description|striptags|nl2br }}</div></div>
+      <a class="d-inline-block mt-4" href="{{ product.category ? path('app_category', {slug: product.category.slug}) : path('app_catalogue') }}">← Continuer la découverte</a>
     </div>
-    </div>
-
-    {# Infos produit #}
-    <div class="col-lg-6">
-    <div class="position-sticky" style="top: 2rem;">
-        <small class="d-inline-flex align-items-center gap-2 text-muted mb-2">
-        {% if product.category %}<a class="text-decoration-none" href="{{ path('app_category', { slug : product.category.slug } ) }}">{{ product.category.name }}</a>{% endif %}
-        <span>•</span>
-        <i>{{ product.name }}</i>
-        </small>
-
-        <h1 class="h3 mb-2">{{ product.name }}</h1>
-
-        <div class="d-flex align-items-baseline gap-3 mb-3">
-        <span class="display-6 fw-bold">{{ product.pricewt|price }}</span>
-        </div>
-
-        {# Description en accordéon #}
-        <div class="accordion mb-4" id="productDetails">
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="headingDesc">
-            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDesc" aria-expanded="true" aria-controls="collapseDesc">
-                Description
-            </button>
-            </h2>
-            <div id="collapseDesc" class="accordion-collapse collapse show" aria-labelledby="headingDesc" data-bs-parent="#productDetails">
-            <div class="accordion-body">
-                {{ product.description|striptags|nl2br }}
-            </div>
-            </div>
-        </div>
-        </div>
-
-        <p>{{ product.stock > 0 ? 'Disponible' : 'Rupture de stock' }}</p>
-        <form method="post" action="{{ path('app_cart_add', {id: product.id}) }}">
-          <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
-          <button class="btn btn-success btn-lg w-100" {{ product.stock < 1 ? 'disabled' : '' }}>Ajouter au panier</button>
-        </form>
-
-        <div class="mt-3 text-center">
-        {% if product.category %}<a href="{{ path('app_category', { slug : product.category.slug } ) }}" class="text-decoration-none">
-            ← Retour à {{ product.category.name }}
-        </a>{% endif %}
-        </div>
-    </div>
-    </div>
+  </div>
 </div>
-
-</div>
-
-
 {% endblock %}

@@ -1,0 +1,15 @@
+<article class="product-card">
+  <a class="product-photo" href="{{ path('app_product', {slug: product.slug}) }}" tabindex="-1" aria-hidden="true">
+    <img src="{{ asset('uploads/' ~ product.illustration) }}" alt="{{ product.name }}" width="420" height="420" loading="lazy" decoding="async">
+  </a>
+  <div class="product-card-body">
+    <p class="product-category">{{ product.category ? product.category.name : 'Elixquis' }}</p>
+    {% set heading = heading|default('h2') %}
+    {% if heading == 'h3' %}<h3><a href="{{ path('app_product', {slug: product.slug}) }}">{{ product.name }}</a></h3>{% else %}<h2><a href="{{ path('app_product', {slug: product.slug}) }}">{{ product.name }}</a></h2>{% endif %}
+    <p class="availability {{ product.stock < 1 ? 'unavailable' : '' }}">{{ product.stock > 0 ? 'Disponible' : 'Rupture de stock' }}</p>
+    <div class="product-card-footer">
+      <span class="product-price">{{ product.pricewt|price }}</span>
+      <a class="btn btn-outline-primary" href="{{ path('app_product', {slug: product.slug}) }}" aria-label="Découvrir {{ product.name }}">Découvrir</a>
+    </div>
+  </div>
+</article>

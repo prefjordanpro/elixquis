@@ -5,9 +5,10 @@
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6">
 
-        <div class="card shadow-sm border-1">
+        <div class="card shadow-sm border-1 auth-card">
             <div class="card-body p-4 p-lg-5">
             <h1 class="h3 mb-3">Connexion</h1>
+            <p class="text-muted mb-4">Retrouvez vos commandes, vos adresses et le suivi de vos achats.</p>
 
             {% if error %}
                 <div class="alert alert-danger" role="alert">
@@ -21,7 +22,7 @@
                 <label for="username" class="form-label">Votre email</label>
                 <div class="input-group">
                     <span class="input-group-text"><i data-feather="mail"></i></span>
-                    <input class="form-control" type="text" id="username" name="_username" value="{{ last_username }}" required autofocus>
+                    <input class="form-control" type="email" id="username" name="_username" value="{{ last_username }}" autocomplete="username" required autofocus>
                 </div>
                 </div>
 
@@ -29,7 +30,7 @@
                 <label for="password" class="form-label">Votre mot de passe</label>
                 <div class="input-group">
                     <span class="input-group-text"><i data-feather="lock"></i></span>
-                    <input class="form-control" type="password" id="password" name="_password" required>
+                    <input class="form-control" type="password" id="password" name="_password" autocomplete="current-password" required>
                     <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Afficher/Masquer le mot de passe">
                     <span id="passwordIcon"><i data-feather="eye"></i></span>
                     </button>
@@ -80,6 +81,8 @@
     btn.addEventListener('click', () => {
         const showing = (input.type === 'password'); // on va afficher ?
         input.type = showing ? 'text' : 'password';
+        btn.setAttribute('aria-pressed', String(showing));
+        btn.setAttribute('aria-label', showing ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
         setIcon(showing ? 'eye-off' : 'eye');
     });
     });

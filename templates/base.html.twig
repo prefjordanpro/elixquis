@@ -1,256 +1,102 @@
 <!doctype html>
-<html lang="fr" data-bs-theme="auto">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Elixquis - Le rhum 100% Made in France</title>
-    <meta name="description" content="Elixquis le rhum Made In France">
-
-    <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet">
-    <!-- Custom styles for this template -->
-    <link href="{{ asset('assets/css/carousel.css') }}" rel="stylesheet">
-    <link href="{{ asset('assets/css/custom.css') }}" rel="stylesheet">
-
-    <script src="https://unpkg.com/feather-icons"></script>
-  </head>
-  <body>
-    <header data-bs-theme="dark">
-      <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark py-4">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="{{ path('app_home') }}">Elixquis</a>
-
-          <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarCollapse"
-            aria-controls="navbarCollapse"
-            aria-expanded="false"
-            aria-label="Afficher la navigation"
-          >
-            <span class="navbar-toggler-icon"></span>
-          </button>
-
-          <div class="collapse navbar-collapse" id="navbarCollapse">
-            <ul class="navbar-nav mx-auto text-center text-md-start mb-2 mb-md-0">
-              <li class="nav-item"><a class="nav-link" href="{{ path('app_catalogue') }}">Catalogue</a></li>
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="{{ path('app_home') }}">Accueil</a>
-              </li>
-              {% for category in allCategories %}
-                <li class="nav-item">
-                  <a class="nav-link" href="{{ path('app_category', { slug: category.slug }) }}">{{ category.name }}</a>
-                </li>
-              {% endfor %}
-            </ul>
-
-            <div class="speed-menu d-flex justify-content-between mt-3 mt-md-0">
-              {% if app.user %}
-                <a href="{{ path('app_account') }}">
-                  <i data-feather="user"></i> {{ app.user.firstname }}
-                </a>
-              {% else %}
-                <a href="{{ path('app_login') }}">
-                  <i data-feather="user"></i>
-                </a>
-              {% endif %}
-
-              <a href="{{ path('app_cart') }}">
-                <i data-feather="shopping-cart"></i>
-                <span class="badge text-bg-light">{{ fullCartQuantity }}</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </nav>
-    </header>
-
-    <main>
-      {# === Carrousel global === #}
-      {% if siteHeaders is defined and siteHeaders|length > 0 %}
-        <div
-          id="myCarousel"
-          class="carousel slide mb-5 overflow-hidden"
-          data-bs-ride="carousel"
-          data-bs-interval="3000"
-          data-bs-pause="false"
-          data-bs-touch="true"
-        >
-          <div class="carousel-indicators">
-            {% if siteHeaders|length > 1 %}
-              {% for key, header in siteHeaders %}
-                <button
-                  type="button"
-                  data-bs-target="#myCarousel"
-                  data-bs-slide-to="{{ key }}"
-                  {% if key == 0 %}class="active" aria-current="true"{% endif %}
-                  aria-label="{{ header.title|default('Bannière') }}"
-                ></button>
-              {% endfor %}
-            {% endif %}
-          </div>
-
-          <div class="carousel-inner">
-            {% for key, header in siteHeaders %}
-              <div class="carousel-item {% if key == 0 %}active{% endif %}">
-                <img
-                  src="{{ asset('uploads/' ~ (header.illustration|default('headers/default.jpg'))) }}"
-                  class="d-block w-100 carousel-cover"
-                  alt="{{ header.title ?? 'Bannière' }}"
-                  loading="{{ key == 0 ? 'eager' : 'lazy' }}"
-                  fetchpriority="{{ key == 0 ? 'high' : 'auto' }}"
-                  decoding="async"
-                >
-                <div class="container">
-                  <div class="carousel-caption text-start">
-                    <div class="p-2 p-sm-3 rounded-3 bg-dark bg-opacity-50 d-inline-block text-white">
-                      <h1 class="mb-1">{{ header.title }}</h1>
-                      <p class="mb-3">{{ header.content }}</p>
-                      {% if header.buttonLink and header.buttonTitle %}
-                        <p>
-                          <a class="btn btn btn-secondary" href="{{ header.buttonLink }}">{{ header.buttonTitle }}</a>
-                        </p>
-                      {% endif %}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            {% endfor %}
-          </div>
-
-          <button class="carousel-control-prev" type="button" data-bs-target="#myCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Précédent</span>
-          </button>
-          <button class="carousel-control-next" type="button" data-bs-target="#myCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Suivant</span>
-          </button>
-        </div>
-      {% endif %}
-      {# === /Carrousel global === #}
-
+<html lang="fr" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Elixquis — Rhums arrangés artisanaux{% endblock %}</title>
+  <meta name="description" content="{% block description %}Découvrez les rhums arrangés Elixquis. Explorez nos produits, leurs saveurs et leur disponibilité.{% endblock %}">
+  <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ asset('assets/css/custom.css') }}" rel="stylesheet">
+  <link href="{{ asset('assets/css/elixquis.css') }}" rel="stylesheet">
+</head>
+{% set route = app.request.attributes.get('_route')|default('') %}
+{% set checkout = route in ['app_order', 'app_payment_success'] %}
+<body class="elixquis-site {{ checkout ? 'checkout-page' : '' }}">
+  <a class="skip-link" href="#contenu">Aller au contenu</a>
+  <header class="site-header" data-bs-theme="dark">
+    <nav class="navbar navbar-expand-lg navbar-dark" aria-label="Navigation principale">
       <div class="container">
-        {% for label, messages in app.flashes %}
-          {% for message in messages %}
-            <div class="alert mt-4 alert-{{ label }}">{{ message }}</div>
-          {% endfor %}
-        {% endfor %}
-      </div>
-
-      {% block body %}{% endblock %}
-
-      {# FOOTER #}
-      <footer class="bg-dark text-light mt-5">
-        <div class="container py-5">
-          <div class="row g-4">
-            <div class="col-12 col-md-6">
-              <a class="navbar-brand text-light mb-2 d-inline-block" href="{{ path('app_home') }}">Elixquis</a>
-              <p class="text-secondary small mb-3">
-                Rhum 100% Made in France — savoir-faire, qualité et caractère.
-              </p>
-              <div class="d-flex gap-3">
-                <a href="https://www.instagram.com/" class="link-light opacity-75"><i data-feather="instagram"></i></a>
-              </div>
-            </div>
-
-            <div class="col-6 col-md-3">
-              <h6 class="text-uppercase small text-secondary mb-2">Boutique</h6>
-              <ul class="list-unstyled mb-0 small">
-                {% for category in allCategories|slice(0,5) %}
-                  <li>
-                    <a class="link-light link-underline-opacity-0" href="{{ path('app_category', { slug: category.slug }) }}">
-                      {{ category.name }}
-                    </a>
-                  </li>
-                {% endfor %}
-                <li>
-                  <a class="link-light link-underline-opacity-0" href="{{ path('app_catalogue') }}">Tous les produits</a>
-                </li>
-              </ul>
-            </div>
-
-            <div class="col-6 col-md-3">
-              <h6 class="text-uppercase small text-secondary mb-2">Mon compte</h6>
-              <ul class="list-unstyled mb-0 small">
-                {% if app.user %}
-                  <li><a class="link-light link-underline-opacity-0" href="{{ path('app_account') }}">Mes commandes</a></li>
-                  <li><a class="link-light link-underline-opacity-0" href="{{ path('app_account_addresses') }}">Mes adresses</a></li>
-                  <li><a class="link-light link-underline-opacity-0" href="{{ path('app_account_modify_pwd') }}">Mot de passe</a></li>
-                  <li><a class="link-light link-underline-opacity-0" href="{{ path('app_logout', {'_csrf_token': csrf_token('logout')}) }}">Déconnexion</a></li>
-                {% else %}
-                  <li><a class="link-light link-underline-opacity-0" href="{{ path('app_login') }}">Se connecter</a></li>
-                {% endif %}
-              </ul>
-            </div>
-          </div>
-
-          <hr class="border-secondary my-4">
-
-          <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-2">
-            <p class="mb-0 small text-secondary">
-              &copy; {{ "now"|date("Y") }} Elixquis ·
-              <a href="#" class="link-light link-underline-opacity-0">CGV</a> ·
-              <a href="#" class="link-light link-underline-opacity-0">CGU</a>
-            </p>
-            <p class="mb-0 small text-secondary">
-              L’abus d’alcool est dangereux pour la santé, à consommer avec modération.
-              Vente interdite aux mineurs de moins de 18 ans.
-            </p>
-          </div>
+        <a class="navbar-brand" href="{{ path('app_home') }}">Elixquis</a>
+        <div class="header-quick d-flex align-items-center gap-2 order-lg-3">
+          <a class="header-action" href="{{ app.user ? path('app_account') : path('app_login') }}">
+            <i data-feather="user" aria-hidden="true"></i><span class="d-none d-sm-inline">{{ app.user ? 'Mon compte' : 'Connexion' }}</span>
+            <span class="visually-hidden d-sm-none">{{ app.user ? 'Mon compte' : 'Connexion' }}</span>
+          </a>
+          <a class="header-action header-cart" href="{{ path('app_cart') }}" aria-label="Panier, {{ fullCartQuantity }} article{{ fullCartQuantity > 1 ? 's' : '' }}">
+            <i data-feather="shopping-cart" aria-hidden="true"></i><span>Panier</span><span class="badge cart-count">{{ fullCartQuantity }}</span>
+          </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Afficher la navigation"><span class="navbar-toggler-icon"></span></button>
         </div>
-      </footer>
-    </main>
-
-    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('assets/js/global.js') }}"></script>
-    <script>if (window.feather) feather.replace();</script>
-
-    {# Modal vérification âge (classique) #}
-    <div
-      class="modal fade"
-      id="ageModal"
-      tabindex="-1"
-      aria-labelledby="ageModalLabel"
-      aria-hidden="true"
-      data-bs-backdrop="static"
-      data-bs-keyboard="false"
-    >
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="ageModalLabel">Vérification de l’âge</h5>
-          </div>
-          <div class="modal-body">
-            Ce site vend des boissons alcoolisées.<br>
-            Vous devez avoir plus de 18 ans pour continuer.
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-success" id="btn-age-yes">J’ai plus de 18 ans</button>
-            <button type="button" class="btn btn-outline-danger" id="btn-age-no">Non</button>
-          </div>
+        <div class="collapse navbar-collapse order-lg-2" id="navbarCollapse">
+          <ul class="navbar-nav mx-lg-auto gap-lg-2">
+            <li class="nav-item"><a class="nav-link {{ route == 'app_home' ? 'active' : '' }}" {{ route == 'app_home' ? 'aria-current="page"'|raw : '' }} href="{{ path('app_home') }}">Accueil</a></li>
+            <li class="nav-item"><a class="nav-link {{ route in ['app_catalogue','app_product','app_category'] ? 'active' : '' }}" {{ route == 'app_catalogue' ? 'aria-current="page"'|raw : '' }} href="{{ path('app_catalogue') }}">Boutique</a></li>
+            {% if allCategories|length and not checkout %}
+            <li class="nav-item dropdown">
+              <button class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Nos saveurs</button>
+              <ul class="dropdown-menu">{% for category in allCategories %}
+                <li><a class="dropdown-item" href="{{ path('app_category', {slug: category.slug}) }}">{{ category.name }}</a></li>
+              {% endfor %}</ul>
+            </li>
+            {% endif %}
+            {% if app.user and not checkout %}<li class="nav-item"><a class="nav-link" href="{{ path('app_account') }}">Mes commandes</a></li>{% endif %}
+          </ul>
         </div>
       </div>
+    </nav>
+  </header>
+  <main id="contenu" tabindex="-1">
+    <div class="container flash-messages">
+      {% for label, messages in app.flashes %}{% for message in messages %}
+        <div class="alert alert-{{ label }} mt-3" role="{{ label == 'danger' ? 'alert' : 'status' }}">{{ message }}</div>
+      {% endfor %}{% endfor %}
     </div>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        if (!localStorage.getItem('ageVerified')) {
-          const modalEl = document.getElementById('ageModal');
-          const ageModal = new bootstrap.Modal(modalEl);
-          ageModal.show();
-
-          document.getElementById('btn-age-yes').addEventListener('click', function () {
-            localStorage.setItem('ageVerified', 'true');
-            ageModal.hide();
-          });
-
-          document.getElementById('btn-age-no').addEventListener('click', function () {
-            window.location.href = 'https://www.service-public.fr/particuliers/vosdroits/F34463';
-          });
-        }
-      });
-    </script>
-  </body>
+    {% block body %}{% endblock %}
+  </main>
+  <footer class="site-footer" data-bs-theme="dark">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-5">
+          <a class="navbar-brand" href="{{ path('app_home') }}">Elixquis</a>
+          <p class="footer-intro">Des rhums arrangés, du caractère et de la gourmandise.</p>
+          <p class="small">Rhum 100% Made in France.</p>
+        </div>
+        <div class="col-6 col-lg-3">
+          <h2 class="footer-title">La boutique</h2>
+          <ul class="list-unstyled">{% for category in allCategories %}<li><a href="{{ path('app_category', {slug: category.slug}) }}">{{ category.name }}</a></li>{% endfor %}<li><a href="{{ path('app_catalogue') }}">Tous les produits</a></li></ul>
+        </div>
+        <div class="col-6 col-lg-4">
+          <h2 class="footer-title">Votre espace</h2>
+          <ul class="list-unstyled">
+            <li><a href="{{ app.user ? path('app_account') : path('app_login') }}">{{ app.user ? 'Mes commandes' : 'Se connecter' }}</a></li>
+            <li><a href="{{ path('app_cart') }}">Mon panier</a></li>
+            {% if app.user %}<li><a href="{{ path('app_account_addresses') }}">Mes adresses</a></li>{% else %}<li><a href="{{ path('app_register') }}">Créer un compte</a></li>{% endif %}
+            {% if company.email %}<li><a href="mailto:{{ company.email }}">Nous contacter</a></li>{% endif %}
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© {{ "now"|date("Y") }} Elixquis</p>
+        <p>L’abus d’alcool est dangereux pour la santé, à consommer avec modération. Vente interdite aux mineurs de moins de 18 ans.</p>
+      </div>
+      <details class="legal-pending"><summary>Informations légales à compléter avant la mise en production</summary>
+        <p>Mentions légales, CGV, CGU et politique de retour : à compléter. {% if not company.email %}Coordonnées de contact : à compléter.{% endif %}</p>
+      </details>
+    </div>
+  </footer>
+  <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ asset('assets/js/icons.js') }}"></script>
+  <script src="{{ asset('assets/js/global.js') }}"></script>
+  <div class="modal fade" id="ageModal" tabindex="-1" aria-labelledby="ageModalLabel" aria-describedby="ageModalDescription" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+      <div class="modal-header"><h2 class="modal-title h4" id="ageModalLabel">Bienvenue chez Elixquis</h2></div>
+      <div class="modal-body" id="ageModalDescription"><p>Ce site propose des boissons alcoolisées.</p><p class="mb-0">Pour continuer, confirmez avoir au moins 18 ans.</p></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-success" id="btn-age-yes">J’ai au moins 18 ans</button>
+        <button type="button" class="btn btn-outline-secondary" id="btn-age-no">J’ai moins de 18 ans</button>
+      </div>
+    </div></div>
+  </div>
+  <script src="{{ asset('assets/js/elixquis.js') }}"></script>
+</body>
 </html>

@@ -8,9 +8,10 @@
 
     {% form_theme registerForm 'bootstrap_5_layout.html.twig' %}
 
-    <div class="card shadow-sm border-1">
+    <div class="card shadow-sm border-1 auth-card">
     <div class="card-body p-4 p-lg-5">
         <h1 class="h3 mb-3">Inscription</h1>
+        <p class="text-muted mb-4">Créez votre espace pour commander et suivre vos achats chez Elixquis.</p>
 
         {{ form_start(registerForm) }}
 
@@ -21,7 +22,7 @@
                 <div class="col-md-6">
                 {{ form_row(registerForm.firstname, {
                     label: 'Prénom',
-                    attr: { placeholder: 'Votre prénom' }
+                    attr: { placeholder: 'Votre prénom', autocomplete: 'given-name' }
                 }) }}
                 </div>
             {% endif %}
@@ -29,7 +30,7 @@
                 <div class="col-md-6">
                 {{ form_row(registerForm.lastname, {
                     label: 'Nom',
-                    attr: { placeholder: 'Votre nom' }
+                    attr: { placeholder: 'Votre nom', autocomplete: 'family-name' }
                 }) }}
                 </div>
             {% endif %}
@@ -40,7 +41,7 @@
         {% if registerForm.email is defined %}
             {{ form_row(registerForm.email, {
             label: 'Email',
-            attr: { placeholder: 'nom@domaine.fr' }
+            attr: { placeholder: 'nom@domaine.fr', autocomplete: 'email' }
             }) }}
         {% endif %}
 
@@ -53,7 +54,7 @@
             {{ form_label(registerForm.plainPassword.first, 'Mot de passe', { label_attr: { class: 'form-label' } }) }}
             <div class="input-group">
                 <span class="input-group-text"><i data-feather="lock"></i></span>
-                {{ form_widget(registerForm.plainPassword.first, { attr: { class: 'form-control' } }) }}
+                {{ form_widget(registerForm.plainPassword.first, { attr: { class: 'form-control', autocomplete: 'new-password' } }) }}
                 <button class="btn btn-outline-secondary js-pwd-toggle" type="button"
                         data-target="#{{ registerForm.plainPassword.first.vars.id }}"
                         aria-label="Afficher/Masquer le mot de passe">
@@ -68,7 +69,7 @@
             {{ form_label(registerForm.plainPassword.second, 'Confirmer le mot de passe', { label_attr: { class: 'form-label' } }) }}
             <div class="input-group">
                 <span class="input-group-text"><i data-feather="lock"></i></span>
-                {{ form_widget(registerForm.plainPassword.second, { attr: { class: 'form-control' } }) }}
+                {{ form_widget(registerForm.plainPassword.second, { attr: { class: 'form-control', autocomplete: 'new-password' } }) }}
                 <button class="btn btn-outline-secondary js-pwd-toggle" type="button"
                         data-target="#{{ registerForm.plainPassword.second.vars.id }}"
                         aria-label="Afficher/Masquer le mot de passe">
@@ -139,6 +140,8 @@
             btn.addEventListener('click', () => {
             const show = (input.type === 'password');
             input.type = show ? 'text' : 'password';
+            btn.setAttribute('aria-pressed', String(show));
+            btn.setAttribute('aria-label', show ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
             setIcon(iconHolder, show ? 'eye-off' : 'eye');
             });
         });

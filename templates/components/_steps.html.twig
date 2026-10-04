@@ -1,0 +1,10 @@
+<nav aria-label="Étapes de votre commande">
+  <ol class="checkout-steps">
+    {% for label in ['Panier', 'Adresse', 'Validation', 'Paiement', 'Confirmation'] %}
+    <li {{ loop.index == step ? 'aria-current="step"'|raw : '' }}>
+      <span class="step-number" aria-hidden="true">{{ loop.index }}</span>
+      {% if loop.index == 1 and step != 1 %}<a href="{{ path('app_cart') }}">{{ label }}</a>{% else %}<span>{{ label }}</span>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+</nav>

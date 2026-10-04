@@ -1,49 +1,28 @@
 {% extends 'base.html.twig' %}
-
+{% block title %}{{ category.name }} — Elixquis{% endblock %}
 {% block body %}
-<div class="container my-5">
-    <div class="d-flex align-items-baseline justify-content-between flex-wrap gap-3 mb-4">
-        <div>
-        <h1 class="h3 mb-1">{{ category.name }}</h1>
-        <p class="text-muted mb-0">
-            {{ products|length }} produit{{ products|length > 1 ? 's' : '' }}
-        </p>
-        </div>
-    </div>
-
-    {% if products is empty %}
-        <div class="text-center py-5 border rounded-3 bg-light-subtle">
-        <h2 class="h5 mb-2">Aucun produit pour le moment</h2>
-        <p class="text-muted mb-0">Revenez bientôt 🙂</p>
-        </div>
-    {% else %}
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-lg-4 g-4">
-        {% for product in products %}
-            <div class="col">
-            <div class="card product-card h-100 shadow-sm position-relative">
-                <div class="ratio ratio-4x3 overflow-hidden">
-                <img
-                    src="/uploads/{{ product.illustration }}"
-                    alt="{{ product.name }}"
-                    class="object-fit-cover w-100 h-100"
-                    loading="lazy">
-                </div>
-                <div class="card-body d-flex flex-column">
-                <h2 class="fs-6 fw-semibold product-title mb-2">{{ product.name }}</h2>
-                <div class="mt-auto d-flex align-items-center justify-content-between">
-                    <span class="fw-bold">{{ product.pricewt|price }}</span>
-                    <a href="{{ path('app_product', { slug: product.slug }) }}"
-                    class="stretched-link btn btn-sm btn-outline-primary rounded-pill">
-                    Voir
-                    </a>
-                </div>
-                </div>
-            </div>
-            </div>
-        {% endfor %}
-        </div>
-    {% endif %}
-    </div>
-
+<div class="container my-5" data-catalogue>
+  <div class="page-heading"><div><p class="section-label">La boutique Elixquis</p><h1>{{ category.name }}</h1><p>Parcourez les saveurs, comparez les prix et découvrez votre prochain produit.</p></div></div>
+  <nav class="category-links" aria-label="Catégories de produits">
+    <a class="category-link {{ app.request.attributes.get('_route') == 'app_catalogue' ? 'active' : '' }}" href="{{ path('app_catalogue') }}">Tous les produits</a>
+    {% for item in allCategories %}<a class="category-link {{ category.slug is defined and category.slug == item.slug ? 'active' : '' }}" href="{{ path('app_category', {slug: item.slug}) }}">{{ item.name }}</a>{% endfor %}
+  </nav>
+  {% if products|length %}
+  <div class="catalogue-tools" data-catalogue-tools hidden>
+    <div><label class="form-label" for="product-search">Rechercher un produit</label><input class="form-control" type="search" id="product-search" placeholder="Nom ou catégorie…" data-product-search></div>
+    <div><label class="form-label" for="product-sort">Trier par</label><select class="form-select" id="product-sort" data-product-sort><option value="name">Nom du produit</option><option value="price-asc">Prix croissant</option><option value="price-desc">Prix décroissant</option></select></div>
+    <label class="form-check"><input class="form-check-input" type="checkbox" data-product-available> Disponibles uniquement</label>
+  </div>
+  <p class="text-muted mb-4" data-product-count role="status" aria-live="polite">{{ products|length }} produit{{ products|length > 1 ? 's' : '' }}</p>
+  <div class="product-grid" data-product-grid>
+    {% for product in products %}<div class="product-cell" data-product data-name="{{ product.name }} {{ product.category ? product.category.name : '' }}" data-price="{{ product.pricewt }}" data-available="{{ product.stock > 0 ? '1' : '0' }}">
+      {% include 'components/_product_card.html.twig' with {product: product, heading: 'h2'} %}
+    </div>{% endfor %}
+  </div>
+  <div class="card card-body text-center mt-4" data-product-empty hidden><h2 class="h4">Aucun produit ne correspond à votre recherche.</h2><p class="text-muted">Essayez un autre nom ou affichez tous les produits.</p><button type="button" class="btn btn-outline-primary align-self-center" data-filter-reset>Réinitialiser les filtres</button></div>
+  <noscript><p class="text-muted mt-3">Tous les produits sont affichés. Les liens de catégories restent disponibles sans JavaScript.</p></noscript>
+  {% else %}
+  <div class="card card-body text-center py-5"><h2 class="h4">Aucun produit pour le moment</h2><p class="text-muted">Explorez les autres catégories de la boutique.</p><a class="btn btn-success align-self-center" href="{{ path('app_catalogue') }}">Voir tous les produits</a></div>
+  {% endif %}
+</div>
 {% endblock %}
-
