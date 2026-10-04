@@ -15,10 +15,11 @@ class Mail
         // Récupère les variables facultatives
         if ($vars) {
             foreach($vars as $key=>$var) {
-                $content = str_replace('{'.$key.'}', $var, $content);
+                $content = str_replace('{'.$key.'}', htmlspecialchars((string) $var, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), $content);
             }
         }
 
+        if (!($_ENV['MJ_APIKEY_PUBLIC'] ?? '') || !($_ENV['MJ_APIKEY_PRIVATE'] ?? '')) { return false; }
         $mj = new Client($_ENV['MJ_APIKEY_PUBLIC'], $_ENV['MJ_APIKEY_PRIVATE'], true, ['version' => 'v3.1']);
         $body = [
             'Messages' => [

@@ -29,9 +29,12 @@ final class AddressController extends AbstractController
         return $this->render('account/address/index.html.twig');
     }
 
-    #[Route('/compte/adresses/delete{id}', name: 'app_account_address_delete')]
-    public function delete($id, AddressRepository $addressRepository): Response
+    #[Route('/compte/adresses/{id}/supprimer', name: 'app_account_address_delete', methods: ['POST'])]
+    public function delete(int $id, AddressRepository $addressRepository, Request $request): Response
     {
+        if (!$this->isCsrfTokenValid('address_delete_'.$id, $request->request->get('_token'))) {
+            throw $this->createAccessDeniedException('Jeton de sécurité invalide.');
+        }
         $address = $addressRepository->findOneById($id);
         if(!$address OR $address->getUser() != $this->getUser()) {
             return $this->redirectToRoute('app_account_addresses');
@@ -47,7 +50,7 @@ final class AddressController extends AbstractController
         return $this->redirectToRoute('app_account_addresses');
     }
 
-    #[Route('/compte/adresse/ajouter{id}', name: 'app_account_address_form', defaults: ['id' => null] )]
+    #[Route('/compte/adresse/ajouter/{id}', name: 'app_account_address_form', defaults: ['id' => null], methods: ['GET', 'POST'])]
     public function form(Request $request, $id, AddressRepository $addressRepository, Cart $cart): Response
     {
         if($id) {

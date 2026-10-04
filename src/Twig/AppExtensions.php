@@ -14,7 +14,8 @@ class AppExtensions extends AbstractExtension implements GlobalsInterface
     public function __construct(
         private CategoryRepository $categoryRepository,
         private Cart $cart,
-        private HeaderRepository $headerRepository // ⬅️ injecter
+        private HeaderRepository $headerRepository,
+        private \App\Service\CompanySettings $company
     ) {}
 
     public function getFilters(): array
@@ -33,6 +34,7 @@ class AppExtensions extends AbstractExtension implements GlobalsInterface
     public function getGlobals(): array
     {
         return [
+            'company' => $this->company->details(),
             'allCategories'     => $this->categoryRepository->findAll(),
             'fullCartQuantity'  => $this->cart->fullQuantity(),
             // Adapte le tri/filtre si tu as isActive/position

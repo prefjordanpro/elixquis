@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\AddressRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: AddressRepository::class)]
 class Address
@@ -14,24 +15,40 @@ class Address
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private ?string $firstname = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private ?string $lastname = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private ?string $address = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private ?string $postal = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private ?string $city = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Country]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private ?string $country = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Regex(pattern: '/^\\+?[0-9 ()-]{8,20}$/', message: 'Indiquez un numéro de téléphone valide.')]
+    #[Assert\Length(max: 255)]
+    #[Assert\NotBlank]
     private ?string $phone = null;
 
     #[ORM\ManyToOne(inversedBy: 'addresses')]

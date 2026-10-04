@@ -28,10 +28,8 @@ class RegisterUserType extends AbstractType
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'constraints' => [
-                    new Length([
-                        'min' => 4,
-                        'max' => 30
-                    ])
+                    new Length(min: 12, max: 128),
+                    new \Symfony\Component\Validator\Constraints\NotBlank
                 ],
                 'first_options' => [
                     'label' => 'Votre mot de passe',
@@ -51,10 +49,7 @@ class RegisterUserType extends AbstractType
             ->add('firstname', TextType::class, [
                 'label' => "Votre prénom",
                 'constraints' => [
-                    new Length([
-                        'min' => 2,
-                        'max' => 50
-                    ])
+                    new Length(min: 2, max: 50)
                 ],
                 'attr' => [
                     'placeholder' => "Indiquez votre prénom"
@@ -63,10 +58,7 @@ class RegisterUserType extends AbstractType
             ->add('lastname', TextType::class, [
                 'label' => "Votre nom",
                 'constraints' => [
-                    new Length([
-                        'min' => 2,
-                        'max' => 50
-                    ])
+                    new Length(min: 2, max: 50)
                 ],
                 'attr' => [
                     'placeholder' => "Indiquez votre nom"
@@ -85,10 +77,7 @@ class RegisterUserType extends AbstractType
     {
         $resolver->setDefaults([
             'constraints' => [
-                new UniqueEntity([
-                    'entityClass' => User::class,
-                    'fields' => 'email'
-                ])
+                new UniqueEntity(fields: 'email', entityClass: User::class, message: 'Cette adresse e-mail est déjà utilisée.')
             ],
             'data_class' => User::class,
         ]);

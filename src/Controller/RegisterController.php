@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Classe\Mail;
 use App\Entity\User;
 use App\Form\RegisterUserType;
+use Psr\Log\LoggerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,7 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 final class RegisterController extends AbstractController
 {
     #[Route('/inscription', name: 'app_register')]
-    public function index(Request $request, EntityManagerInterface $entityManager): Response
+    public function index(Request $request, EntityManagerInterface $entityManager, LoggerInterface $logger): Response
     {
         $user = new User();
 
@@ -36,7 +37,10 @@ final class RegisterController extends AbstractController
             $vars = [
                 'firstname' => $user->getFirstname(),
             ];
-            $mail->send($user->getEmail(), $user->getFirstname().' '.$user->getLastname(), "Bienvenue sur Elixquis - Le rhum 100% Français", "welcome.html", $vars);
+            if ($this->getParameter('kernel.environment') !== 'test') {
+                try { $mail->send($user->getEmail(), $user->getFirstname().' '.$user->getLastname(), "Bienvenue sur Elixquis - Le rhum 100% Français", "welcome.html", $vars); }
+                catch (\Throwable $e) { $logger->warning('Le courriel de bienvenue n’a pas pu être envoyé.', ['type' => $e::class]); }
+            }
 
 
             return $this->redirectToRoute('app_login');

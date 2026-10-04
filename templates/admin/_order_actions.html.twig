@@ -1,0 +1,17 @@
+{% set next = {0: [1, 'Vérifier le paiement Stripe'], 1: [2, 'Passer en préparation'], 2: [3, 'Expédier'], 3: [5, 'Marquer livrée']} %}
+<div class="d-flex gap-2 flex-wrap my-3">
+{% if next[order.state] is defined %}
+  <form method="post" action="{{ path('app_admin_order_state', {id: order.id}) }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('order_state_' ~ order.id) }}">
+    <input type="hidden" name="state" value="{{ next[order.state][0] }}">
+    <button type="submit" class="btn btn-primary">{{ next[order.state][1] }}</button>
+  </form>
+{% endif %}
+{% if order.state == 0 %}
+  <form method="post" action="{{ path('app_admin_order_state', {id: order.id}) }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('order_state_' ~ order.id) }}">
+    <input type="hidden" name="state" value="4">
+    <button type="submit" class="btn btn-outline-danger">Annuler la commande</button>
+  </form>
+{% endif %}
+</div>

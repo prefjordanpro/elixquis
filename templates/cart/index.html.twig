@@ -35,28 +35,33 @@
                     </div>
                     <div class="col-7 col-md-2">
                     <div class="d-flex align-items-center gap-2">
-                        <a href="{{ path('app_cart_decrease', { id : product.object.id }) }}"
-                        class="btn btn-outline-secondary btn-sm" aria-label="Diminuer">
-                        &minus;
-                        </a>
+                        <form method="post" action="{{ path('app_cart_decrease', {id: product.object.id}) }}">
+                          <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
+                          <button class="btn btn-outline-secondary btn-sm" aria-label="Diminuer" {{ product.qty == 1 ? 'disabled' : '' }}>&minus;</button>
+                        </form>
                         <span class="badge text-bg-secondary">x{{ product.qty }}</span>
-                        <a href="{{ path('app_cart_add', { id : product.object.id }) }}"
-                        class="btn btn-outline-secondary btn-sm" aria-label="Augmenter">
-                        +
-                        </a>
+                        <form method="post" action="{{ path('app_cart_add', {id: product.object.id}) }}">
+                          <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
+                          <button class="btn btn-outline-secondary btn-sm" aria-label="Augmenter" {{ product.qty >= product.object.stock ? 'disabled' : '' }}>+</button>
+                        </form>
                     </div>
                     </div>
                     <div class="col-5 col-md-2 text-end">
                     <strong>{{ (product.qty * product.object.pricewt)|price }}</strong>
+                    <form method="post" action="{{ path('app_cart_delete', {id: product.object.id}) }}">
+                      <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
+                      <button class="btn btn-link btn-sm text-danger">Supprimer</button>
+                    </form>
                     </div>
                 </div>
                 </div>
             </div>
             {% endfor %}
 
-            <a href="{{ path('app_cart_remove') }}" class="small d-inline-flex align-items-center gap-2 text-decoration-none mt-2">
-            🗑️ Vider le panier
-            </a>
+            <form method="post" action="{{ path('app_cart_remove') }}">
+              <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
+              <button class="btn btn-link mt-2">🗑️ Vider le panier</button>
+            </form>
         </div>
 
         <!-- Récapitulatif -->
@@ -82,5 +87,4 @@
 
 
 {% endblock %}
-
 

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-labelledby="titre">
+  <title id="titre">Elixquis — illustration du produit indisponible</title>
+  <rect width="400" height="400" fill="#f1f3f5"/>
+  <rect x="177" y="65" width="46" height="70" rx="8" fill="#495057"/>
+  <rect x="145" y="125" width="110" height="200" rx="25" fill="#198754"/>
+  <rect x="155" y="195" width="90" height="75" rx="8" fill="#fff"/>
+  <text x="200" y="237" text-anchor="middle" font-family="Arial,sans-serif" font-size="17" fill="#212529">Elixquis</text>
+</svg>

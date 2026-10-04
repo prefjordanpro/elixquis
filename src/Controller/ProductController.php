@@ -9,11 +9,17 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ProductController extends AbstractController
 {
+    #[Route('/catalogue', name: 'app_catalogue', methods: ['GET'])]
+    public function catalogue(ProductRepository $products): Response
+    {
+        return $this->render('category/index.html.twig', ['category' => ['name' => 'Tous nos produits'],
+            'products' => $products->findBy(['isActive' => true], ['name' => 'ASC'])]);
+    }
     #[Route('/produit/{slug}', name: 'app_product')]
     public function index($slug, ProductRepository $productRepository): Response
     {
 
-        $product = $productRepository->findOneBySlug($slug);
+        $product = $productRepository->findOneBy(['slug' => $slug, 'isActive' => true]);
 
         if (!$product) {
         return $this->redirectToRoute('app_home');

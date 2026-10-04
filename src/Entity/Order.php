@@ -45,6 +45,27 @@ class Order
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $stripe_session_id = null;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $stockReserved = false;
+
+    #[ORM\Column(options: ['default' => 0])]
+    private float $carrierTvaRate = 0;
+    public function getCarrierTvaRate(): float { return $this->carrierTvaRate; }
+    public function setCarrierTvaRate(float $rate): static { $this->carrierTvaRate = $rate; return $this; }
+
+    public function getTotalCents(): int
+    {
+        $total = (int) round($this->carrierPrice * 100);
+        foreach ($this->orderDetails as $line) {
+            $total += (int) round($line->getProductPrice() * 100) * $line->getProductQuantity();
+        }
+        return $total;
+    }
+
+    public function isStockReserved(): bool { return $this->stockReserved; }
+    public function setStockReserved(bool $reserved): static { $this->stockReserved = $reserved; return $this; }
+    public function getReference(): string { return 'CMD-'.$this->createdAt?->format('Ymd').'-'.$this->id; }
+
     public function __construct()
     {
         $this->orderDetails = new ArrayCollection();
@@ -52,35 +73,17 @@ class Order
 
     public function getTotalWt(): float
     {
-        $totalTtc = 0.0;
-
-        foreach ($this->getOrderDetails() as $line) {
-            // productPrice déjà TTC !
-            $totalTtc += $line->getProductPrice() * $line->getProductQuantity();
-        }
-
-        // frais de port TTC aussi
-        $totalTtc += $this->getCarrierPrice();
-
-        return round($totalTtc, 2);
+        return $this->getTotalCents() / 100;
     }
 
 
-    public function getTotalTva()
+    public function getTotalTva(): float
     {
-        $totalTva = 0.0;
-
-        foreach ($this->getOrderDetails() as $line) {
-            $tvaRate = $line->getProductTva() / 100;
-            $priceTtc = $line->getProductPrice(); // déjà TTC
-            $priceHt  = $priceTtc / (1 + $tvaRate);
-            
-
-            $lineTva = ($priceTtc - $priceHt) * $line->getProductQuantity();
-            $totalTva += $lineTva;
-        }
-
-        return round($totalTva, 2);
+        $cents = 0;
+        foreach ($this->orderDetails as $line) { $cents += $line->getTotalTvaCents(); }
+        $delivery = (int) round($this->carrierPrice * 100);
+        $cents += $delivery - (int) round($delivery / (1 + $this->carrierTvaRate / 100));
+        return $cents / 100;
     }
 
     public function getId(): ?int

@@ -37,11 +37,8 @@ final class InvoiceController extends AbstractController
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
-        $dompdf->stream('facture.pdf', [
-            'Attachment' => false
-        ]);
-
-        exit();
+        return new Response($dompdf->output(), 200, ['Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="facture-'.$order->getId().'.pdf"', 'Cache-Control' => 'private, no-store']);
     }
 
         /*
@@ -51,6 +48,7 @@ final class InvoiceController extends AbstractController
     #[Route('/admin/facture/impression/{id_order}', name: 'app_invoice_admin')]
     public function printForAdmin(OrderRepository $orderRepository, $id_order): Response
     {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
         // 1. Vérification de l'objet commande - Existe ?
         $order = $orderRepository->findOneById($id_order);
 
@@ -66,11 +64,8 @@ final class InvoiceController extends AbstractController
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
-        $dompdf->stream('facture.pdf', [
-            'Attachment' => false
-        ]);
-
-        exit();
+        return new Response($dompdf->output(), 200, ['Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="facture-'.$order->getId().'.pdf"', 'Cache-Control' => 'private, no-store']);
     }
 
 }

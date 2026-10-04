@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\HeaderRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: HeaderRepository::class)]
 class Header
@@ -15,6 +16,7 @@ class Header
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -24,6 +26,7 @@ class Header
     private ?string $buttonTitle = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\Regex(pattern: '~^(?:/(?!/)|https?://)~i', message: 'Utilisez une URL http(s) ou un chemin local.')]
     private ?string $buttonLink = null;
 
     #[ORM\Column(length: 255)]
@@ -87,9 +90,9 @@ class Header
         return $this->illustration;
     }
 
-    public function setIllustration(string $illustration): static
+    public function setIllustration(?string $illustration): static
     {
-        $this->illustration = $illustration;
+        $this->illustration = $illustration ?? $this->illustration;
 
         return $this;
     }

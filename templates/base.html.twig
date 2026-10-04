@@ -27,13 +27,14 @@
             data-bs-target="#navbarCollapse"
             aria-controls="navbarCollapse"
             aria-expanded="false"
-            aria-label="Toggle navigation"
+            aria-label="Afficher la navigation"
           >
             <span class="navbar-toggler-icon"></span>
           </button>
 
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav mx-auto text-center text-md-start mb-2 mb-md-0">
+              <li class="nav-item"><a class="nav-link" href="{{ path('app_catalogue') }}">Catalogue</a></li>
               <li class="nav-item">
                 <a class="nav-link active" aria-current="page" href="{{ path('app_home') }}">Accueil</a>
               </li>
@@ -165,7 +166,7 @@
                   </li>
                 {% endfor %}
                 <li>
-                  <a class="link-light link-underline-opacity-0" href="{{ path('app_home') }}">Tous les produits</a>
+                  <a class="link-light link-underline-opacity-0" href="{{ path('app_catalogue') }}">Tous les produits</a>
                 </li>
               </ul>
             </div>
@@ -177,7 +178,7 @@
                   <li><a class="link-light link-underline-opacity-0" href="{{ path('app_account') }}">Mes commandes</a></li>
                   <li><a class="link-light link-underline-opacity-0" href="{{ path('app_account_addresses') }}">Mes adresses</a></li>
                   <li><a class="link-light link-underline-opacity-0" href="{{ path('app_account_modify_pwd') }}">Mot de passe</a></li>
-                  <li><a class="link-light link-underline-opacity-0" href="{{ path('app_logout') }}">Déconnexion</a></li>
+                  <li><a class="link-light link-underline-opacity-0" href="{{ path('app_logout', {'_csrf_token': csrf_token('logout')}) }}">Déconnexion</a></li>
                 {% else %}
                   <li><a class="link-light link-underline-opacity-0" href="{{ path('app_login') }}">Se connecter</a></li>
                 {% endif %}
@@ -204,7 +205,7 @@
 
     <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('assets/js/global.js') }}"></script>
-    <script>feather.replace();</script>
+    <script>if (window.feather) feather.replace();</script>
 
     {# Modal vérification âge (classique) #}
     <div

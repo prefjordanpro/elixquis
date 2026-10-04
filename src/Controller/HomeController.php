@@ -15,7 +15,7 @@ final class HomeController extends AbstractController
     {
         return $this->render('home/index.html.twig', [
             'headers' => $headerRepository->findAll(),
-            'productsInHomepage' => $productRepository->findByIsHomepage(true)
+            'productsInHomepage' => $productRepository->findBy(['isHomepage' => true, 'isActive' => true])
         ]);
     }
 }

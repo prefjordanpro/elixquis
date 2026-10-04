@@ -16,6 +16,7 @@
             {% endif %}
 
             <form action="{{ path('app_login') }}" method="post" novalidate>
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
                 <div class="mb-3">
                 <label for="username" class="form-label">Votre email</label>
                 <div class="input-group">

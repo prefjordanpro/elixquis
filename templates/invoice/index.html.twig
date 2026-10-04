@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Facture n°{{ order.id }}</title>
+  <title>Récapitulatif {{ order.reference }}</title>
   <style>
     :root{
       --bg:#f6f7fb;
@@ -151,16 +151,18 @@
   <!-- En-tête -->
   <div class="topbar">
     <div class="brand">
-      <h1>Elixquis</h1>
-      <p>mon adresse,</p>
-      <p>code postal, ville. France.</p>
-      <p>email@elixquis.com — 06 06 06 06 06</p>
+      <h1>{{ company.name ?: 'Elixquis' }}</h1>
+      <p>{{ company.address|nl2br }}</p>
+      {% if company.registration %}<p>SIRET : {{ company.registration }}</p>{% endif %}
+      {% if company.vat %}<p>TVA : {{ company.vat }}</p>{% endif %}
+      <p>{{ company.email }}</p>
       <div class="meta">
-        <span class="pill">Facture n°{{ order.id }}</span>
+        <span class="pill">Récapitulatif {{ order.reference }}</span>
+        <span>{{ order.createdAt|date('d/m/Y') }}</span>
       </div>
     </div>
     <div class="ship">
-      {{ order.delivery|raw }}
+      {{ order.delivery|striptags|nl2br }}
     </div>
   </div>
 
@@ -190,9 +192,9 @@
     {% set coeff = 1 + (rate / 100) %}
 
     {# PU HT en CENTIMES : on TRONQUE (floor) pour garantir 19,99 plutôt que 20,00 #}
-    {% set unit_ht_c = (put_c / coeff)|round(0, 'floor') %}
+    {% set unit_ht_c = (put_c / coeff)|round(0, 'common') %}
 
-    {% set line_ht_c  = unit_ht_c * q %}
+    {% set line_ht_c  = put_c * q - product.totalTvaCents %}
     {% set line_ttc_c = put_c * q %}
     {% set line_tva_c = line_ttc_c - line_ht_c %}
 
@@ -215,7 +217,7 @@
                         : (order.carrierTvaRate|default(20)) %}
   {% set coeff_carrier   = 1 + (carrier_rate / 100) %}
   {% set carrier_price_c = (order.carrierPrice * 100)|round(0, 'common') %}
-  {% set carrier_ht_c    = (carrier_price_c / coeff_carrier)|round(0, 'floor') %}
+  {% set carrier_ht_c    = (carrier_price_c / coeff_carrier)|round(0, 'common') %}
   {% set carrier_tva_c   = carrier_price_c - carrier_ht_c %}
 
   {% set total_ht_c  = total_ht_c  + carrier_ht_c %}
@@ -241,11 +243,11 @@
       </tr>
       <tr>
         <td>Total T.V.A</td>
-        <td class="text-right"><strong>{{ (total_tva_c / 100)|number_format(2, ',', ' ') ~ ' €' }}</strong></td>
+        <td class="text-right"><strong>{{ order.totalTva|price }}</strong></td>
       </tr>
       <tr class="grand">
         <td>Total T.T.C</td>
-        <td class="text-right">{{ (total_ttc_c / 100)|number_format(2, ',', ' ') ~ ' €' }}</td>
+        <td class="text-right">{{ order.totalWt|price }}</td>
       </tr>
     </table>
   </div>

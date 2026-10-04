@@ -10,9 +10,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
-use Symfony\Component\Form\FormError;
-use Symfony\Component\Form\FormEvent;
-use Symfony\Component\Form\FormEvents;
 
 class PasswordUserType extends AbstractType
 {
@@ -24,15 +21,14 @@ class PasswordUserType extends AbstractType
                 'attr' => [
                     'placeholder' => "Indiquez votre mot de passe actuel"
                 ],
-                'mapped' => false
+                'mapped' => false,
+                'constraints' => [new \Symfony\Component\Security\Core\Validator\Constraints\UserPassword(message: 'Votre mot de passe actuel est incorrect.')]
             ])
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
                 'constraints' => [
-                    new Length([
-                        'min' => 4,
-                        'max' => 30
-                    ])
+                    new Length(min: 12, max: 128),
+                    new \Symfony\Component\Validator\Constraints\NotBlank
                 ],
                 'first_options' => [
                     'label' => 'Votre nouveau mot de passe',
@@ -55,20 +51,6 @@ class PasswordUserType extends AbstractType
                     'class' => 'btn btn-success'
                 ]
             ])
-            ->addEventListener(FormEvents::SUBMIT, function(FormEvent $event) {
-                $form = $event->getForm();
-                $user = $form->getConfig()->getOptions()['data'];
-                $passwordHasher = $form->getConfig()->getOptions()['passwordHasher'];
-                
-                $isValid = $passwordHasher->isPasswordValid(
-                    $user,
-                    $form->get('actualPassword')->getData()
-                );
-
-                if (!$isValid) {
-                    $form->get('actualPassword')->addError(new FormError("Votre mot de passe acutel n'est pas coforme"));
-                }
-            })
         ;
     }
 

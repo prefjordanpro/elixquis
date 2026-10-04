@@ -11,6 +11,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class CarrierCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
@@ -31,6 +32,7 @@ class CarrierCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         return [
+            NumberField::new('tva', 'TVA livraison (%)'),
             TextField::new('name')->setLabel('Nom du transporteur'),
             TextareaField::new('description')->setLabel('Déscription du transporteur'),
             NumberField::new('price')

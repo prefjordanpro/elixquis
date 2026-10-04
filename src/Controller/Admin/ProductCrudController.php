@@ -16,9 +16,23 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
+use Symfony\Component\Validator\Constraints\Image;
 
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class ProductCrudController extends AbstractCrudController
 {
+    public function updateEntity(\Doctrine\ORM\EntityManagerInterface $entityManager, $entityInstance): void
+    {
+        $submitted = $this->getContext()->getRequest()->request->all('Product');
+        try {
+            $entityManager->lock($entityInstance, \Doctrine\DBAL\LockMode::OPTIMISTIC, (int) ($submitted['version'] ?? 0));
+            parent::updateEntity($entityManager, $entityInstance);
+        } catch (\Doctrine\ORM\OptimisticLockException $e) {
+            throw new \Symfony\Component\HttpKernel\Exception\ConflictHttpException('Le produit a changé depuis l’ouverture du formulaire. Rechargez la page avant de modifier le stock.');
+        }
+    }
+
     public static function getEntityFqcn(): string
     {
         return Product::class;
@@ -42,6 +56,13 @@ class ProductCrudController extends AbstractCrudController
         }
         
         return [
+            \EasyCorp\Bundle\EasyAdminBundle\Field\Field::new('version')
+                ->setFormType(\Symfony\Component\Form\Extension\Core\Type\HiddenType::class)
+                ->setFormTypeOption('mapped', false)
+                ->setFormTypeOption('data', $this->getContext()?->getEntity()?->getInstance()?->getVersion() ?? 1)
+                ->onlyOnForms(),
+            IntegerField::new('stock', 'Stock disponible'),
+            BooleanField::new('isActive', 'Produit actif'),
             TextField::new('name')
                 ->setLabel('Nom')
                 ->setHelp('Nom de votre produit'),
@@ -58,6 +79,7 @@ class ProductCrudController extends AbstractCrudController
                 ->setUploadedFileNamePattern('[year]-[month]-[day]-[contenthash].[extension]')
                 ->setBasePath('/uploads')
                 ->setUploadDir('/public/uploads')
+                ->setFormTypeOption('file_constraints', [new Image(maxSize: '5M', mimeTypes: ['image/jpeg', 'image/png', 'image/webp'], mimeTypesMessage: 'Choisissez une image JPEG, PNG ou WebP.')])
                 ->setRequired($required),
             NumberField::new('price')
                 ->setLabel('Prix H.T')

@@ -19,7 +19,7 @@
   <div class="me-3">
     <div class="mb-1"><span class="{{ badge[1] }}">{{ badge[0] }}</span></div>
     <div class="mb-1">
-      Stripe Session ID : {{ order.stripeSessionId }}
+      Référence : {{ order.reference }}
       <strong>#{{ order.id }}</strong> — {{ order.createdAt|date('d/m/Y H:i') }}
     </div>
     {% if order.user %}
@@ -31,7 +31,7 @@
     <a target="_blank"
       href="{{ path('app_invoice_admin', { id_order : order.id }) }}"
       class="btn btn-primary btn-sm rounded-pill">
-      Facture
+      Document PDF
     </a>
   </div>
 </div>
@@ -62,7 +62,7 @@
         <div class="text-muted small">Adresse</div>
         <div class="fw-semibold">
           {% if order.delivery %}
-            {{ order.delivery|raw }} {# garde les <br> si présents #}
+            {{ order.delivery|striptags|nl2br }} {# garde les <br> si présents #}
           {% else %}
             —
           {% endif %}
@@ -104,7 +104,7 @@
         {% set tvaP = d.productTva|default(0) %}
         {% set coef = 1 + (tvaP/100) %}
         {% set puh  = (coef > 0) ? (put / coef) : put %}  {# PU HT recalculé #}
-        {% set lht  = puh * q %}
+        {% set lht  = put * q - d.totalTvaCents / 100 %}
         {% set lttc = put * q %}
         {% set ltv  = lttc - lht %}
         {% set total_ht  = total_ht + lht %}
@@ -219,14 +219,6 @@
       </table>
     </div>
 
-    {% if order.state < 3 %}
-      <div class="d-flex justify-content-lg-end">
-        <a class="btn btn-outline-danger"
-          onclick="return confirm('Confirmer l\\'annulation de la commande #{{ order.id }} ?');"
-          href="{{ ea_url().setController(crud).setAction('toCanceled').setEntityId(order.id) }}">
-          Annuler la commande
-        </a>
-      </div>
-    {% endif %}
+    {% include 'admin/_order_actions.html.twig' %}
   </div>
 </div>

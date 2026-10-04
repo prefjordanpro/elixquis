@@ -34,7 +34,7 @@
           <div class="d-flex align-items-center gap-2">
             <span class="fw-semibold">
             <i data-feather="" class="me-1 text-primary"></i>
-            CMD-{{ order.createdAt|date('dmy') }}-{{ order.id }}
+            {{ order.reference }}
             </span>
             <span class="text-muted small">· {{ order.createdAt|date('d/m/Y \\à H\\hi') }}</span>
           </div>

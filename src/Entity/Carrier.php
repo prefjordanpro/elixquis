@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\CarrierRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CarrierRepository::class)]
 class Carrier
@@ -15,13 +16,21 @@ class Carrier
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
     #[ORM\Column]
+    #[Assert\PositiveOrZero]
     private ?float $price = null;
+
+    #[ORM\Column(options: ['default' => 0])]
+    #[Assert\Range(min: 0, max: 100)]
+    private float $tva = 0;
+    public function getTva(): float { return $this->tva; }
+    public function setTva(float $tva): static { $this->tva = $tva; return $this; }
 
     public function __toString()
     {

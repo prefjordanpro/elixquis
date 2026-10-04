@@ -17,12 +17,13 @@
         <div class="d-flex justify-content-between align-items-center my-3">
             <h2 class="h5 mb-0">
             <i data-feather="shopping-bag" class="me-2 text-primary"></i>
-            CMD-{{ order.createdAt|date('dmy') }}-{{ '%05d'|format(order.id) }}
+            {{ order.reference }}
             </h2>
             <a href="{{ path('app_account') }}" class="btn btn-outline-secondary btn-sm rounded-pill">Retour</a>
-            <a target="_blank" href="{{ path('app_invoice_customer', { id_order : order.id }) }}" class="btn btn-primary btn-sm rounded-pill">Facture</a>
+            <a target="_blank" rel="noopener" href="{{ path('app_invoice_customer', { id_order : order.id }) }}" class="btn btn-primary btn-sm rounded-pill">Document PDF</a>
         </div>
 
+        {% include 'account/order/_payment.html.twig' %}
         <div class="row g-3">
             <!-- Colonne articles + livraison EN DESSOUS -->
             <div class="col-lg-8">
@@ -64,7 +65,7 @@
                         {% set rate = item.productTva|default(20) %}      {# % TVA (adapte si autre champ) #}
                         {% set coef = 1 + (rate/100) %}
                         {% set puh  = (coef > 0) ? (put / coef) : put %}  {# PU HT #}
-                        {% set lht  = puh * q %}
+                        {% set lht  = put * q - item.totalTvaCents / 100 %}
                         {% set lttc = put * q %}
                         {% set ltv  = lttc - lht %}
 
@@ -110,7 +111,7 @@
                 <div class="card-body">
                 <h6 class="fw-semibold mb-2">Livraison</h6>
                 {% if order.delivery is defined and order.delivery %}
-                    <div class="text-muted small">{{ order.delivery|raw }}</div>
+                    <div class="text-muted small">{{ order.delivery|striptags|nl2br }}</div>
                 {% else %}
                     <div class="text-muted small">
                     Méthode : {{ order.carrierName }}<br>
@@ -131,7 +132,8 @@
                 {% set carrier_ht  = order.carrierPrice / (1 + (carrier_rate/100)) %}
                 {% set carrier_tva = order.carrierPrice - carrier_ht %}
                 {% set total_ht  = articles_ht + carrier_ht %}
-                {% set total_tva = articles_tva + carrier_tva %}
+                {% set total_tva = order.totalTva %}
+                {% set total_ht = order.totalWt - order.totalTva %}
 
                 <h6 class="fw-semibold mb-3">Résumé</h6>
 

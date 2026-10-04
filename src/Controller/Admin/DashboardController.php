@@ -16,6 +16,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 
 #[AdminDashboard(routePath: '/admin', routeName: 'admin')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class DashboardController extends AbstractDashboardController
 {
     public function index(): Response
@@ -32,12 +33,12 @@ class DashboardController extends AbstractDashboardController
 
     public function configureMenuItems(): iterable
     {
-        yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
-        yield MenuItem::linkToCrud('Utilisateur', 'fas fa-list', User::class);
-        yield MenuItem::linkToCrud('Catégories', 'fas fa-list', Category::class);
-        yield MenuItem::linkToCrud('Produits', 'fas fa-list', Product::class);
-        yield MenuItem::linkToCrud('Transporteurs', 'fas fa-list', Carrier::class);
-        yield MenuItem::linkToCrud('Commandes', 'fas fa-list', Order::class);
-        yield MenuItem::linkToCrud('Header', 'fas fa-list', Header::class);
+        yield MenuItem::linkToDashboard('Tableau de bord', 'fa fa-home');
+        yield MenuItem::linkTo(UserCrudController::class, 'Utilisateurs', 'fas fa-list');
+        yield MenuItem::linkTo(CategoryCrudController::class, 'Catégories', 'fas fa-list');
+        yield MenuItem::linkTo(ProductCrudController::class, 'Produits', 'fas fa-list');
+        yield MenuItem::linkTo(CarrierCrudController::class, 'Transporteurs', 'fas fa-list');
+        yield MenuItem::linkTo(OrderCrudController::class, 'Commandes', 'fas fa-list');
+        yield MenuItem::linkTo(HeaderCrudController::class, 'Bannières', 'fas fa-list');
     }
 }

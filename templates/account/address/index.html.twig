@@ -41,11 +41,10 @@
                        class="btn btn-sm btn-outline-secondary rounded-pill px-3">
                       ✏️ Éditer
                     </a>
-                    <a href="{{ path('app_account_address_delete', { id : address.id }) }}" 
-                       class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                       onclick="return confirm('Supprimer cette adresse ?');">
-                      🗑️ Supprimer
-                    </a>
+                    <form method="post" action="{{ path('app_account_address_delete', {id: address.id}) }}">
+                      <input type="hidden" name="_token" value="{{ csrf_token('address_delete_' ~ address.id) }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">🗑️ Supprimer</button>
+                    </form>
                   </div>
                 </div>
               </div>

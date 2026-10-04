@@ -4,10 +4,23 @@ namespace App\Entity;
 
 use App\Repository\OrderDetailRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: OrderDetailRepository::class)]
 class OrderDetail
 {
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Product $product = null;
+
+    public function getProduct(): ?Product { return $this->product; }
+    public function setProduct(?Product $product): static { $this->product = $product; return $this; }
+
+    public function getTotalTvaCents(): int
+    {
+        $ttc = (int) round($this->productPrice * 100) * $this->productQuantity;
+        return $ttc - (int) round($ttc / (1 + $this->productTva / 100));
+    }
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -24,12 +37,15 @@ class OrderDetail
     private ?string $productIllustration = null;
 
     #[ORM\Column]
+    #[Assert\Positive]
     private ?int $productQuantity = null;
 
     #[ORM\Column]
+    #[Assert\PositiveOrZero]
     private ?float $productPrice = null;
 
     #[ORM\Column]
+    #[Assert\Range(min: 0, max: 100)]
     private ?float $productTva = null;
 
     public function getId(): ?int
@@ -85,10 +101,9 @@ class OrderDetail
         return $this;
     }
 
-    public function getProductPriceWt()
+    public function getProductPriceWt(): float
     {
-        $coeff = 1 + ($this->productTva/100);
-        return round ($coeff * $this->productPrice, 2);
+        return (float) $this->productPrice;
     }
 
     public function getProductPrice(): ?float

@@ -15,7 +15,7 @@ final class HomeController extends AbstractController
     {
         $orders = $orderRepository->findBy([
             'user' => $this->getUser(),
-            'state' => [1,2,3,4]
+            'state' => [0,1,2,3,4,5]
         ],
         [
         'createdAt' => 'DESC',   // 👉 plus récent en premier
