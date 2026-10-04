@@ -180,6 +180,101 @@ class StorefrontTest extends WebTestCase
         $this->client->request('POST', '/admin/commande/'.$order->getId().'/statut', ['state' => 1]); self::assertResponseStatusCodeSame(403);
     }
 
+    /** @dataProvider cancellableStates */
+    public function testAdminCancellationRestoresStockOnceAndKeepsOrder(int $state): void
+    {
+        $this->user->setRoles(['ROLE_ADMIN']); $this->em->flush();
+        $order = static::getContainer()->get(OrderManager::class)->create($this->user, $this->address, $this->carrier, [['object' => $this->product, 'qty' => 2]]);
+        $order->setState($state);
+        if ($state !== 0) { $order->setStripeSessionId('cs_test_no_network_allowed'); }
+        $this->em->flush();
+        $total = $order->getTotalCents();
+        $this->client->loginUser($this->user);
+        $crawler = $this->client->request('GET', '/admin/order/'.$order->getId());
+        self::assertSame(200, $this->client->getResponse()->getStatusCode());
+        $button = $crawler->selectButton('Annuler la commande');
+        self::assertStringContainsString('btn-danger', $button->attr('class'));
+        self::assertStringContainsString('confirm(', $button->ancestors()->filter('form')->attr('onsubmit'));
+        $form = $button->form();
+        $this->client->submit($form);
+        self::assertResponseRedirects('/admin/order/'.$order->getId());
+        $this->client->followRedirect();
+        if ($state !== 0) {
+            self::assertSelectorTextContains('body', 'remboursement doit être effectué manuellement dans Stripe');
+        }
+        self::assertSelectorNotExists('button:contains("Annuler la commande")');
+        $this->client->submit($form);
+        self::assertResponseRedirects('/admin/order/'.$order->getId());
+        $this->em->clear();
+        $saved = $this->em->find(\App\Entity\Order::class, $order->getId());
+        self::assertSame(4, $saved->getState());
+        self::assertFalse($saved->isStockReserved());
+        self::assertSame($total, $saved->getTotalCents());
+        self::assertCount(1, $saved->getOrderDetails());
+        self::assertSame(2, $saved->getOrderDetails()->first()->getProductQuantity());
+        self::assertSame(1, $this->em->getRepository(\App\Entity\Order::class)->count([]));
+        self::assertSame(3, (int) $this->em->getConnection()->fetchOne('SELECT stock FROM product'));
+    }
+
+    public static function cancellableStates(): array
+    {
+        return ['pending' => [0], 'paid' => [1], 'preparation' => [2]];
+    }
+
+    /** @dataProvider forbiddenCancellationStates */
+    public function testAdminCannotCancelShippedOrDeliveredOrder(int $state): void
+    {
+        $this->user->setRoles(['ROLE_ADMIN']); $this->em->flush();
+        $order = static::getContainer()->get(OrderManager::class)->create($this->user, $this->address, $this->carrier, [['object' => $this->product, 'qty' => 1]]);
+        $this->client->loginUser($this->user);
+        $crawler = $this->client->request('GET', '/admin/order/'.$order->getId());
+        $form = $crawler->selectButton('Annuler la commande')->form();
+        $this->em->find(\App\Entity\Order::class, $order->getId())->setState($state); $this->em->flush();
+        $this->client->submit($form);
+        self::assertResponseRedirects('/admin/order/'.$order->getId());
+        $this->client->followRedirect();
+        self::assertSelectorNotExists('button:contains("Annuler la commande")');
+        self::assertSelectorTextContains('body', 'Impossible d’annuler');
+        self::assertSame($state, (int) $this->em->getConnection()->fetchOne('SELECT state FROM `order`'));
+        self::assertSame(2, (int) $this->em->getConnection()->fetchOne('SELECT stock FROM product'));
+    }
+
+    public static function forbiddenCancellationStates(): array
+    {
+        return ['shipped' => [3], 'delivered' => [5]];
+    }
+
+    public function testAdminCancellationRequiresRolePostAndCsrf(): void
+    {
+        $order = static::getContainer()->get(OrderManager::class)->create($this->user, $this->address, $this->carrier, [['object' => $this->product, 'qty' => 1]]);
+        $url = '/admin/commande/'.$order->getId().'/statut';
+        $this->client->request('POST', $url, ['state' => 4]);
+        self::assertResponseRedirects('/connexion');
+        $this->client->loginUser($this->user);
+        $this->client->request('POST', $url, ['state' => 4]);
+        self::assertSame(403, $this->client->getResponse()->getStatusCode());
+        $admin = $this->em->find(User::class, $this->user->getId());
+        $admin->setRoles(['ROLE_ADMIN']); $this->em->flush(); $this->client->loginUser($admin);
+        $this->client->request('GET', $url);
+        self::assertSame(405, $this->client->getResponse()->getStatusCode());
+        foreach ([[], ['_token' => 'invalid']] as $parameters) {
+            $this->client->request('POST', $url, $parameters + ['state' => 4]);
+            self::assertSame(403, $this->client->getResponse()->getStatusCode());
+        }
+        self::assertSame(0, (int) $this->em->getConnection()->fetchOne('SELECT state FROM `order`'));
+        self::assertSame(2, (int) $this->em->getConnection()->fetchOne('SELECT stock FROM product'));
+    }
+
+    public function testCancellationDoesNotRestoreUnreservedLegacyStock(): void
+    {
+        $orders = static::getContainer()->get(OrderManager::class);
+        $order = $orders->create($this->user, $this->address, $this->carrier, [['object' => $this->product, 'qty' => 1]]);
+        $order->setStockReserved(false)->setState(1); $this->em->flush();
+        $orders->cancelForAdmin($order); $orders->cancelForAdmin($order);
+        self::assertSame(4, $order->getState());
+        self::assertSame(2, $this->product->getStock());
+    }
+
     public function testWrongCurrentPasswordCannotChangePassword(): void
     {
         $this->client->loginUser($this->user);

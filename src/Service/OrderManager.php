@@ -64,11 +64,22 @@ class OrderManager
     /** La session Stripe doit avoir été expirée avant la libération du stock. */
     public function cancelUnpaid(Order $order): void
     {
-        $this->em->wrapInTransaction(function () use ($order): void {
+        $this->cancel($order, [0]);
+    }
+
+    /** Réservé au parcours administrateur ; aucun remboursement n’est effectué ici. */
+    public function cancelForAdmin(Order $order): void
+    {
+        $this->cancel($order, [0, 1, 2]);
+    }
+
+    private function cancel(Order $order, array $allowedStates): void
+    {
+        $this->em->wrapInTransaction(function () use ($order, $allowedStates): void {
             $this->em->refresh($order, LockMode::PESSIMISTIC_WRITE);
             if ($order->getState() === 4) { return; }
-            if ($order->getState() !== 0) {
-                throw new \DomainException('Une commande payée nécessite un remboursement avant son annulation.');
+            if (!in_array($order->getState(), $allowedStates, true)) {
+                throw new \DomainException('L’annulation n’est pas autorisée pour le statut actuel de cette commande.');
             }
             if ($order->isStockReserved()) {
                 $details = $order->getOrderDetails()->toArray();

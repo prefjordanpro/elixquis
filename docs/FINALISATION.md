@@ -131,7 +131,7 @@ Suite : `php vendor/phpunit/phpunit/phpunit --testdox`.
 
 ## 13. Résultats
 
-**18 tests réussis, 98 assertions.** Composer valide, aucun avis de sécurité connu dans l’audit final, mapping et base Doctrine cohérents, lint Twig/YAML/PHP et conteneur valides.
+**25 tests réussis, 178 assertions** après ajout de l’annulation administrateur. Composer valide, aucun avis de sécurité connu dans l’audit de finalisation, mapping et base Doctrine cohérents, lint Twig/YAML/PHP et conteneur valides.
 
 Les tests utilisent exclusivement **SQLite en mémoire**, créée à chaque test. Ils ne touchent pas à la base locale ni à une base de production et n’envoient aucun e-mail. Ils couvrent notamment les formulaires, les droits d’accès, les prix actualisés, les instantanés historiques, le rollback de stock, les annulations répétées, les versions concurrentes, les montants falsifiés, la majorité, la génération PDF et un webhook signé envoyé deux fois.
 
@@ -151,8 +151,17 @@ Les appels réseau Stripe réels et la concurrence entre plusieurs connexions Ma
 ## 15. Décisions attendues
 
 - Coordonnées de l’entreprise et textes légaux à publier.
-- Annulation/remboursement des commandes payées : actuellement le site refuse une annulation automatique après paiement. Le choix entre traitement manuel et remboursement Stripe automatique reste à confirmer. Le site ne rembourse ni n’encaisse de paiement réel pendant ce travail.
 - Rapprochement des commandes historiques impayées et des paiements Stripe antérieurs.
 - Validation de la branche avant toute fusion dans `main` et toute mise en production.
 
 La partie technique décrite ci-dessus est vérifiée. Une mise en production doit attendre les configurations et décisions restantes ; le projet n’est pas présenté comme prêt à vendre sans ces éléments.
+
+## 16. Annulation administrateur
+
+Sur la branche `codex/finalisation-site`, le détail de commande propose un bouton rouge avec confirmation pour les états en attente, payée et en préparation. L’action POST exige `ROLE_ADMIN` et un jeton CSRF lié à la commande. Les commandes expédiées ou livrées ne peuvent plus être annulées ; cette règle est aussi vérifiée côté serveur.
+
+L’annulation conserve la commande, ses lignes et ses instantanés historiques. Le stock réservé est restitué dans une transaction verrouillée, une seule fois, y compris lors d’une répétition de la requête. Le stock des commandes historiques sans réservation n’est pas crédité. Pour une commande impayée, une éventuelle session Stripe ouverte doit d’abord être expirée.
+
+Pour une commande payée, aucun remboursement Stripe automatique n’est déclenché. La confirmation, la page et le message après annulation indiquent que le remboursement doit être effectué manuellement dans Stripe.
+
+Validation : suite PHPUnit complète réussie (25 tests, 178 assertions) et lint des trois templates administrateur réussi. Les nouveaux tests couvrent les trois statuts autorisés, la répétition, la conservation des lignes, les statuts interdits, les droits, la méthode HTTP, les jetons absents ou invalides et le stock non réservé. Les tests restent isolés dans SQLite en mémoire ; la concurrence MariaDB n’est pas exercée.

@@ -78,4 +78,23 @@ class StripePayment
             $this->orders->cancelUnpaid($order);
         });
     }
+
+    /** Renvoie true si le remboursement devra être effectué manuellement dans Stripe. */
+    public function cancelForAdmin(Order $order): bool
+    {
+        return $this->em->wrapInTransaction(function () use ($order): bool {
+            $this->em->refresh($order, LockMode::PESSIMISTIC_WRITE);
+            if ($order->getState() === 4) { return false; }
+            if ($order->getState() === 0) {
+                // Empêcher un paiement après la restitution du stock d’une commande impayée.
+                $this->cancel($order);
+                return false;
+            }
+            if (!in_array($order->getState(), [1, 2], true)) {
+                throw new \DomainException('Impossible d’annuler une commande déjà expédiée ou livrée.');
+            }
+            $this->orders->cancelForAdmin($order);
+            return true;
+        });
+    }
 }

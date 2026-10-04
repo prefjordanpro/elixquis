@@ -50,7 +50,12 @@ class OrderCrudController extends AbstractCrudController
         if (!$order) { throw $this->createNotFoundException('Commande introuvable.'); }
         $target = $request->request->getInt('state', -1);
         try {
-            if ($target === 4) { $payment->cancel($order); }
+            if ($target === 4) {
+                $manualRefund = $payment->cancelForAdmin($order);
+                if ($manualRefund) {
+                    $this->addFlash('warning', 'Commande payée annulée : le remboursement doit être effectué manuellement dans Stripe. Aucun remboursement automatique n’a été déclenché.');
+                }
+            }
             elseif ($target === 1) { $payment->verify($order); }
             else { $orders->advance($order, $order->getState(), $target); }
             $this->addFlash('success', 'Statut de la commande mis à jour.');
