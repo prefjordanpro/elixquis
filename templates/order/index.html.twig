@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 {% block title %}Adresse et livraison — Elixquis{% endblock %}
-{% block stylesheets %}<link href="{{ asset('assets/css/purchase.css') }}" rel="stylesheet">{% endblock %}
+{% block stylesheets %}<link href="{{ asset('assets/css/purchase.css') }}?v=20261005-footer-common" rel="stylesheet">{% endblock %}
 {% block javascripts %}<script src="{{ asset('assets/js/purchase.js') }}"></script>{% endblock %}
 {% block body %}
 <div class="container my-5 purchase-page checkout-selection">
@@ -40,7 +40,7 @@
       </div>
       <p class="small text-muted mt-3">Choisissez votre transporteur pour connaître le total. Le récapitulatif confirme le montant avant le paiement.</p>
       {{ form_row(deliverForm._token) }}
-      <button type="submit" class="btn btn-success btn-lg w-100">Vérifier ma commande <i data-feather="arrow-right" aria-hidden="true"></i></button>
+      <button type="submit" class="btn btn-brand btn-lg w-100">Vérifier ma commande <i data-feather="arrow-right" aria-hidden="true"></i></button>
       <a href="{{ path('app_cart') }}" class="d-block text-center mt-3">Retour au panier</a>
       <p class="small text-muted mt-3 mb-0"><i data-feather="lock"></i> Vous validerez le montant avant d’être redirigé vers Stripe.</p>
     </div></aside>

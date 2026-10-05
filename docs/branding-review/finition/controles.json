@@ -1,0 +1,1459 @@
+{
+  "mode": "HTML rendus par tests SQLite isolés ; actions métier non exécutées dans le navigateur",
+  "results": [
+    {
+      "name": "accueil-carrousel.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Le caractèredu rhum.L’exquis des fruits.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": {
+        "imageWidth": 848,
+        "imageHeight": 562,
+        "valid": true
+      },
+      "overflowing": []
+    },
+    {
+      "name": "accueil.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Le caractèredu rhum.L’exquis des fruits.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": {
+        "imageWidth": 848,
+        "imageHeight": 562,
+        "valid": true
+      },
+      "overflowing": []
+    },
+    {
+      "name": "adresse-formulaire.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon adresse",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "adresses.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mes adresses",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "catalogue.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Tous nos produits",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "categorie-vide.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Catégorie de test vide",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "categorie.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Aux fruits",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "checkout.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Adresse & livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "commande-demande.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Ma commande",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "commande-validation.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre commande, en détail",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "compte-commandes.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Bonjour Camille.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "compte.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Bonjour Camille.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "confirmation.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Merci pour votre commande.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "connexion.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Connexion",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "inscription.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Inscription",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "mot-de-passe.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon mot de passe",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "panier-vide.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon panier",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "panier.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon panier",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "produit-indisponible.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Litchi de démonstration",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "produit.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Produit de démonstration UX",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "profil.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mes informations",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-adresse.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-methodes.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-relais.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-suivi.html",
+      "width": 1440,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Ma commande",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "accueil-carrousel.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Le caractèredu rhum.L’exquis des fruits.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": {
+        "imageWidth": 594,
+        "imageHeight": 500,
+        "valid": true
+      },
+      "overflowing": []
+    },
+    {
+      "name": "accueil.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Le caractèredu rhum.L’exquis des fruits.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": {
+        "imageWidth": 594,
+        "imageHeight": 500,
+        "valid": true
+      },
+      "overflowing": []
+    },
+    {
+      "name": "adresse-formulaire.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon adresse",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "adresses.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mes adresses",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "catalogue.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Tous nos produits",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "categorie-vide.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Catégorie de test vide",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "categorie.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Aux fruits",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "checkout.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Adresse & livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "commande-demande.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Ma commande",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "commande-validation.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre commande, en détail",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "compte-commandes.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Bonjour Camille.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "compte.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Bonjour Camille.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "confirmation.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Merci pour votre commande.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "connexion.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Connexion",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "inscription.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Inscription",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "mot-de-passe.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon mot de passe",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "panier-vide.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon panier",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "panier.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon panier",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "produit-indisponible.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Litchi de démonstration",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "produit.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Produit de démonstration UX",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "profil.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mes informations",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-adresse.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-methodes.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-relais.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-suivi.html",
+      "width": 1024,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Ma commande",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "accueil-carrousel.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Le caractèredu rhum.L’exquis des fruits.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": {
+        "imageWidth": 720,
+        "imageHeight": 420,
+        "valid": true
+      },
+      "overflowing": []
+    },
+    {
+      "name": "accueil.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Le caractèredu rhum.L’exquis des fruits.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": {
+        "imageWidth": 720,
+        "imageHeight": 420,
+        "valid": true
+      },
+      "overflowing": []
+    },
+    {
+      "name": "adresse-formulaire.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon adresse",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "adresses.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mes adresses",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "catalogue.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Tous nos produits",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "categorie-vide.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Catégorie de test vide",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "categorie.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Aux fruits",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "checkout.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Adresse & livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "commande-demande.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Ma commande",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "commande-validation.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre commande, en détail",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "compte-commandes.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Bonjour Camille.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "compte.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Bonjour Camille.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "confirmation.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Merci pour votre commande.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "connexion.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Connexion",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "inscription.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Inscription",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "mot-de-passe.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon mot de passe",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "panier-vide.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon panier",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "panier.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon panier",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "produit-indisponible.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Litchi de démonstration",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "produit.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Produit de démonstration UX",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "profil.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mes informations",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-adresse.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-methodes.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-relais.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-suivi.html",
+      "width": 768,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Ma commande",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 77,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "accueil-carrousel.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Le caractèredu rhum.L’exquis des fruits.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": {
+        "imageWidth": 358,
+        "imageHeight": 332,
+        "valid": true
+      },
+      "overflowing": []
+    },
+    {
+      "name": "accueil.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Le caractèredu rhum.L’exquis des fruits.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": {
+        "imageWidth": 358,
+        "imageHeight": 332,
+        "valid": true
+      },
+      "overflowing": []
+    },
+    {
+      "name": "adresse-formulaire.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon adresse",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "adresses.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mes adresses",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "catalogue.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Tous nos produits",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "categorie-vide.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Catégorie de test vide",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "categorie.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Aux fruits",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "checkout.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Adresse & livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "commande-demande.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Ma commande",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "commande-validation.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre commande, en détail",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "compte-commandes.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Bonjour Camille.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "compte.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Bonjour Camille.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "confirmation.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Merci pour votre commande.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "connexion.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Connexion",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "inscription.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Inscription",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "mot-de-passe.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon mot de passe",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "panier-vide.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon panier",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "panier.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon panier",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "produit-indisponible.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Litchi de démonstration",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "produit.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Produit de démonstration UX",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "profil.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mes informations",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-adresse.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-methodes.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-relais.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-suivi.html",
+      "width": 390,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Ma commande",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "accueil-carrousel.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Le caractèredu rhum.L’exquis des fruits.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": {
+        "imageWidth": 288,
+        "imageHeight": 280,
+        "valid": true
+      },
+      "overflowing": []
+    },
+    {
+      "name": "accueil.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Le caractèredu rhum.L’exquis des fruits.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": {
+        "imageWidth": 288,
+        "imageHeight": 280,
+        "valid": true
+      },
+      "overflowing": []
+    },
+    {
+      "name": "adresse-formulaire.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon adresse",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "adresses.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mes adresses",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "catalogue.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Tous nos produits",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "categorie-vide.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Catégorie de test vide",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "categorie.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Aux fruits",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "checkout.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Adresse & livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "commande-demande.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Ma commande",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "commande-validation.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre commande, en détail",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "compte-commandes.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Bonjour Camille.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "compte.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Bonjour Camille.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "confirmation.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Merci pour votre commande.",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "connexion.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Connexion",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "inscription.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Inscription",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "mot-de-passe.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon mot de passe",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "panier-vide.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon panier",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "panier.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mon panier",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "produit-indisponible.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Litchi de démonstration",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "produit.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Produit de démonstration UX",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "profil.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Mes informations",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-adresse.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-methodes.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-relais.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Votre livraison",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    },
+    {
+      "name": "sendcloud-suivi.html",
+      "width": 320,
+      "overflow": false,
+      "missingImages": 0,
+      "title": "Ma commande",
+      "headerBackground": "rgb(26, 26, 26)",
+      "headerHeight": 69,
+      "heroLayout": null,
+      "overflowing": []
+    }
+  ],
+  "controls": [
+    {
+      "name": "Recherche vide",
+      "passed": true
+    },
+    {
+      "name": "Réinitialisation filtre",
+      "passed": true
+    },
+    {
+      "name": "Menu mobile",
+      "passed": true
+    },
+    {
+      "name": "Transitions réduites",
+      "passed": true
+    },
+    {
+      "name": "Indicateurs fins sans carré parasite",
+      "passed": true
+    },
+    {
+      "name": "Carrousel immobile en mouvement réduit",
+      "passed": true
+    },
+    {
+      "name": "Flèche du carrousel",
+      "passed": true
+    },
+    {
+      "name": "Indicateur du carrousel",
+      "passed": true
+    },
+    {
+      "name": "Défilement automatique",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

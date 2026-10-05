@@ -1,0 +1,31 @@
+  <footer class="site-footer" data-bs-theme="dark">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-5">
+          <a class="navbar-brand" href="{{ path('app_home') }}">Elixquis</a>
+          <p class="footer-intro">Des saveurs épicées &amp; fruitées pour des moments conviviaux.</p>
+          <p class="small">Rhums arrangés · Fabriqués en France</p>
+        </div>
+        <div class="col-6 col-lg-3">
+          <h2 class="footer-title">La boutique</h2>
+          <ul class="list-unstyled">{% for category in allCategories %}<li><a href="{{ path('app_category', {slug: category.slug}) }}">{{ category.name }}</a></li>{% endfor %}<li><a href="{{ path('app_catalogue') }}">Tous les produits</a></li></ul>
+        </div>
+        <div class="col-6 col-lg-4">
+          <h2 class="footer-title">Votre espace</h2>
+          <ul class="list-unstyled">
+            <li><a href="{{ app.user ? path('app_account') : path('app_login') }}">{{ app.user ? 'Mes commandes' : 'Se connecter' }}</a></li>
+            <li><a href="{{ path('app_cart') }}">Mon panier</a></li>
+            {% if app.user %}<li><a href="{{ path('app_account_addresses') }}">Mes adresses</a></li>{% else %}<li><a href="{{ path('app_register') }}">Créer un compte</a></li>{% endif %}
+            {% if company.email %}<li><a href="mailto:{{ company.email }}">Nous contacter</a></li>{% endif %}
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© {{ "now"|date("Y") }} Elixquis</p>
+        <p>L’abus d’alcool est dangereux pour la santé, à consommer avec modération. Vente interdite aux mineurs de moins de 18 ans.</p>
+      </div>
+      <details class="legal-pending"><summary>Informations légales à compléter avant la mise en production</summary>
+        <p>Mentions légales, CGV, CGU et politique de retour : à compléter. {% if not company.email %}Coordonnées de contact : à compléter.{% endif %}</p>
+      </details>
+    </div>
+  </footer>

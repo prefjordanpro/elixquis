@@ -1,0 +1,51 @@
+{
+  "mode": "callbacks picker et réponse serveur simulés ; validations API couvertes par PHPUnit",
+  "results": [
+    {
+      "width": 1440,
+      "opened": true,
+      "selected": true,
+      "recentered": true,
+      "changed": true,
+      "preserved": true,
+      "overflow": false
+    },
+    {
+      "width": 1024,
+      "opened": true,
+      "selected": true,
+      "recentered": true,
+      "changed": true,
+      "preserved": true,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "opened": true,
+      "selected": true,
+      "recentered": true,
+      "changed": true,
+      "preserved": true,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "opened": true,
+      "selected": true,
+      "recentered": true,
+      "changed": true,
+      "preserved": true,
+      "overflow": false
+    },
+    {
+      "width": 320,
+      "opened": true,
+      "selected": true,
+      "recentered": true,
+      "changed": true,
+      "preserved": true,
+      "overflow": false
+    }
+  ],
+  "errors": []
+}

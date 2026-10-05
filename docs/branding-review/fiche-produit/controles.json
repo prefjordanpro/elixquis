@@ -1,0 +1,289 @@
+{
+  "results": [
+    {
+      "width": 1440,
+      "name": "produit",
+      "overflow": false,
+      "back": "← Retour aux fruits",
+      "href": "/categorie/aux-fruits",
+      "backHeight": 44,
+      "imageWidth": 636.484375,
+      "imageAlt": "Produit de démonstration UX",
+      "missingImage": false,
+      "buttonHeight": 52,
+      "disabled": false,
+      "photoRadius": "18px",
+      "buyRadius": "18px"
+    },
+    {
+      "width": 1440,
+      "name": "produit-indisponible",
+      "overflow": false,
+      "back": "← Retour à la boutique",
+      "href": "/catalogue",
+      "backHeight": 44,
+      "imageWidth": 636.484375,
+      "imageAlt": "Litchi de démonstration",
+      "missingImage": false,
+      "buttonHeight": 52,
+      "disabled": true,
+      "photoRadius": "18px",
+      "buyRadius": "18px"
+    },
+    {
+      "width": 1024,
+      "name": "produit",
+      "overflow": false,
+      "back": "← Retour aux fruits",
+      "href": "/categorie/aux-fruits",
+      "backHeight": 44,
+      "imageWidth": 456.5,
+      "imageAlt": "Produit de démonstration UX",
+      "missingImage": false,
+      "buttonHeight": 52,
+      "disabled": false,
+      "photoRadius": "18px",
+      "buyRadius": "18px"
+    },
+    {
+      "width": 1024,
+      "name": "produit-indisponible",
+      "overflow": false,
+      "back": "← Retour à la boutique",
+      "href": "/catalogue",
+      "backHeight": 44,
+      "imageWidth": 456.5,
+      "imageAlt": "Litchi de démonstration",
+      "missingImage": false,
+      "buttonHeight": 52,
+      "disabled": true,
+      "photoRadius": "18px",
+      "buyRadius": "18px"
+    },
+    {
+      "width": 768,
+      "name": "produit",
+      "overflow": false,
+      "back": "← Retour aux fruits",
+      "href": "/categorie/aux-fruits",
+      "backHeight": 44,
+      "imageWidth": 648,
+      "imageAlt": "Produit de démonstration UX",
+      "missingImage": false,
+      "buttonHeight": 52,
+      "disabled": false,
+      "photoRadius": "18px",
+      "buyRadius": "18px"
+    },
+    {
+      "width": 768,
+      "name": "produit-indisponible",
+      "overflow": false,
+      "back": "← Retour à la boutique",
+      "href": "/catalogue",
+      "backHeight": 44,
+      "imageWidth": 648,
+      "imageAlt": "Litchi de démonstration",
+      "missingImage": false,
+      "buttonHeight": 52,
+      "disabled": true,
+      "photoRadius": "18px",
+      "buyRadius": "18px"
+    },
+    {
+      "width": 390,
+      "name": "produit",
+      "overflow": false,
+      "back": "← Retour aux fruits",
+      "href": "/categorie/aux-fruits",
+      "backHeight": 44,
+      "imageWidth": 318,
+      "imageAlt": "Produit de démonstration UX",
+      "missingImage": false,
+      "buttonHeight": 52,
+      "disabled": false,
+      "photoRadius": "18px",
+      "buyRadius": "18px"
+    },
+    {
+      "width": 390,
+      "name": "produit-indisponible",
+      "overflow": false,
+      "back": "← Retour à la boutique",
+      "href": "/catalogue",
+      "backHeight": 44,
+      "imageWidth": 318,
+      "imageAlt": "Litchi de démonstration",
+      "missingImage": false,
+      "buttonHeight": 52,
+      "disabled": true,
+      "photoRadius": "18px",
+      "buyRadius": "18px"
+    },
+    {
+      "width": 320,
+      "name": "produit",
+      "overflow": false,
+      "back": "← Retour aux fruits",
+      "href": "/categorie/aux-fruits",
+      "backHeight": 44,
+      "imageWidth": 248,
+      "imageAlt": "Produit de démonstration UX",
+      "missingImage": false,
+      "buttonHeight": 52,
+      "disabled": false,
+      "photoRadius": "18px",
+      "buyRadius": "18px"
+    },
+    {
+      "width": 320,
+      "name": "produit-indisponible",
+      "overflow": false,
+      "back": "← Retour à la boutique",
+      "href": "/catalogue",
+      "backHeight": 44,
+      "imageWidth": 248,
+      "imageAlt": "Litchi de démonstration",
+      "missingImage": false,
+      "buttonHeight": 52,
+      "disabled": true,
+      "photoRadius": "18px",
+      "buyRadius": "18px"
+    }
+  ],
+  "controls": [
+    {
+      "name": "Quantité 1440px",
+      "valid": true
+    },
+    {
+      "name": "produit",
+      "selector": ".product-back-link",
+      "initial": {
+        "color": "rgb(26, 26, 26)",
+        "background": "rgba(0, 0, 0, 0)",
+        "outline": "3px",
+        "focused": false
+      },
+      "hover": {
+        "color": "rgb(139, 69, 31)",
+        "background": "rgba(0, 0, 0, 0)",
+        "outline": "3px",
+        "focused": false
+      },
+      "focus": {
+        "color": "rgb(139, 69, 31)",
+        "background": "rgba(0, 0, 0, 0)",
+        "outline": "3px",
+        "focused": true
+      },
+      "valid": true
+    },
+    {
+      "name": "produit",
+      "selector": ".buy-row button[type=\"submit\"]",
+      "initial": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(26, 26, 26)",
+        "outline": "3px",
+        "focused": false
+      },
+      "hover": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(139, 69, 31)",
+        "outline": "3px",
+        "focused": false
+      },
+      "focus": {
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(139, 69, 31)",
+        "outline": "3px",
+        "focused": true
+      },
+      "valid": true
+    },
+    {
+      "name": "produit",
+      "selector": "[data-quantity-step=\"-1\"]",
+      "initial": {
+        "color": "rgb(26, 26, 26)",
+        "background": "rgba(0, 0, 0, 0)",
+        "outline": "3px",
+        "focused": false
+      },
+      "hover": {
+        "color": "rgb(250, 248, 244)",
+        "background": "rgb(139, 69, 31)",
+        "outline": "3px",
+        "focused": false
+      },
+      "focus": {
+        "color": "rgb(250, 248, 244)",
+        "background": "rgb(139, 69, 31)",
+        "outline": "3px",
+        "focused": true
+      },
+      "valid": true
+    },
+    {
+      "name": "Rupture 1440px",
+      "valid": true
+    },
+    {
+      "name": "produit-indisponible",
+      "selector": ".product-back-link",
+      "initial": {
+        "color": "rgb(26, 26, 26)",
+        "background": "rgba(0, 0, 0, 0)",
+        "outline": "3px",
+        "focused": false
+      },
+      "hover": {
+        "color": "rgb(139, 69, 31)",
+        "background": "rgba(0, 0, 0, 0)",
+        "outline": "3px",
+        "focused": false
+      },
+      "focus": {
+        "color": "rgb(139, 69, 31)",
+        "background": "rgba(0, 0, 0, 0)",
+        "outline": "3px",
+        "focused": true
+      },
+      "valid": true
+    },
+    {
+      "name": "Quantité 1024px",
+      "valid": true
+    },
+    {
+      "name": "Rupture 1024px",
+      "valid": true
+    },
+    {
+      "name": "Quantité 768px",
+      "valid": true
+    },
+    {
+      "name": "Rupture 768px",
+      "valid": true
+    },
+    {
+      "name": "Quantité 390px",
+      "valid": true
+    },
+    {
+      "name": "Rupture 390px",
+      "valid": true
+    },
+    {
+      "name": "Quantité 320px",
+      "valid": true
+    },
+    {
+      "name": "Rupture 320px",
+      "valid": true
+    }
+  ],
+  "errors": []
+}

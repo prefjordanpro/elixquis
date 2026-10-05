@@ -22,7 +22,7 @@
   <div class="card card-body text-center mt-4" data-product-empty hidden><h2 class="h4">Aucun produit ne correspond à votre recherche.</h2><p class="text-muted">Essayez un autre nom ou affichez tous les produits.</p><button type="button" class="btn btn-outline-primary align-self-center" data-filter-reset>Réinitialiser les filtres</button></div>
   <noscript><p class="text-muted mt-3">Tous les produits sont affichés. Les liens de catégories restent disponibles sans JavaScript.</p></noscript>
   {% else %}
-  <div class="card card-body text-center py-5"><h2 class="h4">Aucun produit pour le moment</h2><p class="text-muted">Explorez les autres catégories de la boutique.</p><a class="btn btn-success align-self-center" href="{{ path('app_catalogue') }}">Voir tous les produits</a></div>
+  <div class="card card-body text-center py-5"><h2 class="h4">Aucun produit pour le moment</h2><p class="text-muted">Explorez les autres catégories de la boutique.</p><a class="btn btn-brand align-self-center" href="{{ path('app_catalogue') }}">Voir tous les produits</a></div>
   {% endif %}
 </div>
 {% endblock %}

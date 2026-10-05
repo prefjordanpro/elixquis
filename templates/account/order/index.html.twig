@@ -1,6 +1,6 @@
     {# templates/account/order_show.html.twig #}
     {% extends 'base.html.twig' %}
-    {% block stylesheets %}{% if order.state == 0 %}<link href="{{ asset('assets/css/purchase.css') }}" rel="stylesheet">{% endif %}{% endblock %}
+    {% block stylesheets %}{% if order.state == 0 %}<link href="{{ asset('assets/css/purchase.css') }}?v=20261005-footer-common" rel="stylesheet">{% endif %}{% endblock %}
 
     {% block body %}
     {% if order.state == 0 %}

@@ -5,14 +5,13 @@
   <div class="container hero-grid">
     <div class="hero-copy">
       <p class="section-label">Rhums arrangés artisanaux</p>
-      <h1>Du caractère.<br>De la gourmandise.</h1>
-      <p class="lead">Bienvenue chez Elixquis. Découvrez nos rhums arrangés et trouvez les saveurs qui vous ressemblent.</p>
+      <h1>Le caractère<br>du rhum.<br><span>L’exquis des fruits.</span></h1>
+      <p class="lead">Des rhums arrangés, des fruits et des épices. Un univers gourmand à découvrir, pour des moments conviviaux.</p>
       <div class="hero-actions">
-        <a class="btn btn-success btn-lg" href="{{ path('app_catalogue') }}">Découvrir la boutique <i data-feather="arrow-right"></i></a>
-        {% if allCategories|length %}<a class="btn btn-outline-secondary btn-lg" href="#nos-saveurs">Explorer les saveurs</a>{% endif %}
+        <a class="btn btn-brand btn-lg" href="{{ path('app_catalogue') }}">Découvrir la boutique <i data-feather="arrow-right"></i></a>
       </div>
     </div>
-    <div class="hero-image">
+    <div class="hero-stage"><div class="hero-image">
       {% if siteHeaders|length %}
       <div id="homeCarousel" class="carousel slide" aria-label="L’univers Elixquis">
         <div class="carousel-inner">
@@ -21,23 +20,19 @@
             <img src="{{ asset('uploads/' ~ header.illustration) }}" alt="{{ header.title }}" width="800" height="650" loading="{{ loop.first ? 'eager' : 'lazy' }}" fetchpriority="{{ loop.first ? 'high' : 'auto' }}">
             <div class="hero-caption"><h2>{{ header.title }}</h2>
               {% if header.content %}<p>{{ header.content }}</p>{% endif %}
-              {% if header.buttonLink and header.buttonTitle %}<a href="{{ header.buttonLink }}">{{ 'parfum' in header.buttonTitle|lower ? 'Découvrir nos rhums' : header.buttonTitle }} →</a>{% endif %}
+              {% if header.buttonLink and header.buttonTitle %}<a class="editorial-link" href="{{ header.buttonLink }}">{{ 'parfum' in header.buttonTitle|lower ? 'Découvrir nos rhums' : header.buttonTitle }}</a>{% endif %}
             </div>
           </div>
           {% endfor %}
         </div>
         {% if siteHeaders|length > 1 %}
         <div class="carousel-indicators">{% for header in siteHeaders %}<button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="{{ loop.index0 }}" class="{{ loop.first ? 'active' : '' }}" {{ loop.first ? 'aria-current="true"'|raw : '' }} aria-label="Afficher {{ header.title }}"></button>{% endfor %}</div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev"><span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Précédent</span></button>
-        <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next"><span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Suivant</span></button>
         {% endif %}
       </div>
-      {% elseif productsInHomepage|length %}
-      <img src="{{ asset('uploads/' ~ (productsInHomepage|first).illustration) }}" alt="{{ (productsInHomepage|first).name }}" width="800" height="650" fetchpriority="high">
       {% else %}
-      <img src="{{ asset('uploads/beach-4405371_640.jpg') }}" alt="Une côte ensoleillée, l’univers Elixquis" width="640" height="427" fetchpriority="high">
+      <img src="{{ asset('images/editorial/degustation-ambree-v2.jpg') }}" alt="Illustration d’ambiance : un verre ambré et un zeste d’orange" width="1536" height="1024" fetchpriority="high">
       {% endif %}
-    </div>
+    </div><p class="hero-image-note">Fruits · Épices · Caractère</p></div>
   </div>
 </section>
 <div class="container">
@@ -55,10 +50,37 @@
     <div class="category-grid">{% for category in allCategories %}<a class="category-tile" href="{{ path('app_category', {slug: category.slug}) }}"><span>{{ category.name }}</span><i data-feather="arrow-right"></i></a>{% endfor %}</div>
   </section>
   {% endif %}
-  <section class="story-band" aria-labelledby="story-title">
-    <div><p class="section-label">L’esprit Elixquis</p><h2 id="story-title">Un univers artisanal,<br>des saveurs à explorer.</h2></div>
-    <div><p>Fruits, épices, gourmandise : prenez le temps de découvrir les recettes de notre boutique. Chaque fiche présente sa description, son prix et sa disponibilité.</p><a class="btn btn-outline-primary" href="{{ path('app_catalogue') }}">Trouver mon prochain rhum</a></div>
-  </section>
+</div>
+<section class="story-band" aria-labelledby="story-title">
+  <div class="container editorial-grid">
+    <div class="editorial-copy">
+      <p class="editorial-index"><span class="editorial-number" aria-hidden="true">01</span><span class="section-label">L’esprit Elixquis</span></p>
+      <h2 id="story-title">L’élixir.<br><span>L’exquis.</span></h2>
+      <p class="story-origin">Deux mots, une invitation à découvrir.</p>
+      <p>Elixquis associe l’univers de l’élixir à la délicatesse de l’exquis. Les fruits et les épices y rencontrent le caractère du rhum, avec une place essentielle accordée aux ingrédients naturels.</p>
+      <a class="btn btn-outline-primary" href="{{ path('app_catalogue') }}">Explorer les recettes</a>
+    </div>
+    <figure class="editorial-photo">
+      <img src="{{ asset('images/editorial/degustation-ambree-v2.jpg') }}" alt="Illustration d’ambiance : lumière chaude sur un verre de dégustation" width="1536" height="1024" loading="lazy" decoding="async">
+      <figcaption>Le goût des moments partagés</figcaption>
+    </figure>
+  </div>
+</section>
+<section class="brand-story section-space" aria-labelledby="passion-title">
+  <div class="container editorial-grid">
+    <div class="editorial-copy">
+      <p class="editorial-index"><span class="editorial-number" aria-hidden="true">02</span><span class="section-label">L’histoire d’un passionné</span></p>
+      <h2 id="passion-title">Tout commence<br>par une <span>découverte.</span></h2>
+      <p>Lors d’un séjour au ski entre amis, Paul découvre les rhums arrangés. Le mélange du rhum, des fruits et des épices lui donne envie de créer ses propres compositions, d’abord pour lui et ses proches.</p>
+      <p>Ces moments partagés font naître Elixquis : une passion des saveurs et l’envie de la transmettre.</p>
+    </div>
+    <figure class="editorial-photo">
+      <img src="{{ asset('images/editorial/fruits-epices-v2.jpg') }}" alt="Illustration d’ambiance : oranges, litchis, vanille et cannelle sur une table claire" width="1536" height="1024" loading="lazy" decoding="async">
+      <figcaption>Fruits &amp; épices · L’inspiration</figcaption>
+    </figure>
+  </div>
+</section>
+<div class="container">
   {% include 'components/_reassurance.html.twig' %}
 </div>
 {% endblock %}

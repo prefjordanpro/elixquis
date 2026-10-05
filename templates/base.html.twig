@@ -7,7 +7,7 @@
   <meta name="description" content="{% block description %}Découvrez les rhums arrangés Elixquis. Explorez nos produits, leurs saveurs et leur disponibilité.{% endblock %}">
   <link href="{{ asset('assets/css/bootstrap.min.css') }}" rel="stylesheet">
   <link href="{{ asset('assets/css/custom.css') }}" rel="stylesheet">
-  <link href="{{ asset('assets/css/elixquis.css') }}" rel="stylesheet">
+  <link href="{{ asset('assets/css/elixquis.css') }}?v=20261005-footer-common" rel="stylesheet">
   {% block stylesheets %}{% endblock %}
 </head>
 {% set route = app.request.attributes.get('_route')|default('') %}
@@ -15,9 +15,9 @@
 <body class="elixquis-site {{ checkout ? 'checkout-page' : '' }}">
   <a class="skip-link" href="#contenu">Aller au contenu</a>
   <header class="site-header" data-bs-theme="dark">
-    <nav class="navbar navbar-expand-lg navbar-dark" aria-label="Navigation principale">
+    <nav class="navbar navbar-expand-lg" aria-label="Navigation principale">
       <div class="container">
-        <a class="navbar-brand" href="{{ path('app_home') }}">Elixquis</a>
+        <a class="navbar-brand brand-placeholder" href="{{ path('app_home') }}" aria-label="Elixquis — Accueil">Elixquis</a>
         <div class="header-quick d-flex align-items-center gap-2 order-lg-3">
           <a class="header-action" href="{{ app.user ? path('app_account') : path('app_login') }}">
             <i data-feather="user" aria-hidden="true"></i><span class="d-none d-sm-inline">{{ app.user ? 'Mon compte' : 'Connexion' }}</span>
@@ -56,38 +56,7 @@
     </div>
     {% block body %}{% endblock %}
   </main>
-  <footer class="site-footer" data-bs-theme="dark">
-    <div class="container">
-      {% if not checkout %}<div class="row g-4">
-        <div class="col-lg-5">
-          <a class="navbar-brand" href="{{ path('app_home') }}">Elixquis</a>
-          <p class="footer-intro">Des rhums arrangés, du caractère et de la gourmandise.</p>
-          <p class="small">Rhum 100% Made in France.</p>
-        </div>
-        <div class="col-6 col-lg-3">
-          <h2 class="footer-title">La boutique</h2>
-          <ul class="list-unstyled">{% for category in allCategories %}<li><a href="{{ path('app_category', {slug: category.slug}) }}">{{ category.name }}</a></li>{% endfor %}<li><a href="{{ path('app_catalogue') }}">Tous les produits</a></li></ul>
-        </div>
-        <div class="col-6 col-lg-4">
-          <h2 class="footer-title">Votre espace</h2>
-          <ul class="list-unstyled">
-            <li><a href="{{ app.user ? path('app_account') : path('app_login') }}">{{ app.user ? 'Mes commandes' : 'Se connecter' }}</a></li>
-            <li><a href="{{ path('app_cart') }}">Mon panier</a></li>
-            {% if app.user %}<li><a href="{{ path('app_account_addresses') }}">Mes adresses</a></li>{% else %}<li><a href="{{ path('app_register') }}">Créer un compte</a></li>{% endif %}
-            {% if company.email %}<li><a href="mailto:{{ company.email }}">Nous contacter</a></li>{% endif %}
-          </ul>
-        </div>
-      </div>
-      {% endif %}
-      <div class="footer-bottom">
-        <p>© {{ "now"|date("Y") }} Elixquis</p>
-        <p>L’abus d’alcool est dangereux pour la santé, à consommer avec modération. Vente interdite aux mineurs de moins de 18 ans.</p>
-      </div>
-      <details class="legal-pending"><summary>Informations légales à compléter avant la mise en production</summary>
-        <p>Mentions légales, CGV, CGU et politique de retour : à compléter. {% if not company.email %}Coordonnées de contact : à compléter.{% endif %}</p>
-      </details>
-    </div>
-  </footer>
+  {% include 'components/_footer.html.twig' %}
   <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
   <script src="{{ asset('assets/js/icons.js') }}"></script>
   <script src="{{ asset('assets/js/global.js') }}"></script>
@@ -96,7 +65,7 @@
       <div class="modal-header"><h2 class="modal-title h4" id="ageModalLabel">Bienvenue chez Elixquis</h2></div>
       <div class="modal-body" id="ageModalDescription"><p>Ce site propose des boissons alcoolisées.</p><p class="mb-0">Pour continuer, confirmez avoir au moins 18 ans.</p></div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-success" id="btn-age-yes">J’ai au moins 18 ans</button>
+        <button type="button" class="btn btn-brand" id="btn-age-yes">J’ai au moins 18 ans</button>
         <button type="button" class="btn btn-outline-secondary" id="btn-age-no">J’ai moins de 18 ans</button>
       </div>
     </div></div>

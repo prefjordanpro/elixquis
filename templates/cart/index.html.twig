@@ -1,12 +1,12 @@
 {% extends 'base.html.twig' %}
 {% block title %}Mon panier — Elixquis{% endblock %}
-{% block stylesheets %}<link href="{{ asset('assets/css/purchase.css') }}" rel="stylesheet">{% endblock %}
+{% block stylesheets %}<link href="{{ asset('assets/css/purchase.css') }}?v=20261005-footer-common" rel="stylesheet">{% endblock %}
 {% block body %}
 <div class="container my-5 purchase-page cart-page">
   {% include 'components/_steps.html.twig' with {step: 1} %}
   <div class="page-heading"><div><p class="section-label">Votre sélection</p><h1>Mon panier</h1><p>{{ fullCartQuantity }} article{{ fullCartQuantity > 1 ? 's' : '' }}</p></div><a href="{{ path('app_catalogue') }}">Continuer mes achats →</a></div>
   {% if cart is empty %}
-  <div class="card card-body text-center py-5"><h2 class="h3">Votre panier est vide</h2><p class="text-muted">Découvrez les produits de notre boutique et composez votre sélection.</p><a href="{{ path('app_catalogue') }}" class="btn btn-success align-self-center">Découvrir la boutique</a></div>
+  <div class="card card-body text-center py-5"><h2 class="h3">Votre panier est vide</h2><p class="text-muted">Découvrez les produits de notre boutique et composez votre sélection.</p><a href="{{ path('app_catalogue') }}" class="btn btn-brand align-self-center">Découvrir la boutique</a></div>
   {% else %}
   <div class="row g-4">
     <div class="col-lg-8">
@@ -32,7 +32,7 @@
       <div class="summary-row"><span>Livraison</span><span class="text-muted">À choisir</span></div>
       <p class="text-muted small mt-3">Les frais seront précisés à l’étape livraison. Aucun paiement à cette étape.</p>
       <div class="summary-total d-flex justify-content-between align-items-center gap-2"><strong>Total hors livraison</strong><strong>{{ totalWt|price }}</strong></div>
-      <a href="{{ path('app_order') }}" class="btn btn-success w-100 mt-4 btn-lg">Poursuivre ma commande <i data-feather="arrow-right" aria-hidden="true"></i></a>
+      <a href="{{ path('app_sendcloud_checkout') }}" class="btn btn-brand w-100 mt-4 btn-lg">Poursuivre ma commande <i data-feather="arrow-right" aria-hidden="true"></i></a>
       <p class="text-muted small text-center mt-3 mb-0"><i data-feather="lock"></i> Paiement via Stripe · TVA incluse</p>
     </div></aside></div>
   </div>

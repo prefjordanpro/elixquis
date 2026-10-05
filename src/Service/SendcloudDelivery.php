@@ -10,6 +10,8 @@ final class SendcloudDelivery
     public function __construct(private SendcloudService $api, private ShippingConfiguration $configuration,
         private SendcloudMethodPolicy $policy) {}
 
+    public function pickerPublicKey(): string { return $this->api->pickerPublicKey(); }
+
     public function offers(Address $address, array $lines, ?int $pointId = null): array
     {
         $sender = $this->configuration->sender();
@@ -62,8 +64,11 @@ final class SendcloudDelivery
             && ($point['address']['country_code'] ?? '') === $address->getCountry() && empty($point['is_expired'])));
     }
 
-    public function select(Address $address, array $lines, string $key, ?int $pointId = null): DeliverySelection
+    public function select(Address $address, array $lines, string $key, ?int $pointId = null, string $postNumber = ''): DeliverySelection
     {
+        if (strlen($postNumber) > 32 || !preg_match('/^[A-Za-z0-9 -]*$/D', $postNumber)) {
+            throw new \DomainException('Le numéro destinataire du point relais est invalide.');
+        }
         $offers = $this->offers($address, $lines); $offer = $offers[$key] ?? null;
         if (!$offer) { throw new \DomainException('Cette méthode de livraison n’est plus disponible pour votre commande.'); }
         $point = null;
@@ -78,14 +83,18 @@ final class SendcloudDelivery
             if (!is_string($point['name'] ?? null) || empty($point['address']['postal_code']) || empty($point['address']['city']) || empty($point['address']['street'])) {
                 throw new \DomainException('L’adresse du point relais est incomplète.');
             }
+            if (strtolower((string) ($point['shop_type'] ?? '')) === 'packstation' && trim($postNumber) === '') {
+                throw new \DomainException('Ce point relais nécessite un numéro destinataire.');
+            }
             $point = array_intersect_key($point, array_flip(['id', 'name', 'address', 'carrier', 'carrier_service_point_id']));
+            $point['post_number'] = $postNumber;
         } elseif ($pointId !== null) { throw new \DomainException('Cette méthode ne permet pas de livraison en point relais.'); }
         $properties = ['shipping_option_code' => $offer['code']];
         if ($offer['contract_id'] !== null) { $properties['contract_id'] = $offer['contract_id']; }
         return new DeliverySelection(['provider' => 'sendcloud', 'carrier_name' => $offer['carrier_name'], 'carrier_code' => $offer['carrier_code'],
             'method_name' => $offer['method_name'], 'kind' => $offer['kind'], 'method_code' => $offer['code'], 'price_cents' => $offer['price_cents'],
             'tax_rate' => $this->configuration->taxRate, 'quoted_at' => (new \DateTimeImmutable())->format(DATE_ATOM),
-            'service_point' => $point, 'from_address' => $this->configuration->sender(), 'to_address' => $this->destination($address),
+            'service_point' => $point, 'from_address' => $this->configuration->sender(), 'to_address' => $this->destination($address) + ($point && $postNumber !== '' ? ['po_box' => $postNumber] : []),
             'items' => array_map(static fn ($line) => ['id' => $line['object']->getId(), 'qty' => $line['qty'],
                 'weight_grams' => $line['object']->getShippingWeightGrams(), 'price_cents' => (int) round($line['object']->getPriceWt() * 100)], array_values($lines)),
             'parcels' => [$this->configuration->parcel($lines)], 'ship_with' => ['type' => 'shipping_option_code', 'properties' => $properties]],

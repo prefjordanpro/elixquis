@@ -1,0 +1,12 @@
+<div class="service-point-picker" data-service-point-picker data-config="{{ {apiKey: pickerPublicKey, country: address.country, language: 'fr-fr', postalCode: address.postal, city: address.city, address1: address.address, carriers: selected.carrier_code}|json_encode|e('html_attr') }}">
+  <input type="hidden" name="point" value="{{ point ? point.id : '' }}">
+  <input type="hidden" name="post_number" value="{{ point ? point.post_number|default('') : '' }}">
+  <div class="service-point-summary" data-point-summary {{ not point ? 'hidden' : '' }} aria-live="polite">
+    <p class="section-label">Point relais sélectionné</p>
+    <strong data-point-name>{{ point ? point.name : '' }}</strong>
+    <p class="mb-0"><span data-point-street>{{ point ? point.address.street ~ ' ' ~ point.address.house_number|default('') : '' }}</span><br><span data-point-city>{{ point ? point.address.postal_code ~ ' ' ~ point.address.city : '' }}</span></p>
+  </div>
+  <button type="button" class="btn btn-outline-secondary" data-open-picker>{{ point ? 'Changer de point relais' : 'Choisir mon point relais' }}</button>
+  <p class="small text-muted mt-2 mb-0" data-picker-status role="status"></p>
+  <noscript><p>Activez JavaScript pour choisir votre point relais sur la carte Sendcloud.</p></noscript>
+</div>

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elixquis — Comparaison avant / après</title>
+<style>
+body{font:16px/1.6 system-ui,sans-serif;margin:0;background:#faf8f4;color:#1a1a1a}main{max-width:1400px;margin:auto;padding:32px}h1{font-weight:500}h2{border-left:3px solid #ba9540;padding-left:16px}section{margin:48px 0}.compare{display:grid;grid-template-columns:1fr 1fr;gap:24px}figure{margin:0;background:white;padding:16px;border:1px solid #ddd7ca}img{display:block;width:100%;height:auto}figcaption{margin-bottom:16px;font-weight:600}a{color:#8b451f}select{padding:12px;font:inherit}@media(max-width:700px){main{padding:16px}.compare{grid-template-columns:1fr}}
+</style>
+<main>
+<h1>Elixquis — Avant / après</h1>
+<p>Captures des pages rendues avec des données de test isolées. Les photos de paysage sont les assets temporaires du dépôt.</p>
+<label for="format">Format des captures :</label> <select id="format"><option value="1440">Desktop — 1440 px</option><option value="390">Mobile — 390 px</option></select>
+<p>Hero final : <a href="finition/hero-1440.png">1440 px</a> ? <a href="finition/hero-1024.png">1024 px</a> ? <a href="finition/hero-768.png">768 px</a> ? <a href="finition/hero-390.png">390 px</a> ? <a href="finition/hero-320.png">320 px</a></p>
+<div id="comparisons"></div>
+<p><a href="finition/controles.json">Résultats des contrôles après refonte</a> · <a href="../FINITION_UX_UI_ELIXQUIS.md">Compte rendu</a></p>
+</main>
+<script>
+const pages=[['accueil','Accueil'],['produit','Fiche produit'],['panier','Panier'],['checkout','Checkout'],['compte-commandes','Commandes']];
+function render(){const width=document.getElementById('format').value;document.getElementById('comparisons').innerHTML=pages.map(([name,title])=>`<section><h2>${title}</h2><div class="compare">${[['avant','Avant'],['apres','Après']].map(([folder,label])=>`<figure><figcaption>${label}</figcaption><a href="${folder}/${name}-${width}.png"><img loading="lazy" src="${folder}/${name}-${width}.png" alt="${title}, ${label.toLowerCase()}, ${width} pixels"></a></figure>`).join('')}</div></section>`).join('');}
+document.getElementById('format').addEventListener('change',render);render();
+</script>
+</html>

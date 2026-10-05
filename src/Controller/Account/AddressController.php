@@ -78,7 +78,9 @@ final class AddressController extends AbstractController
             );
 
             if ($cart->fullQuantity() > 0) {
-                return $this->redirectToRoute("app_order");
+                return $request->getSession()->get('shipping_legacy_fallback', false)
+                    ? $this->redirectToRoute('app_order', ['fallback' => 1])
+                    : $this->redirectToRoute('app_sendcloud_checkout');
             }
 
             return $this->redirectToRoute("app_account_addresses");

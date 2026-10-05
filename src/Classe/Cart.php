@@ -10,13 +10,17 @@ class Cart
 {
     public function __construct(private RequestStack $requestStack, private ProductRepository $products) {}
 
-    public function add(Product $product): void
+    public function add(Product $product, int $amount = 1): void
     {
+        if ($amount < 1) {
+            throw new \DomainException('Choisissez une quantité entière supérieure ou égale à 1.');
+        }
         $lines = $this->getCart();
-        $quantity = ($lines[$product->getId()]['qty'] ?? 0) + 1;
-        if (!$product->isActive() || $quantity > $product->getStock()) {
+        $current = $lines[$product->getId()]['qty'] ?? 0;
+        if (!$product->isActive() || $amount > $product->getStock() - $current) {
             throw new \DomainException('La quantité demandée dépasse le stock disponible.');
         }
+        $quantity = $current + $amount;
         $quantities = $this->quantities($lines);
         $quantities[$product->getId()] = $quantity;
         $this->requestStack->getSession()->set('cart', $quantities);

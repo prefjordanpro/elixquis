@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ product.name }} — Elixquis{% endblock %}
 {% block description %}{{ product.description|striptags|slice(0, 150) }}{% endblock %}
-{% block stylesheets %}<link href="{{ asset('assets/css/purchase.css') }}" rel="stylesheet">{% endblock %}
+{% block stylesheets %}<link href="{{ asset('assets/css/purchase.css') }}?v=20261005-footer-common" rel="stylesheet">{% endblock %}
 {% block body %}
 <div class="container my-5 purchase-page product-page">
   <nav aria-label="Fil d’Ariane"><ol class="breadcrumb">
@@ -9,31 +9,42 @@
     {% if product.category %}<li class="breadcrumb-item"><a href="{{ path('app_category', {slug: product.category.slug}) }}">{{ product.category.name }}</a></li>{% endif %}
     <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
   </ol></nav>
+  <a class="product-back-link" href="{{ product.category ? path('app_category', {slug: product.category.slug}) : path('app_catalogue') }}"><span aria-hidden="true">←</span> {% if product.category %}{% set categoryName = product.category.name|lower %}Retour {{ categoryName starts with 'aux ' or categoryName starts with 'au ' ? categoryName : 'à la catégorie « ' ~ product.category.name ~ ' »' }}{% else %}Retour à la boutique{% endif %}</a>
   <div class="product-detail-grid">
-    <div class="product-detail-photo"><img src="{{ asset('uploads/' ~ product.illustration) }}" alt="{{ product.name }}" width="700" height="700" fetchpriority="high" decoding="async"></div>
+    <div class="product-visual"><p class="product-visual-label" aria-hidden="true">La collection Elixquis</p><div class="product-detail-photo"><img src="{{ asset('uploads/' ~ product.illustration) }}" alt="{{ product.name }}" width="700" height="700" fetchpriority="high" decoding="async"></div></div>
     <div class="product-detail-info">
       <p class="section-label">{{ product.category ? product.category.name : 'La boutique Elixquis' }}</p>
       <h1>{{ product.name }}</h1>
       <div class="product-price-line"><span class="detail-price">{{ product.pricewt|price }}</span><span class="text-muted">TTC · TVA incluse</span></div>
       <div class="buy-box">
+        <p class="section-label">Votre sélection</p>
         <p class="availability {{ product.stock < 1 ? 'unavailable' : '' }}">{{ product.stock > 0 ? 'Disponible' : 'Rupture de stock' }}</p>
         <p class="text-muted small mt-1">{{ product.stock > 0 ? product.stock ~ ' unité' ~ (product.stock > 1 ? 's' : '') ~ ' en stock' : 'Ce produit ne peut pas être ajouté au panier pour le moment.' }}</p>
-        <div class="buy-row">
-          <div class="fixed-quantity"><small>Quantité</small><strong>1 <span class="small fw-normal">par ajout</span></strong></div>
-          <form method="post" action="{{ path('app_cart_add', {id: product.id}) }}">
+          <form class="buy-row product-purchase-form" method="post" action="{{ path('app_cart_add', {id: product.id}) }}">
             <input type="hidden" name="_token" value="{{ csrf_token('cart') }}">
-            <button type="submit" class="btn btn-success btn-lg w-100" {{ product.stock < 1 ? 'disabled' : '' }}><i data-feather="shopping-bag"></i> Ajouter au panier</button>
+            <div class="product-quantity">
+              <label for="product-quantity">Quantité</label>
+              <div class="product-quantity-control" data-product-quantity>
+                <button type="button" data-quantity-step="-1" aria-label="Diminuer la quantité" disabled>−</button>
+                <input id="product-quantity" name="quantity" type="number" min="1" max="{{ product.stock > 0 ? product.stock : 1 }}" step="1" value="1" required inputmode="numeric" {{ product.stock < 1 ? 'disabled' : '' }}>
+                <button type="button" data-quantity-step="1" aria-label="Augmenter la quantité" {{ product.stock <= 1 ? 'disabled' : '' }}>+</button>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-brand btn-lg w-100" {{ product.stock < 1 ? 'disabled' : '' }}><i data-feather="shopping-bag"></i> Ajouter au panier</button>
           </form>
-        </div>
-        <p class="small text-muted mt-3 mb-0">Après l’ajout, ajustez facilement la quantité avec les boutons − et + du panier.</p>
       </div>
       <ul class="purchase-reassurance">
         <li><i data-feather="truck" aria-hidden="true"></i><span><strong>Livraison au choix</strong><small>Transporteur et tarif présentés avant le règlement.</small></span></li>
         <li><i data-feather="lock" aria-hidden="true"></i><span><strong>Paiement via Stripe</strong><small>Le montant total est affiché avant de payer.</small></span></li>
       </ul>
-      <div class="product-description"><h2>À propos de ce produit</h2><div>{{ product.description|striptags|nl2br }}</div></div>
-      <a class="btn btn-outline-secondary mt-4" href="{{ product.category ? path('app_category', {slug: product.category.slug}) : path('app_catalogue') }}">{{ product.category ? 'Explorer cette catégorie' : 'Continuer la découverte' }} →</a>
     </div>
   </div>
+  {% if product.description|striptags|trim %}
+  <section class="product-description recipe-story" aria-labelledby="recipe-title">
+    <div class="recipe-heading"><p class="section-label">L’esprit de la recette</p><h2 id="recipe-title">La recette,<br>en quelques mots</h2></div>
+    <div class="recipe-text">{{ product.description|striptags|nl2br }}</div>
+  </section>
+  {% endif %}
 </div>
 {% endblock %}
+{% block javascripts %}<script src="{{ asset('assets/js/product-quantity.js') }}"></script>{% endblock %}

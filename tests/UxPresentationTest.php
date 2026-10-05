@@ -54,6 +54,8 @@ final class UxPresentationTest extends WebTestCase
         }
         $crawler = $this->client->request('GET', '/produit/demo-ux');
         self::assertSelectorNotExists('#homeCarousel');
+        self::assertSelectorExists('.product-back-link[href="/categorie/aux-fruits"]');
+        self::assertSelectorTextContains('.product-back-link', 'Retour aux fruits');
         $form = $crawler->selectButton('Ajouter au panier')->form();
         self::assertNotEmpty($form['_token']->getValue());
         $this->client->submit($form); self::assertResponseRedirects('/mon-panier');
@@ -71,6 +73,34 @@ final class UxPresentationTest extends WebTestCase
         $this->client->followRedirect();
         self::assertSelectorTextContains('main', 'Votre panier est vide');
         self::assertSame(5, (int) $this->em->getConnection()->fetchOne('SELECT stock FROM product'));
+    }
+
+    public function testSelectedQuantityIsValidatedAtomicallyAgainstStock(): void
+    {
+        $crawler = $this->client->request('GET', '/produit/demo-ux');
+        self::assertSelectorNotExists('.product-detail-info > .btn');
+        self::assertSelectorExists('input[name="quantity"][min="1"][max="5"]');
+        $token = $crawler->selectButton('Ajouter au panier')->form()['_token']->getValue();
+        $url = '/cart/add/'.$this->product->getId();
+        foreach (['0', '-1', '1.5', '2e0', '', 'abc', '6', '999999999999999999999999', ['2'], 'null', 'true'] as $invalid) {
+            $this->client->request('POST', $url, ['_token' => $token, 'quantity' => $invalid]);
+            self::assertResponseRedirects('/mon-panier');
+            self::assertSame([], $this->client->getRequest()->getSession()->get('cart', []));
+        }
+        $this->client->request('POST', $url, ['_token' => $token, 'quantity' => '3']);
+        self::assertSame(3, $this->client->getRequest()->getSession()->get('cart')[$this->product->getId()]);
+        $this->client->request('POST', $url, ['_token' => $token, 'quantity' => '3']);
+        self::assertSame(3, $this->client->getRequest()->getSession()->get('cart')[$this->product->getId()]);
+        $this->client->request('POST', $url, ['_token' => $token, 'quantity' => '2']);
+        self::assertSame(5, $this->client->getRequest()->getSession()->get('cart')[$this->product->getId()]);
+        self::assertSame(5, (int) $this->em->getConnection()->fetchOne('SELECT stock FROM product'));
+        $this->client->request('POST', $url, ['_token' => $token]);
+        self::assertSame(5, $this->client->getRequest()->getSession()->get('cart')[$this->product->getId()]);
+        $this->em->getConnection()->executeStatement('UPDATE product SET stock = 0');
+        $this->em->clear();
+        $this->client->request('POST', $url, ['_token' => $token, 'quantity' => '1']);
+        self::assertSame([], $this->client->getRequest()->getSession()->get('cart'));
+        self::assertSame(0, (int) $this->em->getConnection()->fetchOne('SELECT stock FROM product'));
     }
 
     public function testEmptyCategoryOffersAUsableReturnToCatalogue(): void

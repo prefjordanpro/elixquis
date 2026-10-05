@@ -195,11 +195,62 @@ final class SendcloudTest extends WebTestCase
     }
     public function testValidRelayIsStoredAndRendered(): void
     {
-        $token = $this->addressStep(); $this->select($token, true); self::assertSelectorTextContains('main', 'Relais de test'); $this->export('sendcloud-relais');
+        $token = $this->addressStep(); $this->select($token, true); self::assertSelectorTextContains('[data-open-picker]', 'Choisir mon point relais'); self::assertSelectorNotExists('input[type="radio"][name="point"]'); $this->export('sendcloud-relais');
         $this->select($token, true, 42); $order = $this->em->getRepository(Order::class)->findOneBy([]);
         self::assertSame(42, $order->getShippingSnapshot()['service_point']['id']); self::assertSame('75001', $order->getShippingSnapshot()['service_point']['address']['postal_code']);
         self::assertSame(2880, $order->getTotalCents()); $this->client->followRedirect(); self::assertSelectorTextContains('main', 'Relais de test');
     }
+    public function testPickerSelectionIsValidatedWithoutCreatingOrderAndSurvivesRefresh(): void
+    {
+        $token = $this->addressStep(); $this->select($token, true);
+        $parameters = ['_token' => $token, 'action' => 'point', 'address' => $this->address->getId(),
+            'method' => hash('sha256', 'mondial_relay:relay|21'), 'point' => 42, 'post_number' => '12345678',
+            'name' => 'FAUX NOM', 'country' => 'XX', 'price' => '0.01'];
+        $this->client->request('POST', '/commande/sendcloud', $parameters);
+        self::assertResponseIsSuccessful();
+        $point = json_decode($this->client->getResponse()->getContent(), true)['point'];
+        self::assertSame('Relais de test', $point['name']); self::assertSame('FR', $point['address']['country_code']);
+        self::assertSame('12345678', $point['post_number']);
+        self::assertSame(0, $this->em->getRepository(Order::class)->count([]));
+        self::assertSame(10, (int) $this->em->getConnection()->fetchOne('SELECT stock FROM product'));
+        $this->client->request('GET', '/commande/sendcloud');
+        self::assertSelectorTextContains('[data-point-summary]', 'Relais de test');
+        self::assertSelectorTextContains('[data-open-picker]', 'Changer de point relais');
+        self::assertSelectorExists('input[name="point"][value="42"]');
+        $this->export('sendcloud-relais-selectionne');
+        $this->client->request('GET', '/mon-panier');
+        $this->client->back();
+        self::assertSelectorExists('input[name="point"][value="42"]');
+        $this->client->request('POST', '/commande/sendcloud', array_replace($parameters, ['point' => 999]));
+        self::assertResponseStatusCodeSame(422);
+        $this->client->request('GET', '/commande/sendcloud?reset=1');
+        self::assertSelectorExists('input[type="radio"][name="address"]');
+        self::assertFalse($this->client->getRequest()->getSession()->has('sendcloud_checkout'));
+        self::assertSame(0, $this->announcements());
+        $token = $this->addressStep();
+        $this->client->request('POST', '/commande/sendcloud', array_replace($parameters, ['_token' => $token, 'action' => 'confirm']));
+        self::assertResponseRedirects();
+        $order = $this->em->getRepository(Order::class)->findOneBy([]);
+        self::assertSame('12345678', $order->getShippingSnapshot()['service_point']['post_number']);
+        self::assertSame('12345678', $order->getShippingSnapshot()['to_address']['po_box']);
+        self::assertSame(0, $this->announcements());
+    }
+
+    public function testPickerRejectsIncompatibleUnavailableAndExpiredSelection(): void
+    {
+        $token = $this->addressStep(); $this->select($token, true);
+        $parameters = ['_token' => $token, 'action' => 'point', 'address' => $this->address->getId(), 'method' => hash('sha256', 'mondial_relay:relay|21'), 'point' => 42];
+        $this->compatiblePoint = false;
+        $this->client->request('POST', '/commande/sendcloud', $parameters); self::assertResponseStatusCodeSame(422);
+        $this->compatiblePoint = true; $this->availablePoint = false;
+        $this->client->request('POST', '/commande/sendcloud', $parameters); self::assertResponseStatusCodeSame(422);
+        $this->availablePoint = true;
+        $this->client->request('POST', '/commande/sendcloud', $parameters + ['post_number' => '<script>']); self::assertResponseStatusCodeSame(422);
+        $session = $this->client->getRequest()->getSession(); $saved = $session->get('sendcloud_checkout'); $saved['expires'] = 0; $session->set('sendcloud_checkout', $saved); $session->save();
+        $this->client->request('POST', '/commande/sendcloud', $parameters); self::assertResponseStatusCodeSame(422);
+        self::assertSame(0, $this->em->getRepository(Order::class)->count([])); self::assertSame(0, $this->announcements());
+    }
+
     public function testWrongCarrierRelayIsRejected(): void
     {
         $token = $this->addressStep(); $this->select($token, true); $this->select($token, true, 999);
@@ -336,6 +387,48 @@ final class SendcloudTest extends WebTestCase
         $manager = static::getContainer()->get(OrderManager::class); $manager->synchronizeRefund($order, $refund); $manager->synchronizeRefund($order, $refund);
         self::assertSame(9, (int) $this->em->getConnection()->fetchOne('SELECT stock FROM product')); self::assertSame(6, $order->getState());
     }
+    public function testNormalNavigationUsesSendcloudEvenAfterLegacyFallback(): void
+    {
+        $this->client->request('GET', '/commande/livraison?fallback=1');
+        $crawler = $this->client->request('GET', '/');
+        $crawler = $this->client->click($crawler->selectLink('Tous les produits')->link());
+        $crawler = $this->client->click($crawler->selectLink('Rhum de test')->link());
+        $this->client->submit($crawler->selectButton('Ajouter au panier')->form());
+        $crawler = $this->client->followRedirect();
+        $link = $crawler->selectLink('Poursuivre ma commande')->link();
+        self::assertStringEndsWith('/commande/sendcloud', $link->getUri());
+        $crawler = $this->client->click($link);
+        self::assertResponseIsSuccessful();
+        self::assertSame('/commande/sendcloud', $this->client->getRequest()->getPathInfo());
+        self::assertFalse($this->client->getRequest()->getSession()->has('shipping_legacy_fallback'));
+        $crawler = $this->client->submit($crawler->selectButton('Voir les livraisons disponibles')->form(['address' => $this->address->getId()]));
+        self::assertSelectorTextContains('main', 'Colissimo');
+        $this->client->submit($crawler->selectButton('Vérifier ma commande')->form(['method' => hash('sha256', 'colissimo:home|21')]));
+        self::assertResponseRedirects();
+        $this->client->followRedirect();
+        self::assertResponseIsSuccessful();
+        self::assertSame('app_account_order', $this->client->getRequest()->attributes->get('_route'));
+        $order = $this->em->getRepository(Order::class)->findOneBy([]);
+        self::assertSame(0, $order->getState());
+        self::assertSame(600, $order->getShippingSnapshot()['price_cents']);
+        self::assertSame(0, $this->announcements());
+    }
+
+    public function testAddressSaveReturnsToSendcloudOrExplicitFallback(): void
+    {
+        $this->addCart();
+        foreach ([false, true] as $legacy) {
+            if ($legacy) { $this->client->request('GET', '/commande/livraison?fallback=1'); }
+            $crawler = $this->client->request('GET', '/compte/adresse/ajouter');
+            $this->client->submit($crawler->selectButton('Sauvegarder')->form([
+                'address_user[firstname]' => 'Camille', 'address_user[lastname]' => 'Test',
+                'address_user[address]' => '12 rue de Test', 'address_user[postal]' => '75001',
+                'address_user[city]' => 'Paris', 'address_user[country]' => 'FR', 'address_user[phone]' => '0612345678',
+            ]));
+            self::assertResponseRedirects($legacy ? '/commande/livraison?fallback=1' : '/commande/sendcloud');
+        }
+    }
+
     public function testLegacyFallbackIsExplicitAndCanBeDisabled(): void
     {
         $this->client->request('GET', '/commande/livraison');

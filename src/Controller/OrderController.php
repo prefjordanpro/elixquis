@@ -23,7 +23,6 @@ final class OrderController extends AbstractController
             if (!$shipping->legacyFallbackEnabled || !$request->getSession()->get('shipping_legacy_fallback', false)) {
                 return $this->redirectToRoute('app_sendcloud_checkout');
             }
-            $this->addFlash('warning', 'Vous utilisez les tarifs de livraison historiques, configurés par la boutique.');
         } elseif (!$shipping->legacyFallbackEnabled) {
             throw new \Symfony\Component\HttpKernel\Exception\ServiceUnavailableHttpException(null, 'La livraison est temporairement indisponible.');
         }

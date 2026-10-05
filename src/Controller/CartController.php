@@ -27,7 +27,14 @@ final class CartController extends AbstractController
         $product = $products->find($id);
         if (!$product || !$product->isActive()) { throw $this->createNotFoundException('Produit indisponible.'); }
         try {
-            $cart->add($product);
+            $parameters = $request->request->all();
+            $rawQuantity = array_key_exists('quantity', $parameters) ? $parameters['quantity'] : '1';
+            $quantity = (is_string($rawQuantity) || is_int($rawQuantity)) && preg_match('/^[1-9][0-9]*$/D', (string) $rawQuantity)
+                ? filter_var($rawQuantity, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) : false;
+            if ($quantity === false) {
+                throw new \DomainException('Choisissez une quantité entière supérieure ou égale à 1.');
+            }
+            $cart->add($product, $quantity);
             $this->addFlash('success', 'Produit ajouté au panier.');
         } catch (\DomainException $e) { $this->addFlash('warning', $e->getMessage()); }
         return $this->redirectToRoute('app_cart');

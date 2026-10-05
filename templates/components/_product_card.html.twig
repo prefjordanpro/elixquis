@@ -1,4 +1,4 @@
-<article class="product-card">
+<article class="product-card {{ 'litchi' in product.name|lower ? 'flavour-litchi' : ('orange' in product.name|lower ? 'flavour-orange' : '') }}">
   <a class="product-photo" href="{{ path('app_product', {slug: product.slug}) }}" tabindex="-1" aria-hidden="true">
     <img src="{{ asset('uploads/' ~ product.illustration) }}" alt="{{ product.name }}" width="420" height="420" loading="lazy" decoding="async">
   </a>
@@ -9,7 +9,7 @@
     <p class="availability {{ product.stock < 1 ? 'unavailable' : '' }}">{{ product.stock > 0 ? 'Disponible' : 'Rupture de stock' }}</p>
     <div class="product-card-footer">
       <span class="product-price">{{ product.pricewt|price }}</span>
-      <a class="btn btn-outline-primary" href="{{ path('app_product', {slug: product.slug}) }}" aria-label="Découvrir {{ product.name }}">Découvrir</a>
+      <a class="btn btn-outline-secondary product-discover" href="{{ path('app_product', {slug: product.slug}) }}" aria-label="Découvrir {{ product.name }}">Découvrir</a>
     </div>
   </div>
 </article>

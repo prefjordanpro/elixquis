@@ -1,5 +1,5 @@
 /* Compatibilité des composants existants ; thème centralisé dans elixquis.css. */
-.bg-light-blue { background-color: #13678815; }
+.bg-light-blue { background-color: var(--elixquis-beige); }
 .object-fit-cover { object-fit: cover; }
 .product-title { overflow-wrap: anywhere; }
 

@@ -1,0 +1,118 @@
+[
+  {
+    "width": 1440,
+    "css": [
+      "http://localhost/elixquis/public/assets/css/bootstrap.min.css",
+      "http://localhost/elixquis/public/assets/css/custom.css",
+      "http://localhost/elixquis/public/assets/css/elixquis.css?v=20261005-editorial-3",
+      "http://localhost/elixquis/public/_wdt/styles"
+    ],
+    "sections": [
+      {
+        "name": "story-band",
+        "display": "grid",
+        "width": 1180,
+        "imageWidth": 476.4375,
+        "imageHeight": 403.1875,
+        "gap": "72px",
+        "valid": true
+      },
+      {
+        "name": "brand-story section-space",
+        "display": "grid",
+        "width": 1180,
+        "imageWidth": 464.453125,
+        "imageHeight": 403.1875,
+        "gap": "72px",
+        "valid": true
+      }
+    ]
+  },
+  {
+    "width": 1024,
+    "css": [
+      "http://localhost/elixquis/public/assets/css/bootstrap.min.css",
+      "http://localhost/elixquis/public/assets/css/custom.css",
+      "http://localhost/elixquis/public/assets/css/elixquis.css?v=20261005-editorial-3",
+      "http://localhost/elixquis/public/_wdt/styles"
+    ],
+    "sections": [
+      {
+        "name": "story-band",
+        "display": "grid",
+        "width": 976,
+        "imageWidth": 397.65625,
+        "imageHeight": 340,
+        "gap": "51.2px",
+        "valid": true
+      },
+      {
+        "name": "brand-story section-space",
+        "display": "grid",
+        "width": 976,
+        "imageWidth": 385.671875,
+        "imageHeight": 340,
+        "gap": "51.2px",
+        "valid": true
+      }
+    ]
+  },
+  {
+    "width": 768,
+    "css": [
+      "http://localhost/elixquis/public/assets/css/bootstrap.min.css",
+      "http://localhost/elixquis/public/assets/css/custom.css",
+      "http://localhost/elixquis/public/assets/css/elixquis.css?v=20261005-editorial-3",
+      "http://localhost/elixquis/public/_wdt/styles"
+    ],
+    "sections": [
+      {
+        "name": "story-band",
+        "display": "grid",
+        "width": 720,
+        "imageWidth": 348,
+        "imageHeight": 240,
+        "gap": "24px",
+        "valid": true
+      },
+      {
+        "name": "brand-story section-space",
+        "display": "grid",
+        "width": 720,
+        "imageWidth": 336,
+        "imageHeight": 240,
+        "gap": "24px",
+        "valid": true
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "css": [
+      "http://localhost/elixquis/public/assets/css/bootstrap.min.css",
+      "http://localhost/elixquis/public/assets/css/custom.css",
+      "http://localhost/elixquis/public/assets/css/elixquis.css?v=20261005-editorial-3",
+      "http://localhost/elixquis/public/_wdt/styles"
+    ],
+    "sections": [
+      {
+        "name": "story-band",
+        "display": "grid",
+        "width": 358,
+        "imageWidth": 358,
+        "imageHeight": 253.5,
+        "gap": "24px",
+        "valid": true
+      },
+      {
+        "name": "brand-story section-space",
+        "display": "grid",
+        "width": 358,
+        "imageWidth": 346,
+        "imageHeight": 253.5,
+        "gap": "24px",
+        "valid": true
+      }
+    ]
+  }
+]

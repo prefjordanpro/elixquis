@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 {% block title %}Confirmation de commande — Elixquis{% endblock %}
-{% block stylesheets %}<link href="{{ asset('assets/css/purchase.css') }}" rel="stylesheet">{% endblock %}
+{% block stylesheets %}<link href="{{ asset('assets/css/purchase.css') }}?v=20261005-footer-common" rel="stylesheet">{% endblock %}
 {% block body %}
 <div class="container my-5 purchase-page confirmation-page">
   {% include 'components/_steps.html.twig' with {step: 5} %}
@@ -15,7 +15,7 @@
       <div><span class="cart-field-label">Livraison</span><strong>{{ order.carrierName }}</strong><p class="small text-muted mb-0">Frais inclus : {{ order.carrierPrice|price }}</p></div>
     </div>
     <div class="hero-actions justify-content-center">
-      <a href="{{ path('app_account_order', {id_order: order.id}) }}" class="btn btn-success btn-lg">Voir ma commande</a>
+      <a href="{{ path('app_account_order', {id_order: order.id}) }}" class="btn btn-brand btn-lg">Voir ma commande</a>
       <a href="{{ path('app_catalogue') }}" class="btn btn-outline-primary btn-lg">Retour à la boutique</a>
     </div>
   </div>

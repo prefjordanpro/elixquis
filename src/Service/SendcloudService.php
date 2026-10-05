@@ -14,6 +14,8 @@ final class SendcloudService
         #[\SensitiveParameter] private string $secretKey, private LoggerInterface $logger, private bool $allowLabelCreation = false) {}
 
     public function labelCreationAllowed(): bool { return $this->allowLabelCreation; }
+    /** Clé publique uniquement, prévue par Sendcloud pour le picker navigateur. */
+    public function pickerPublicKey(): string { return $this->publicKey; }
     public function senderAddresses(): array { return $this->json('GET', 'addresses/sender-addresses')['data'] ?? []; }
     public function contracts(): array { return $this->json('GET', 'contracts')['data'] ?? []; }
     public function shippingOptions(array $payload): array { return $this->json('POST', 'shipping-options', ['json' => $payload])['data'] ?? []; }
