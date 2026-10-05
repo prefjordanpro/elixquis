@@ -28,7 +28,9 @@ final class SendcloudService
     public function createShipment(array $payload): array
     {
         if (!$this->allowLabelCreation) { throw new SendcloudException('La création d’étiquettes est désactivée en attente d’autorisation.'); }
-        return $this->json('POST', 'shipments/announce', ['json' => $payload])['data'] ?? [];
+        // API v3 : le multicollo utilise l'annonce asynchrone officielle.
+        $endpoint = count($payload['parcels'] ?? []) > 1 ? 'shipments' : 'shipments/announce';
+        return $this->json('POST', $endpoint, ['json' => $payload])['data'] ?? [];
     }
     public function label(int $parcelId): string
     {

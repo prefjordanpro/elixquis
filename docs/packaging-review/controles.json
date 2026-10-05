@@ -1,0 +1,65 @@
+{
+  "mode": "HTML réellement rendu par Symfony, API et base de test isolées",
+  "results": [
+    {
+      "name": "emballages-liste",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "name": "emballage-formulaire",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "name": "commande-multicolis",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "name": "checkout-colisage",
+      "width": 1440,
+      "overflow": false
+    },
+    {
+      "name": "emballages-liste",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "name": "emballage-formulaire",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "name": "commande-multicolis",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "name": "checkout-colisage",
+      "width": 768,
+      "overflow": false
+    },
+    {
+      "name": "emballages-liste",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "name": "emballage-formulaire",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "name": "commande-multicolis",
+      "width": 390,
+      "overflow": false
+    },
+    {
+      "name": "checkout-colisage",
+      "width": 390,
+      "overflow": false
+    }
+  ]
+}

@@ -8,35 +8,39 @@ use App\Shipping\DeliverySelection;
 final class SendcloudDelivery
 {
     public function __construct(private SendcloudService $api, private ShippingConfiguration $configuration,
-        private SendcloudMethodPolicy $policy) {}
+        private SendcloudMethodPolicy $policy, private Colisage $colisage) {}
 
     public function pickerPublicKey(): string { return $this->api->pickerPublicKey(); }
+    public function packagingFingerprint(): string { return $this->colisage->signature(); }
 
     public function offers(Address $address, array $lines, ?int $pointId = null): array
     {
         $sender = $this->configuration->sender();
         // Une première intégration nationale : pas de formalités douanières inventées.
         if ($address->getCountry() !== $sender['country_code']) { throw new \DomainException('Cette adresse nécessite une livraison internationale non encore proposée.'); }
-        $parcel = $this->configuration->parcel($lines);
+        $plan = $this->colisage->plan($lines);
+        $parcels = $this->colisage->parcels($plan);
         $this->configuration->sellingPrice('0.00');
         $addressFields = array_flip(['country_code', 'postal_code', 'city', 'address_line_1', 'address_line_2', 'house_number', 'state_province_code']);
         $payload = ['from_address' => array_intersect_key($sender, $addressFields),
-            'to_address' => array_intersect_key($this->destination($address), $addressFields), 'parcels' => [$parcel], 'calculate_quotes' => true];
+            'to_address' => array_intersect_key($this->destination($address), $addressFields), 'parcels' => $parcels, 'calculate_quotes' => true];
+        if (count($parcels) > 1) { $payload['functionalities'] = ['multicollo' => true]; }
         if ($pointId !== null) { $payload['to_service_point'] = ['id' => $pointId]; }
         $offers = [];
         foreach ($this->api->shippingOptions($payload) as $option) {
             $category = $this->policy->category($option);
             if ($category === null) { continue; }
+            if (count($parcels) > 1 && ($option['functionalities']['multicollo'] ?? false) !== true) { continue; }
             if (($option['quote_error'] ?? null) !== null || !empty($option['requirements']['export_documents'])
                 || !empty($option['requirements']['fields']) || !is_string($option['code'] ?? null)
                 || !is_string($option['carrier']['code'] ?? null) || !is_string($option['carrier']['name'] ?? null)) { continue; }
             $quote = null;
             foreach ($option['quotes'] ?? [] as $candidate) {
                 $min = $candidate['weight']['min'] ?? null; $max = $candidate['weight']['max'] ?? null;
-                $weight = (float) $parcel['weight']['value'];
+                $weights = array_map(fn ($p) => (float) $p['weight']['value'], $parcels);
                 if (($candidate['price']['total']['currency'] ?? '') !== 'EUR'
-                    || ($min && (($min['unit'] ?? '') !== 'kg' || $weight < (float) $min['value']))
-                    || ($max && (($max['unit'] ?? '') !== 'kg' || $weight >= (float) $max['value']))) { continue; }
+                    || (count($parcels) === 1 && $min && (($min['unit'] ?? '') !== 'kg' || min($weights) < (float) $min['value']))
+                    || (count($parcels) === 1 && $max && (($max['unit'] ?? '') !== 'kg' || max($weights) >= (float) $max['value']))) { continue; }
                 $quote = $candidate; break;
             }
             if (!$quote) { continue; }
@@ -49,6 +53,7 @@ final class SendcloudDelivery
                 'method_name' => $option['name'] ?? $option['product']['name'] ?? $option['carrier']['name'],
                 'price_cents' => $this->configuration->sellingPrice((string) $quote['price']['total']['value']),
                 'api_amount' => $quote['price']['total']['value'], 'lead_time_hours' => $quote['lead_time'] ?? null,
+                'colisage' => $plan, 'parcels' => $parcels,
                 'category' => $category, 'point_required' => $pointRequired, 'kind' => match ($category) {
                     'relay' => 'Livraison en point relais', 'standard' => 'Livraison standard à domicile', 'express' => 'Livraison express'}];
         }
@@ -97,7 +102,7 @@ final class SendcloudDelivery
             'service_point' => $point, 'from_address' => $this->configuration->sender(), 'to_address' => $this->destination($address) + ($point && $postNumber !== '' ? ['po_box' => $postNumber] : []),
             'items' => array_map(static fn ($line) => ['id' => $line['object']->getId(), 'qty' => $line['qty'],
                 'weight_grams' => $line['object']->getShippingWeightGrams(), 'price_cents' => (int) round($line['object']->getPriceWt() * 100)], array_values($lines)),
-            'parcels' => [$this->configuration->parcel($lines)], 'ship_with' => ['type' => 'shipping_option_code', 'properties' => $properties]],
+            'colisage' => $offer['colisage'], 'parcels' => $offer['parcels'], 'ship_with' => ['type' => 'shipping_option_code', 'properties' => $properties]],
             $offer['price_cents'], $this->configuration->taxRate);
     }
 

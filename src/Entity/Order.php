@@ -19,6 +19,13 @@ class Order
     public function getShippingSnapshot(): ?array { return $this->shippingSnapshot; }
     public function setShippingSnapshot(?array $snapshot): static { $this->shippingSnapshot = $snapshot; return $this; }
 
+    /** @var Collection<int, ColisCommande> */
+    #[ORM\OneToMany(mappedBy: 'commande', targetEntity: ColisCommande::class, cascade: ['persist'])]
+    #[ORM\OrderBy(['position' => \SortDirection::Ascending])]
+    private Collection $colis;
+    public function getColis(): Collection { return $this->colis; }
+    public function addColis(ColisCommande $colis): void { $this->colis->add($colis); }
+
     #[ORM\OneToOne(mappedBy: 'order', targetEntity: Shipment::class)]
     private ?Shipment $shipment = null;
     public function getShipment(): ?Shipment { return $this->shipment; }
@@ -110,6 +117,7 @@ class Order
 
     public function __construct()
     {
+        $this->colis = new ArrayCollection();
         $this->orderDetails = new ArrayCollection();
         $this->cancellationRequests = new ArrayCollection();
     }

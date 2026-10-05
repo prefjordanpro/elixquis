@@ -38,7 +38,6 @@ final class SendcloudQuoteCommand extends Command
             $product = $this->products->find((int) $input->getOption('product'));
             if (!$address || !$product) { throw new \DomainException('Adresse ou produit introuvable.'); }
             $lines = [['object' => $product, 'qty' => (int) $input->getOption('quantity')]];
-            $this->configuration->parcel($lines);
             $this->configuration->sellingPrice('0.00');
             $offers = $this->delivery->offers($address, $lines);
             $rows = [];

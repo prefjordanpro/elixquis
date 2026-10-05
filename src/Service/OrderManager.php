@@ -23,6 +23,17 @@ class OrderManager
                 ->setDelivery(sprintf("%s %s\n%s\n%s %s — %s\n%s", $address->getFirstname(), $address->getLastname(),
                     $address->getAddress(), $address->getPostal(), $address->getCity(), $address->getCountry(), $address->getPhone()));
             if ($delivery) { $order->setShippingSnapshot($delivery->snapshot); }
+            foreach ($delivery?->snapshot['colisage'] ?? [] as $index => $colis) {
+                $emballage = isset($colis['emballage']['id']) ? $this->em->find(\App\Entity\Emballage::class, $colis['emballage']['id']) : null;
+                if ($colis['emballage']['id'] !== null) {
+                    if (!$emballage) { throw new \DomainException('Un emballage a changé. Vérifiez à nouveau votre livraison.'); }
+                    $this->em->refresh($emballage, LockMode::PESSIMISTIC_READ);
+                    if (!$emballage->isActif() || !$emballage->estComplet() || $emballage->snapshot() !== $colis['emballage']) {
+                        throw new \DomainException('Un emballage a changé. Vérifiez à nouveau votre livraison.');
+                    }
+                }
+                $order->addColis(new \App\Entity\ColisCommande($order, $index + 1, $colis, $emballage));
+            }
             ksort($lines);
             foreach ($lines as $line) {
                 $product = $this->em->find(Product::class, $line['object']->getId());

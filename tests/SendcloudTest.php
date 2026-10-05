@@ -28,6 +28,8 @@ final class SendcloudTest extends WebTestCase
     private bool $announceError = false;
     private ?array $remote = null;
     private array $extraOptions = [];
+    private bool $multiCompatible = true;
+    private bool $announcementPending = false;
 
     protected function setUp(): void
     {
@@ -44,7 +46,7 @@ final class SendcloudTest extends WebTestCase
             ['name' => 'Expéditeur de test', 'address_line_1' => '1 rue de Test', 'postal_code' => '69001', 'city' => 'Lyon', 'country_code' => 'FR'],
             ['length_cm' => 30, 'width_cm' => 20, 'height_cm' => 15, 'packaging_weight_g' => 200, 'max_units' => 6], 20, false,
             $this->getName(false) !== 'testDisabledFallbackCannotBypassSendcloud'));
-        $this->installApi(); $this->client->loginUser($this->user);
+        $this->installApi($this->getName(false) !== 'testMultiParcelCreationRemainsDisabledBeforeAnyExternalCall'); $this->client->loginUser($this->user);
     }
 
     private function installApi(bool $allowLabels = true): void
@@ -70,10 +72,10 @@ final class SendcloudTest extends WebTestCase
                 self::assertArrayNotHasKey('use_integration_carriers', $query);
                 return $this->response(['data' => ['results' => [$this->point()]]]);
             }
-            if (str_ends_with($path, '/shipments/announce')) {
+            if (str_ends_with($path, '/shipments/announce') || ($method === 'POST' && str_ends_with($path, '/shipments'))) {
                 $this->remote = $body + ['id' => 'shipment-test'];
-                $this->remote['parcels'] = [['id' => 123, 'status' => ['code' => 'READY_TO_SEND'], 'tracking_number' => 'TRACK123',
-                    'tracking_url' => 'https://tracking.example.test/123', 'documents' => [['type' => 'label']]]];
+                $this->remote['parcels'] = array_map(fn ($parcel, $index) => $parcel + ['id' => 123 + $index, 'status' => ['code' => $this->announcementPending ? 'ANNOUNCING' : 'READY_TO_SEND'], 'tracking_number' => 'TRACK'.(123 + $index),
+                    'tracking_url' => 'https://tracking.example.test/'.(123 + $index), 'documents' => $this->announcementPending ? [] : [['type' => 'label']]], $body['parcels'], array_keys($body['parcels']));
                 if ($this->announceError) { return new MockResponse('', ['http_code' => 504]); }
                 return $this->response(['data' => $this->remote], 201);
             }
@@ -88,6 +90,7 @@ final class SendcloudTest extends WebTestCase
     private function option(string $code, string $carrier, bool $point, string $price): array
     {
         return ['code' => $code, 'name' => $point ? 'Livraison en relais' : 'Livraison à domicile', 'carrier' => ['code' => $carrier, 'name' => $carrier === 'colissimo' ? 'Colissimo' : 'Mondial Relay'],
+            'functionalities' => ['multicollo' => $this->multiCompatible],
             'contract' => ['id' => 21], 'requirements' => ['is_service_point_required' => $point, 'fields' => [], 'export_documents' => false],
             'quotes' => [['price' => ['total' => ['value' => $price, 'currency' => 'EUR']], 'lead_time' => 48]]];
     }
@@ -127,7 +130,216 @@ final class SendcloudTest extends WebTestCase
         $order = $this->checkoutOrder(); $order->setState(1)->setStripePaymentIntentId('pi_sendcloud_test'); $this->em->flush(); return $order;
     }
     private function shipping(): SendcloudShipping { return static::getContainer()->get(SendcloudShipping::class); }
-    private function announcements(): int { return count(array_filter($this->calls, static fn ($call) => str_contains($call['url'], '/shipments/announce'))); }
+    private function announcements(): int { return count(array_filter($this->calls, static fn ($call) => $call['method'] === 'POST'
+        && (str_contains($call['url'], '/shipments/announce') || str_ends_with($call['url'], '/shipments')))); }
+
+    private function packagingFixtures(): array
+    {
+        $boxes = [];
+        foreach ([1, 2, 3, 6] as $capacity) {
+            // Poids de test uniquement, jamais injectés en base locale/prod.
+            $box = (new \App\Entity\Emballage())->setNom('Carton test '.$capacity)->setCapacite($capacity)->setPoidsVideGrammes(200)
+                ->setLongueurCm(32)->setLargeurCm(22)->setHauteurCm(41)->setActif(true);
+            $this->em->persist($box); $boxes[$capacity] = $box;
+        }
+        $this->product->setStock(40); $this->em->flush(); return $boxes;
+    }
+
+    public function testDevelopmentPackagingSeedAndTwoBottleCheckout(): void
+    {
+        $repository = $this->em->getRepository(\App\Entity\Emballage::class);
+        $command = new \App\Command\EmballagesReferenceCommand($this->em, $repository, 'test');
+        $tester = new \Symfony\Component\Console\Tester\CommandTester($command);
+        self::assertSame(0, $tester->execute(['--development' => true]));
+        self::assertSame(0, $tester->execute(['--development' => true]));
+        self::assertCount(4, $repository->findAll());
+        $service = static::getContainer()->get(\App\Service\Colisage::class);
+        $expected = [1 => [[1], [1500]], 2 => [[2], [2900]], 3 => [[3], [4300]],
+            4 => [[3, 1], [4300, 1500]], 5 => [[3, 2], [4300, 2900]],
+            6 => [[6], [8400]], 7 => [[6, 1], [8400, 1500]]];
+        foreach ($expected as $quantity => [$capacities, $weights]) {
+            $plan = $service->plan([['object' => $this->product, 'qty' => $quantity]]);
+            self::assertSame($capacities, array_column(array_column($plan, 'emballage'), 'capacite'));
+            self::assertSame($weights, array_column($plan, 'poids_total_g'));
+        }
+        foreach ($repository->findAll() as $box) { self::assertTrue($box->isActif()); self::assertTrue($box->estComplet()); self::assertNull($box->getPoidsMaxGrammes()); }
+        $production = new \Symfony\Component\Console\Tester\CommandTester(new \App\Command\EmballagesReferenceCommand($this->em, $repository, 'prod'));
+        self::assertSame(1, $production->execute(['--development' => true]));
+        $box = $repository->findOneBy(['capacite' => 2]);
+        $box->setPoidsVideGrammes(550); $this->em->flush();
+        self::assertSame(0, $tester->execute([])); self::assertSame(550, $box->getPoidsVideGrammes());
+        $tester->execute(['--development' => true]);
+        $this->packingCheckout(2);
+        self::assertSelectorTextNotContains('main', 'Aucun emballage actif et complet');
+        self::assertSame('2.900', $this->calls[0]['body']['parcels'][0]['weight']['value']);
+        self::assertSame(['length' => '22', 'width' => '11.5', 'height' => '39.5', 'unit' => 'cm'], $this->calls[0]['body']['parcels'][0]['dimensions']);
+        self::assertSame(0, $this->announcements());
+    }
+
+    private function packingCheckout(int $quantity): string
+    {
+        $crawler = $this->client->request('GET', '/produit/rhum-sendcloud');
+        $this->client->submit($crawler->selectButton('Ajouter au panier')->form(['quantity' => $quantity]));
+        $crawler = $this->client->request('GET', '/mon-panier');
+        $this->client->click($crawler->selectLink('Poursuivre ma commande')->link());
+        self::assertStringContainsString('/commande/sendcloud', $this->client->getRequest()->getUri());
+        $token = $this->client->getCrawler()->filter('main input[name="_token"]')->attr('value');
+        $this->client->request('POST', '/commande/sendcloud', ['_token' => $token, 'action' => 'address', 'address' => $this->address->getId()]);
+        self::assertResponseIsSuccessful(); self::assertSelectorExists('input[name="method"]');
+        self::assertSelectorTextNotContains('main', 'dépasse la capacité du colis');
+        $this->export('checkout-colisage');
+        return $token;
+    }
+
+    public static function packagingCheckouts(): iterable
+    {
+        foreach ([2 => [2], 3 => [3], 6 => [6], 7 => [6, 1], 12 => [6, 6]] as $quantity => $expected) {
+            foreach (['standard', 'relay', 'express'] as $mode) { yield [$quantity, $expected, $mode]; }
+        }
+    }
+
+    /** @dataProvider packagingCheckouts */
+    public function testPackagingCheckoutAndFrozenOrder(int $quantity, array $expected, string $mode): void
+    {
+        $boxes = $this->packagingFixtures(); $this->homePrice = '9.25';
+        $this->extraOptions = [$this->option('chronopost:express', 'chronopost', false, '13.07')];
+        $token = $this->packingCheckout($quantity);
+        $payload = $this->calls[0]['body']; self::assertCount(count($expected), $payload['parcels']);
+        foreach ($expected as $index => $capacity) { self::assertSame(number_format(($capacity * 1200 + 200) / 1000, 3, '.', ''), $payload['parcels'][$index]['weight']['value']); }
+        if (count($expected) > 1) { self::assertTrue($payload['functionalities']['multicollo']); }
+        $code = match ($mode) { 'relay' => 'mondial_relay:relay', 'express' => 'chronopost:express', default => 'colissimo:home' };
+        $parameters = ['_token' => $token, 'address' => $this->address->getId(), 'method' => hash('sha256', $code.'|21'), 'action' => 'method'];
+        if ($mode === 'relay') {
+            $this->client->request('POST', '/commande/sendcloud', $parameters); self::assertSelectorExists('[data-open-picker]');
+            $parameters['point'] = 42; $parameters['action'] = 'confirm';
+        }
+        $this->client->request('POST', '/commande/sendcloud', $parameters); self::assertResponseRedirects();
+        $order = $this->em->getRepository(Order::class)->findOneBy([]);
+        self::assertSame(match ($mode) { 'relay' => 480, 'express' => 1568, default => 1110 }, (int) round($order->getCarrierPrice() * 100));
+        self::assertCount(count($expected), $order->getColis());
+        $snapshot = $order->getShippingSnapshot();
+        self::assertSame($expected, array_column(array_column($snapshot['colisage'], 'emballage'), 'capacite'));
+        self::assertSame(40 - $quantity, (int) $this->em->getConnection()->fetchOne('SELECT stock FROM product'));
+        $colisId = $order->getColis()->first()->getId(); $firstWeight = $order->getColis()->first()->getPoidsTotalGrammes();
+        $this->em->find(\App\Entity\Emballage::class, $boxes[$expected[0]]->getId())->setNom('Carton modifié')->setPoidsVideGrammes(999)->setLongueurCm(99); $this->em->flush();
+        $this->em->clear();
+        $frozen = $this->em->find(\App\Entity\ColisCommande::class, $colisId);
+        self::assertSame('Carton test '.$expected[0], $frozen->getNomEmballage()); self::assertSame($firstWeight, $frozen->getPoidsTotalGrammes());
+        self::assertSame('32', $frozen->getDimensions()['length']);
+        self::assertSame($snapshot, $this->em->getRepository(Order::class)->findOneBy([])->getShippingSnapshot());
+        self::assertSame(0, $this->announcements());
+    }
+
+    public function testMultiParcelUnsupportedMethodsAreNotSold(): void
+    {
+        $this->packagingFixtures(); $this->multiCompatible = false;
+        $delivery = static::getContainer()->get(\App\Service\SendcloudDelivery::class);
+        self::assertSame([], $delivery->offers($this->address, [['object' => $this->product, 'qty' => 7]]));
+        self::assertSame(0, $this->announcements());
+    }
+
+    public function testIncompletePackagingBlocksQuoteBeforeApiCall(): void
+    {
+        $box = (new \App\Entity\Emballage())->setNom('Carton non mesuré')->setCapacite(2)->setActif(true);
+        $this->em->persist($box); $this->em->flush();
+        $delivery = static::getContainer()->get(\App\Service\SendcloudDelivery::class);
+        try { $delivery->offers($this->address, [['object' => $this->product, 'qty' => 2]]); self::fail('Emballage incomplet accepté.'); }
+        catch (\DomainException) { self::assertCount(0, $this->calls); }
+    }
+
+    public function testPackagingChangeInvalidatesCheckoutQuote(): void
+    {
+        $boxes = $this->packagingFixtures(); $token = $this->packingCheckout(2);
+        $this->em->find(\App\Entity\Emballage::class, $boxes[2]->getId())->setPoidsVideGrammes(300); $this->em->flush();
+        $this->client->request('POST', '/commande/sendcloud', ['_token' => $token, 'address' => $this->address->getId(), 'action' => 'confirm', 'method' => hash('sha256', 'colissimo:home|21')]);
+        self::assertResponseIsSuccessful(); self::assertSame(0, $this->em->getRepository(Order::class)->count([]));
+        self::assertSame('2.700', end($this->calls)['body']['parcels'][0]['weight']['value']);
+    }
+
+    public function testFutureMultiParcelAnnouncementUsesAsyncV3AndEachParcelTracking(): void
+    {
+        $this->packagingFixtures(); $token = $this->packingCheckout(7);
+        $this->select($token);
+        $order = $this->em->getRepository(Order::class)->findOneBy([]);
+        $order->setState(1)->setStripePaymentIntentId('pi_mock_multicolis'); $this->em->flush();
+        $shipment = $this->shipping()->create($order);
+        self::assertSame(1, $this->announcements());
+        self::assertStringEndsWith('/api/v3/shipments', end($this->calls)['url']);
+        self::assertSame(['7.400', '1.400'], array_column(array_column(end($this->calls)['body']['parcels'], 'weight'), 'value'));
+        self::assertSame([123, 124], $order->getColis()->map(fn ($p) => $p->getSendcloudParcelId())->toArray());
+        self::assertSame(['TRACK123', 'TRACK124'], $order->getColis()->map(fn ($p) => $p->getNumeroSuivi())->toArray());
+        $this->shipping()->create($order); self::assertSame(1, $this->announcements());
+        self::assertSame('ready', $shipment->getState());
+        self::assertSame([6, 1], array_map(fn ($p) => $p['parcel_items'][0]['quantity'], $this->remote['parcels']));
+        $this->remote['parcels'][1]['status']['code'] = 'IN_TRANSIT';
+        static::getContainer()->get(SendcloudWebhook::class)->handle(['action' => 'parcel_status_changed', 'parcel' => ['id' => 124]]);
+        self::assertSame('IN_TRANSIT', $order->getColis()->get(1)->getStatut());
+        $this->remote['parcels'][0]['status']['code'] = 'CANCELLED';
+        $this->shipping()->synchronize($shipment); self::assertTrue($shipment->isActive());
+        $this->remote['parcels'][1]['status']['code'] = 'CANCELLED';
+        $this->shipping()->synchronize($shipment); self::assertFalse($shipment->isActive());
+    }
+
+    public function testMultiParcelCreationRemainsDisabledBeforeAnyExternalCall(): void
+    {
+        $this->packagingFixtures(); $token = $this->packingCheckout(7); $this->select($token);
+        $order = $this->em->getRepository(Order::class)->findOneBy([]);
+        $order->setState(1)->setStripePaymentIntentId('pi_mock_blocked'); $this->em->flush();
+        try { $this->shipping()->create($order); self::fail('Création autorisée.'); }
+        catch (\DomainException) { self::assertSame(0, $this->announcements()); }
+        self::assertSame(0, $this->em->getRepository(Shipment::class)->count([]));
+    }
+
+    public function testAdministrationPackagingDraftCreationAndActivationValidation(): void
+    {
+        $this->client->loginUser($this->admin);
+        $crawler = $this->client->request('GET', '/admin/emballage/new'); self::assertResponseIsSuccessful();
+        $this->export('emballage-formulaire');
+        $form = $crawler->filter('form[name="Emballage"]')->form(['Emballage[nom]' => 'Carton brouillon', 'Emballage[capacite]' => 2,
+            'Emballage[longueurCm]' => '22', 'Emballage[largeurCm]' => '11.5', 'Emballage[hauteurCm]' => '39.5', 'Emballage[priorite]' => 0]);
+        $this->client->submit($form); self::assertResponseRedirects();
+        $box = $this->em->getRepository(\App\Entity\Emballage::class)->findOneBy(['nom' => 'Carton brouillon']);
+        self::assertNull($box->getPoidsVideGrammes()); self::assertFalse($box->isActif());
+        $crawler = $this->client->request('GET', '/admin/emballage/'.$box->getId().'/edit');
+        $this->client->submit($crawler->filter('form[name="Emballage"]')->form(['Emballage[actif]' => 1]));
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('form[name="Emballage"]', 'Complétez le poids réel');
+        $crawler = $this->client->request('GET', '/admin/emballage/'.$box->getId().'/edit');
+        $this->client->submit($crawler->filter('form[name="Emballage"]')->form(['Emballage[actif]' => 1, 'Emballage[poidsVideGrammes]' => 250]));
+        self::assertResponseRedirects();
+        self::assertTrue($this->em->getRepository(\App\Entity\Emballage::class)->findOneBy(['nom' => 'Carton brouillon'])->isActif());
+        $this->client->request('GET', '/admin/emballage'); self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', 'Carton brouillon'); $this->export('emballages-liste');
+    }
+
+    public function testHistoricalPackagingCannotBeDeletedAndAdminShowsFrozenParcels(): void
+    {
+        $boxes = $this->packagingFixtures(); $token = $this->packingCheckout(7); $this->select($token);
+        $order = $this->em->getRepository(Order::class)->findOneBy([]); $orderId = $order->getId();
+        $this->client->loginUser($this->admin);
+        $crawler = $this->client->request('GET', '/admin/emballage');
+        $deleteToken = $crawler->filter('input[name="token"]')->attr('value');
+        $this->client->request('POST', '/admin/emballage/'.$boxes[6]->getId().'/delete', ['token' => $deleteToken]);
+        self::assertResponseRedirects();
+        self::assertNotNull($this->em->find(\App\Entity\Emballage::class, $boxes[6]->getId()));
+        $this->client->followRedirect(); self::assertSelectorTextContains('body', 'Désactivez-le au lieu de le supprimer');
+        $this->client->request('GET', '/admin/order/'.$orderId); self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('#colis-title', 'Colis');
+        self::assertSelectorTextContains('body', 'Carton test 6'); self::assertSelectorTextContains('body', '7,400 kg');
+        $this->export('commande-multicolis');
+    }
+
+    public function testAsyncAnnouncementStaysPendingWithoutRetryAndCanBeSynchronized(): void
+    {
+        $this->packagingFixtures(); $token = $this->packingCheckout(7); $this->select($token);
+        $order = $this->em->getRepository(Order::class)->findOneBy([]);
+        $order->setState(1)->setStripePaymentIntentId('pi_mock_pending'); $this->em->flush(); $this->announcementPending = true;
+        $shipment = $this->shipping()->create($order); self::assertSame('creating', $shipment->getState());
+        self::assertFalse($shipment->hasLabel());
+        $this->shipping()->create($order); self::assertSame(1, $this->announcements());
+        foreach ($this->remote['parcels'] as &$parcel) { $parcel['status']['code'] = 'READY_TO_SEND'; $parcel['documents'] = [['type' => 'label']]; } unset($parcel);
+        $this->shipping()->synchronize($shipment); self::assertSame('ready', $shipment->getState());
+    }
 
     public function testMethodsAndServerPriceAreValidated(): void
     {

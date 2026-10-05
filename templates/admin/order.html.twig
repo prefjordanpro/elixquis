@@ -2,6 +2,7 @@
 {% set order = (entity.instance is defined) ? entity.instance : ea.entity.instance %}
 {% set crud  = 'App\\\\Controller\\\\Admin\\\\OrderCrudController' %}
 {% include 'admin/_shipping.html.twig' %}
+{% include 'admin/_colis.html.twig' %}
 
 {% macro euro(x) %}{{ (x|default(0))|number_format(2, ',', ' ') }} €{% endmacro %}
 {% import _self as ui %}

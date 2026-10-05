@@ -28,6 +28,8 @@ final class ShippingConfiguration
         return $this->sender;
     }
 
+    public function legacyCapacity(): int { return (int) ($this->parcel['max_units'] ?? 0); }
+
     public function parcel(array $lines): array
     {
         if (!$lines) { throw new \DomainException('Votre panier est vide.'); }

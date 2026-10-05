@@ -1,0 +1,11 @@
+<section class="card card-body my-4" aria-labelledby="colis-title">
+  <h2 class="h5" id="colis-title">Colis</h2>
+  {% for colis in order.colis %}
+    <div class="border rounded p-3 mb-3">
+      <h3 class="h6">Colis {{ colis.position }} — {{ colis.nomEmballage }} — {{ (colis.poidsTotalGrammes / 1000)|number_format(3, ',', ' ') }} kg</h3>
+      <p class="small mb-2">{{ colis.dimensions.length }} × {{ colis.dimensions.width }} × {{ colis.dimensions.height }} cm · {{ colis.nombreUnites }} unité(s)<br>Produits : {{ colis.poidsProduitsGrammes }} g · Emballage et protections : {{ colis.poidsEmballageGrammes }} g</p>
+      <ul class="mb-2">{% for item in colis.contenu %}<li>{{ item.nom }} × {{ item.quantite }} — {{ item.poids_unitaire_g }} g / unité</li>{% endfor %}</ul>
+      <p class="small text-muted mb-0">Suivi : {{ colis.numeroSuivi|default('Non créé') }} · Statut : {{ colis.statut|default('Non expédié') }} · Étiquette : {{ colis.etiquette ? 'Disponible' : 'Non créée' }}</p>
+    </div>
+  {% else %}<p class="text-muted mb-0">Commande historique : aucun détail de colis figé. Les données existantes sont conservées.</p>{% endfor %}
+</section>

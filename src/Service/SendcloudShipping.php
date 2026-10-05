@@ -32,6 +32,22 @@ final class SendcloudShipping
             'total_order_price' => ['value' => number_format($order->getTotalWt(), 2, '.', ''), 'currency' => 'EUR'],
             'label_details' => ['mime_type' => 'application/pdf', 'dpi' => 72]];
         if ($snapshot['service_point']) { $payload['to_service_point'] = ['id' => $snapshot['service_point']['id']]; }
+        foreach ($snapshot['colisage'] ?? [] as $index => $colis) {
+            $payload['parcels'][$index]['parcel_items'] = array_map(function ($item) use ($snapshot) {
+                $facts = array_values(array_filter($snapshot['items'], fn ($facts) => $facts['id'] === $item['produit_id']))[0];
+                return ['item_id' => (string) $item['produit_id'], 'description' => $item['nom'], 'quantity' => $item['quantite'],
+                    'weight' => ['value' => number_format($item['poids_unitaire_g'] / 1000, 3, '.', ''), 'unit' => 'kg'],
+                    'price' => ['value' => number_format($facts['price_cents'] / 100, 2, '.', ''), 'currency' => 'EUR']];
+            }, $colis['contenu']);
+        }
+        foreach ($snapshot['colisage'] ?? [] as $index => $colis) {
+            $payload['parcels'][$index]['parcel_items'] = array_map(function ($item) use ($snapshot) {
+                $facts = array_values(array_filter($snapshot['items'], fn ($facts) => $facts['id'] === $item['produit_id']))[0];
+                return ['item_id' => (string) $item['produit_id'], 'description' => $item['nom'], 'quantity' => $item['quantite'],
+                    'weight' => ['value' => number_format($item['poids_unitaire_g'] / 1000, 3, '.', ''), 'unit' => 'kg'],
+                    'price' => ['value' => number_format($facts['price_cents'] / 100, 2, '.', ''), 'currency' => 'EUR']];
+            }, $colis['contenu']);
+        }
         try {
             $data = $this->api->createShipment($payload);
             $this->verify($shipment, $data); $shipment->synchronize($data); $this->em->flush();
@@ -64,6 +80,21 @@ final class SendcloudShipping
         if (($data['external_reference_id'] ?? '') !== $shipment->getRequestReference()
             || ($data['order_number'] ?? '') !== $shipment->getOrder()->getReference()
             || ($data['ship_with']['properties']['shipping_option_code'] ?? '') !== $shipment->getOrder()->getShippingSnapshot()['method_code']
-            || count($data['parcels'] ?? []) !== 1) { throw new \DomainException('L’expédition reçue ne correspond pas à cette commande.'); }
+            || count($data['parcels'] ?? []) !== count($shipment->getOrder()->getShippingSnapshot()['parcels'] ?? [])) { throw new \DomainException('L’expédition reçue ne correspond pas à cette commande.'); }
+        $seen = [];
+        foreach ($data['parcels'] as $index => $parcel) {
+            if (!is_int($parcel['id'] ?? null) || $parcel['id'] < 1 || isset($seen[$parcel['id']])) {
+                throw new \DomainException('Les identifiants des colis Sendcloud sont invalides.');
+            }
+            $seen[$parcel['id']] = true;
+            $saved = $shipment->getOrder()->getColis()->get($index);
+            if ($saved?->getSendcloudParcelId() !== null && $saved->getSendcloudParcelId() !== $parcel['id']) {
+                throw new \DomainException('Les colis Sendcloud ont changé. Vérification requise.');
+            }
+            if (count($data['parcels']) > 1 && (($parcel['weight']['unit'] ?? '') !== 'kg'
+                || abs((float) ($parcel['weight']['value'] ?? 0) - (float) $shipment->getOrder()->getShippingSnapshot()['parcels'][$index]['weight']['value']) > 0.00001)) {
+                throw new \DomainException('Les poids des colis Sendcloud ne correspondent pas au colisage figé.');
+            }
+        }
     }
 }

@@ -19,6 +19,10 @@ final class SendcloudWebhook
         $id = $event['parcel']['id'] ?? null;
         if (!is_int($id) || $id < 1) { throw new \DomainException('Événement Sendcloud invalide.'); }
         $shipment = $this->em->getRepository(Shipment::class)->findOneBy(['parcelId' => $id]);
+        if (!$shipment) {
+            $colis = $this->em->getRepository(\App\Entity\ColisCommande::class)->findOneBy(['sendcloudParcelId' => $id]);
+            $shipment = $colis?->getCommande()->getShipment();
+        }
         // Un événement tardif ou répété ne remplace pas le statut par une ancienne valeur.
         if ($shipment) { $this->shipping->synchronize($shipment); }
     }

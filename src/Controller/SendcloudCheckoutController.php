@@ -36,7 +36,7 @@ final class SendcloudCheckoutController extends AbstractController
         if ($request->isMethod('GET')) {
             $saved = $session->get('sendcloud_checkout', []);
             $resume = isset($saved['address_id']) ? $addresses->findOneBy(['id' => $saved['address_id'], 'user' => $user]) : null;
-            if ($resume && ($saved['expires'] ?? 0) >= time() && ($saved['fingerprint'] ?? '') === $this->fingerprint($resume, $lines)) {
+            if ($resume && ($saved['expires'] ?? 0) >= time() && ($saved['fingerprint'] ?? '') === $this->fingerprint($resume, $lines, $delivery->packagingFingerprint())) {
                 $address = $resume; $offers = $saved['offers'];
                 $selected = $offers[$saved['selected_key'] ?? ''] ?? null; $point = $saved['point'] ?? null;
             } else { $session->remove('sendcloud_checkout'); }
@@ -44,7 +44,7 @@ final class SendcloudCheckoutController extends AbstractController
         if ($request->isMethod('POST')) {
             $address = $addresses->findOneBy(['id' => $request->request->getInt('address'), 'user' => $user]);
             if (!$address) { throw $this->createNotFoundException('Adresse introuvable.'); }
-            $fingerprint = $this->fingerprint($address, $lines);
+            $fingerprint = $this->fingerprint($address, $lines, $delivery->packagingFingerprint());
             try {
                 $saved = $session->get('sendcloud_checkout', []);
                 $action = $request->request->getString('action');
@@ -64,6 +64,9 @@ final class SendcloudCheckoutController extends AbstractController
                         $selection = $delivery->select($address, $lines, $key, $pointId, $request->request->getString('post_number'));
                         if ($selection->priceCents !== $selected['price_cents']) {
                             throw new \DomainException('Le tarif de livraison a changé. Vérifiez à nouveau votre choix avant de continuer.');
+                        }
+                        if ($selection->snapshot['colisage'] !== $selected['colisage']) {
+                            throw new \DomainException('Le colisage a changé. Vérifiez à nouveau votre livraison.');
                         }
                         if ($action === 'point') {
                             if (!$selected['point_required']) { throw new \DomainException('Cette livraison ne nécessite pas de point relais.'); }
@@ -95,10 +98,10 @@ final class SendcloudCheckoutController extends AbstractController
             'legacyFallbackEnabled' => $configuration->legacyFallbackEnabled]);
     }
 
-    private function fingerprint(Address $address, array $lines): string
+    private function fingerprint(Address $address, array $lines, string $packaging): string
     {
         $items = [];
         foreach ($lines as $line) { $items[] = [$line['object']->getId(), $line['qty'], $line['object']->getPriceWt(), $line['object']->getShippingWeightGrams()]; }
-        return hash('sha256', json_encode([$address->getId(), $address->getAddress(), $address->getPostal(), $address->getCity(), $address->getCountry(), $items], JSON_THROW_ON_ERROR));
+        return hash('sha256', json_encode([$address->getId(), $address->getAddress(), $address->getPostal(), $address->getCity(), $address->getCountry(), $items, $packaging], JSON_THROW_ON_ERROR));
     }
 }

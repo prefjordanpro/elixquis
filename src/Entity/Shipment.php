@@ -39,7 +39,14 @@ class Shipment
     private string $requestReference;
     public function __construct(Order $order) { $this->order = $order; $order->setShipment($this); $this->requestedAt = new \DateTimeImmutable(); $this->requestReference = 'elixquis-'.bin2hex(random_bytes(16)); }
     public function getRequestReference(): string { return $this->requestReference; }
-    public function isActive(): bool { return $this->statusCode !== 'CANCELLED'; }
+    public function isActive(): bool
+    {
+        if ($this->order->getColis()->count() > 1) {
+            foreach ($this->order->getColis() as $colis) { if ($colis->getStatut() !== 'CANCELLED') { return true; } }
+            return false;
+        }
+        return $this->statusCode !== 'CANCELLED';
+    }
     public function getId(): ?int { return $this->id; }
     public function getOrder(): Order { return $this->order; }
     public function getState(): string { return $this->state; }
@@ -54,7 +61,12 @@ class Shipment
     public function hasLabel(): bool { return $this->hasLabel; }
     public function getCustomerStatus(): string
     {
-        return match ($this->statusCode) {
+        $status = $this->statusCode;
+        if ($this->order->getColis()->count() > 1) {
+            $statuses = $this->order->getColis()->map(fn ($p) => $p->getStatut())->toArray();
+            if (count(array_unique($statuses)) > 1 && in_array($status, ['DELIVERED', 'CANCELLED'], true)) { $status = 'IN_TRANSIT'; }
+        }
+        return match ($status) {
             'DELIVERED' => 'Colis livré', 'READY_TO_SEND' => 'Expédition préparée', 'IN_TRANSIT', 'ANNOUNCED' => 'Colis en cours d’acheminement',
             'CANCELLED' => 'Expédition annulée', 'DELIVERY_FAILED' => 'Livraison à vérifier',
             default => $this->state === 'ready' ? 'Suivi en cours de mise à jour' : 'Préparation de votre expédition',
@@ -68,6 +80,9 @@ class Shipment
             throw new \DomainException('La réponse d’expédition Sendcloud est incohérente.');
         }
         $this->sendcloudId = $data['id']; $this->parcelId = $parcel['id']; $this->state = 'ready';
+        foreach ($data['parcels'] ?? [] as $item) {
+            if (($item['status']['code'] ?? '') === 'ANNOUNCING') { $this->state = 'creating'; }
+        }
         $this->trackingNumber = is_string($parcel['tracking_number'] ?? null) ? $parcel['tracking_number'] : null;
         $url = $parcel['tracking_url'] ?? null;
         $this->trackingUrl = is_string($url) && filter_var($url, FILTER_VALIDATE_URL) && parse_url($url, PHP_URL_SCHEME) === 'https' ? $url : null;
@@ -75,5 +90,8 @@ class Shipment
         $this->hasLabel = false;
         foreach ($parcel['documents'] ?? [] as $document) { if (($document['type'] ?? '') === 'label') { $this->hasLabel = true; } }
         $this->updatedAt = new \DateTimeImmutable();
+        if (count($data['parcels'] ?? []) === $this->order->getColis()->count()) {
+            foreach ($this->order->getColis() as $index => $colis) { $colis->synchronize($data['id'], $data['parcels'][$index]); }
+        }
     }
 }
