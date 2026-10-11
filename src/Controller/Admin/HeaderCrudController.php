@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Entity\Header;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use Symfony\Component\Validator\Constraints\Image;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
@@ -17,6 +18,11 @@ class HeaderCrudController extends AbstractCrudController
     public static function getEntityFqcn(): string
     {
         return Header::class;
+    }
+
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud->setEntityLabelInSingular('Bannière')->setEntityLabelInPlural('Bannières');
     }
 
     
@@ -35,8 +41,8 @@ class HeaderCrudController extends AbstractCrudController
             TextField::new('buttonTitle')->setLabel('Titre du bouton'),
             TextField::new('buttonLink')->setLabel('URL du bouton'),
             ImageField::new('illustration')
-                ->setLabel('image de fond du header')
-                ->setHelp('Image de fond du header en JPG')
+                ->setLabel('Image de fond')
+                ->setHelp('Image de la bannière en JPG, PNG ou WebP')
                 ->setUploadedFileNamePattern('[year]-[month]-[day]-[contenthash].[extension]')
                 ->setBasePath('/uploads')
                 ->setUploadDir('/public/uploads')

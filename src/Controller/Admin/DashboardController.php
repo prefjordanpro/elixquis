@@ -2,12 +2,6 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Carrier;
-use App\Entity\Category;
-use App\Entity\Header;
-use App\Entity\Order;
-use App\Entity\Product;
-use App\Entity\User;
 use Symfony\Component\HttpFoundation\Response;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -23,7 +17,7 @@ class DashboardController extends AbstractDashboardController
     public function index(): Response
     {
         $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
-        return $this->redirect($adminUrlGenerator->setController(UserCrudController::class)->generateUrl());
+        return $this->redirect($adminUrlGenerator->setController(OrderCrudController::class)->generateUrl());
     }
 
     public function configureDashboard(): Dashboard
@@ -40,12 +34,16 @@ class DashboardController extends AbstractDashboardController
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Tableau de bord', 'fa fa-home');
-        yield MenuItem::linkTo(UserCrudController::class, 'Utilisateurs', 'fas fa-list');
-        yield MenuItem::linkTo(CategoryCrudController::class, 'Catégories', 'fas fa-list');
-        yield MenuItem::linkTo(ProductCrudController::class, 'Produits', 'fas fa-list');
-        yield MenuItem::linkTo(CarrierCrudController::class, 'Transporteurs', 'fas fa-list');
-        yield MenuItem::linkTo(OrderCrudController::class, 'Commandes', 'fas fa-list');
+        yield MenuItem::section('COMMANDES');
+        yield MenuItem::linkTo(OrderCrudController::class, 'Commandes', 'fas fa-shopping-bag');
+        yield MenuItem::section('CATALOGUE');
+        yield MenuItem::linkTo(ProductCrudController::class, 'Produits', 'fas fa-wine-bottle');
+        yield MenuItem::linkTo(CategoryCrudController::class, 'Catégories', 'fas fa-tags');
+        yield MenuItem::section('LIVRAISON');
         yield MenuItem::linkTo(EmballageCrudController::class, 'Emballages', 'fas fa-box');
-        yield MenuItem::linkTo(HeaderCrudController::class, 'Bannières', 'fas fa-list');
+        yield MenuItem::section('CONTENU');
+        yield MenuItem::linkTo(HeaderCrudController::class, 'Bannières', 'fas fa-images');
+        yield MenuItem::section('ADMINISTRATION');
+        yield MenuItem::linkTo(UserCrudController::class, 'Utilisateurs', 'fas fa-users');
     }
 }

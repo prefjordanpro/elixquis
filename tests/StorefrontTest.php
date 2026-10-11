@@ -180,6 +180,36 @@ class StorefrontTest extends WebTestCase
         $this->client->request('POST', '/admin/commande/'.$order->getId().'/statut', ['state' => 1]); self::assertResponseStatusCodeSame(403);
     }
 
+    public function testBackofficeNavigationAndCarrierManagementRemoval(): void
+    {
+        $this->user->setRoles(['ROLE_ADMIN']); $this->em->flush();
+        $this->client->loginUser($this->user);
+        $this->client->request('GET', '/admin');
+        self::assertResponseRedirects('/admin/order');
+        $crawler = $this->client->followRedirect();
+        self::assertResponseIsSuccessful();
+        self::assertSame(['Tableau de bord', 'COMMANDES', 'Commandes', 'CATALOGUE', 'Produits', 'Catégories',
+            'LIVRAISON', 'Emballages', 'CONTENU', 'Bannières', 'ADMINISTRATION', 'Utilisateurs'],
+            $crawler->filter('#main-menu .menu-item-label')->each(fn ($node) => trim($node->text())));
+        self::assertSelectorTextNotContains('#main-menu', 'Transporteurs');
+        foreach (['Commandes', 'Produits', 'Catégories', 'Emballages', 'Bannières', 'Utilisateurs'] as $label) {
+            $this->client->click($this->client->getCrawler()->filter('#main-menu')->selectLink($label)->link());
+            self::assertResponseIsSuccessful();
+            self::assertSelectorExists('.content-header');
+        }
+        foreach (['/admin/product/new', '/admin/category/new', '/admin/emballage/new', '/admin/header/new', '/admin/user/'.$this->user->getId().'/edit'] as $url) {
+            $this->client->request('GET', $url); self::assertResponseIsSuccessful();
+            self::assertSelectorExists('form');
+        }
+        foreach (['/admin/carrier', '/admin/carrier/new', '/admin/carrier/'.$this->carrier->getId().'/edit', '/admin/carrier/'.$this->carrier->getId().'/delete'] as $url) {
+            $this->client->request('GET', $url); self::assertResponseStatusCodeSame(404);
+        }
+        foreach (static::getContainer()->get('router')->getRouteCollection() as $name => $route) {
+            self::assertStringNotContainsString('CarrierCrudController', (string) $route->getDefault('_controller'));
+        }
+        self::assertNotNull($this->em->find(Carrier::class, $this->carrier->getId()));
+    }
+
     /** @dataProvider cancellableStates */
     public function testAdminCancellationRestoresStockOnceAndKeepsOrder(int $state): void
     {
