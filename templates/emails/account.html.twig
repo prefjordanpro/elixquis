@@ -1,0 +1,10 @@
+<!doctype html><html lang="fr"><body style="margin:0;background:#f5f1e8;color:#26342d;font-family:Arial,sans-serif">
+<div style="max-width:560px;margin:32px auto;padding:32px;background:#fff">
+<p style="font-size:24px;font-weight:bold">Elixquis</p><h1 style="font-size:22px">{{ title }}</h1>
+<p>Bonjour {{ firstname }},</p>
+{% if kind == 'welcome' %}<p>Votre espace client est prêt. Vous pouvez retrouver vos commandes et gérer vos adresses en vous connectant.</p><p>Un email séparé vous permet de vérifier votre adresse.</p>
+{% elseif kind == 'verify' %}<p>Confirmez votre adresse email. Ce lien est valable 24 heures et ne peut être utilisé qu’une fois.</p>
+{% elseif kind == 'reset' %}<p>Vous avez demandé à choisir un nouveau mot de passe. Ce lien est valable une heure et ne peut être utilisé qu’une fois.</p><p>Si vous n’êtes pas à l’origine de cette demande, ignorez cet email : votre mot de passe reste inchangé.</p>
+{% else %}<p>Votre mot de passe a été modifié. Si vous n’êtes pas à l’origine de ce changement, demandez immédiatement un nouveau lien de réinitialisation.</p>{% endif %}
+{% if link %}<p><a href="{{ link }}" style="display:inline-block;padding:12px 20px;background:#79461f;color:#fff">{{ kind == 'verify' ? 'Vérifier mon email' : 'Choisir un nouveau mot de passe' }}</a></p><p style="word-break:break-all">{{ link }}</p>{% endif %}
+<p>À bientôt,<br>L’équipe Elixquis</p></div></body></html>

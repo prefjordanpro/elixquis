@@ -1,5 +1,6 @@
     {% extends 'base.html.twig' %}
 
+    {% block stylesheets %}<link rel="stylesheet" href="{{ asset('assets/css/auth.css') }}">{% endblock %}
     {% block body %}
     <div class="container my-5">
     <div class="row justify-content-center">
@@ -31,11 +32,12 @@
                 <div class="input-group">
                     <span class="input-group-text"><i data-feather="lock"></i></span>
                     <input class="form-control" type="password" id="password" name="_password" autocomplete="current-password" required>
-                    <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Afficher/Masquer le mot de passe">
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-controls="password" aria-pressed="false" aria-label="Afficher le mot de passe">
                     <span id="passwordIcon"><i data-feather="eye"></i></span>
                     </button>
                 </div>
                 </div>
+                <div class="text-end mb-3"><a class="small" href="{{ path('app_password_forgot') }}">Mot de passe oublié ?</a></div>
 
                 <input type="hidden" name="_target_path" value="{{ path('app_account') }}">
 

@@ -1,0 +1,36 @@
+/* Authentication only: one focus indicator per field or grouped control. */
+.elixquis-site .auth-card .input-group {
+  border: 1px solid var(--el-border);
+  border-radius: var(--el-radius);
+  flex-wrap: nowrap;
+  background: #fff;
+}
+.elixquis-site .auth-card .input-group > :is(.form-control, .input-group-text, .btn) {
+  border: 0;
+  margin: 0;
+  min-height: 48px;
+  box-shadow: none;
+}
+.elixquis-site .auth-card .input-group .form-control { min-width: 0; border-radius: 0; }
+.elixquis-site .auth-card .input-group-text { background: transparent; padding-inline: 12px; }
+.elixquis-site .auth-card .input-group .btn { min-width: 48px; display: grid; place-items: center; }
+.auth-card .input-group svg { width: 20px; height: 20px; vertical-align: middle; }
+.elixquis-site .auth-card .input-group:focus-within {
+  outline: 2px solid var(--elixquis-ambre);
+  outline-offset: -1px;
+  border-color: transparent;
+}
+.elixquis-site .auth-card .input-group :is(.form-control, .btn):focus {
+  outline: none;
+  box-shadow: none;
+}
+.elixquis-site .auth-card .input-group .btn:focus-visible { background: var(--elixquis-beige); color: var(--el-ink); }
+.elixquis-site .auth-card .form-control:focus {
+  box-shadow: none;
+  outline: 2px solid var(--elixquis-ambre);
+  outline-offset: -1px;
+  border-color: transparent;
+}
+.elixquis-site .auth-card .input-group .form-control:focus { outline: none; }
+.auth-card .invalid-feedback { display: block; }
+@media (max-width: 575px) { .auth-card h1 { font-size: 1.8rem; } }

@@ -36,6 +36,11 @@ class OrderCrudController extends AbstractCrudController
 
     public static function getEntityFqcn(): string { return Order::class; }
 
+    public function configureFilters(\EasyCorp\Bundle\EasyAdminBundle\Config\Filters $filters): \EasyCorp\Bundle\EasyAdminBundle\Config\Filters
+    {
+        return $filters->add(\EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter::new('user', 'Client'));
+    }
+
     public function configureCrud(Crud $crud): Crud
     {
         return $crud->setEntityLabelInSingular('Commande')->setEntityLabelInPlural('Commandes')

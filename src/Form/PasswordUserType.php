@@ -19,13 +19,16 @@ class PasswordUserType extends AbstractType
             ->add('actualPassword', PasswordType::class, [
                 'label' => "Votre mot de passe actuel",
                 'attr' => [
-                    'placeholder' => "Indiquez votre mot de passe actuel"
+                    'placeholder' => "Indiquez votre mot de passe actuel",
+                    'autocomplete' => 'current-password'
                 ],
                 'mapped' => false,
                 'constraints' => [new \Symfony\Component\Security\Core\Validator\Constraints\UserPassword(message: 'Votre mot de passe actuel est incorrect.')]
             ])
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
+                'invalid_message' => 'Les deux mots de passe doivent être identiques.',
+                'options' => ['attr' => ['autocomplete' => 'new-password', 'minlength' => 12, 'maxlength' => 128]],
                 'constraints' => [
                     new Length(min: 12, max: 128),
                     new \Symfony\Component\Validator\Constraints\NotBlank

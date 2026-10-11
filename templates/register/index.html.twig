@@ -1,6 +1,7 @@
 {% extends 'base.html.twig' %}
 
 
+{% block stylesheets %}<link rel="stylesheet" href="{{ asset('assets/css/auth.css') }}">{% endblock %}
 {% block body %}
 <div class="container my-5">
 <div class="row justify-content-center">
@@ -14,6 +15,7 @@
         <p class="text-muted mb-4">Créez votre espace pour commander et suivre vos achats chez Elixquis.</p>
 
         {{ form_start(registerForm) }}
+        {{ form_errors(registerForm) }}
 
         {# Ligne prénom/nom si ces champs existent #}
         {% if registerForm.firstname is defined or registerForm.lastname is defined %}
@@ -57,7 +59,7 @@
                 {{ form_widget(registerForm.plainPassword.first, { attr: { class: 'form-control', autocomplete: 'new-password' } }) }}
                 <button class="btn btn-outline-secondary js-pwd-toggle" type="button"
                         data-target="#{{ registerForm.plainPassword.first.vars.id }}"
-                        aria-label="Afficher/Masquer le mot de passe">
+                        aria-controls="{{ registerForm.plainPassword.first.vars.id }}" aria-pressed="false" aria-label="Afficher le mot de passe">
                 <span class="pwd-icon"></span>
                 </button>
             </div>
@@ -72,7 +74,7 @@
                 {{ form_widget(registerForm.plainPassword.second, { attr: { class: 'form-control', autocomplete: 'new-password' } }) }}
                 <button class="btn btn-outline-secondary js-pwd-toggle" type="button"
                         data-target="#{{ registerForm.plainPassword.second.vars.id }}"
-                        aria-label="Afficher/Masquer le mot de passe">
+                        aria-controls="{{ registerForm.plainPassword.second.vars.id }}" aria-pressed="false" aria-label="Afficher le mot de passe">
                 <span class="pwd-icon"></span>
                 </button>
             </div>

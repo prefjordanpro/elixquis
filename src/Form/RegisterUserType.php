@@ -27,6 +27,8 @@ class RegisterUserType extends AbstractType
             ])
             ->add('plainPassword', RepeatedType::class, [
                 'type' => PasswordType::class,
+                'invalid_message' => 'Les deux mots de passe doivent être identiques.',
+                'options' => ['attr' => ['autocomplete' => 'new-password', 'minlength' => 12, 'maxlength' => 128]],
                 'constraints' => [
                     new Length(min: 12, max: 128),
                     new \Symfony\Component\Validator\Constraints\NotBlank

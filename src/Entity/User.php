@@ -15,6 +15,13 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $emailVerifiedAt = null;
+
+    public function getEmailVerifiedAt(): ?\DateTimeImmutable { return $this->emailVerifiedAt; }
+    public function getEmailVerificationStatus(): string { return $this->emailVerifiedAt !== null ? 'Oui' : 'Non'; }
+    public function getOrderCount(): int { return $this->orders->count(); }
+    public function verifyEmail(): void { $this->emailVerifiedAt = new \DateTimeImmutable(); }
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -83,6 +90,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setEmail(string $email): static
     {
+        if ($this->email !== $email) { $this->emailVerifiedAt = null; }
         $this->email = $email;
 
         return $this;

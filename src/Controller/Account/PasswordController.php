@@ -22,7 +22,7 @@ final class PasswordController extends AbstractController
     }
 
     #[Route('/compte/modifier-mot-de-passe', name: 'app_account_modify_pwd')]
-    public function index(Request $request, UserPasswordHasherInterface $passwordHasher): Response
+    public function index(Request $request, UserPasswordHasherInterface $passwordHasher, \App\Service\AccountAccess $access): Response
     {
         $user = $this->getUser(); 
 
@@ -34,6 +34,7 @@ final class PasswordController extends AbstractController
 
         if($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
+            $access->send($user, 'changed');
             $this->addFlash(
                 'success',
                 "Votre mot de passe est correctement mis à jour."

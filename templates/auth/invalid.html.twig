@@ -1,0 +1,5 @@
+{% extends 'base.html.twig' %}
+{% block body %}<div class="container my-5"><h1 class="h3">Lien invalide ou expiré</h1>
+<p>Ce lien a expiré, a déjà été utilisé ou ne correspond plus à votre compte.</p>
+<a class="btn btn-brand" href="{{ path('app_password_forgot') }}">Demander un nouveau lien de mot de passe</a>
+<p class="mt-3">Pour vérifier votre email, <a href="{{ path('app_login') }}">connectez-vous</a> et demandez un nouveau lien depuis votre compte.</p></div>{% endblock %}

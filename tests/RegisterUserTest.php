@@ -17,6 +17,9 @@ class RegisterUserTest extends WebTestCase
         // 1.
         $client = static::createClient();
         $client->disableReboot();
+        $mail = $this->createMock(\App\Classe\Mail::class);
+        $mail->method('sendEmail')->willReturn(['message_id' => 'registration-mock-only']);
+        static::getContainer()->set(\App\Classe\Mail::class, $mail);
         $em = static::getContainer()->get(\Doctrine\ORM\EntityManagerInterface::class);
         self::assertSame('pdo_sqlite', $em->getConnection()->getParams()['driver']);
         (new \Doctrine\ORM\Tools\SchemaTool($em))->createSchema($em->getMetadataFactory()->getAllMetadata());
