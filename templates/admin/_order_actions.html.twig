@@ -1,4 +1,13 @@
 {% set next = {0: [1, 'Vérifier le paiement Stripe'], 1: [2, 'Passer en préparation'], 2: [3, 'Expédier'], 3: [5, 'Marquer livrée']} %}
+{% if historicalCancellationAllowed|default(false) %}
+  <form method="post" action="{{ path('app_admin_order_cancel_historical', {id: order.id}) }}" class="my-3"
+        onsubmit="return confirm('Cette commande ne peut pas être vérifiée automatiquement auprès de Stripe. Confirmez-vous son annulation manuelle ?');">
+    <input type="hidden" name="_token" value="{{ csrf_token('order_historical_cancel_' ~ order.id) }}">
+    <label class="d-block mb-2"><input type="checkbox" name="confirmed" value="1" required>
+      Cette commande ne peut pas être vérifiée automatiquement auprès de Stripe. Confirmez-vous son annulation manuelle ?</label>
+    <button type="submit" class="btn btn-outline-danger">Annuler manuellement cette commande historique</button>
+  </form>
+{% endif %}
 {% if order.state == 7 and order.latestCancellationRequest %}
 {% set cancellation = order.latestCancellationRequest %}
 <div class="alert alert-warning">

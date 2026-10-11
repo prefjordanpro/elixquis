@@ -19,7 +19,7 @@ class OrderManager
             if ($delivery) { $carrier = $delivery->carrier(); }
             $order = (new Order())->setUser($user)->setCreatedAt(new \DateTime())
                 ->setState(0)->setCarrierName($carrier->getName())->setCarrierPrice($carrier->getPrice())
-                ->setCarrierTvaRate($carrier->getTva())->setStockReserved(true)
+                ->setCarrierTvaRate($carrier->getTva())->setStockReserved(true)->setPaymentTrackingEnabled(true)
                 ->setDelivery(sprintf("%s %s\n%s\n%s %s — %s\n%s", $address->getFirstname(), $address->getLastname(),
                     $address->getAddress(), $address->getPostal(), $address->getCity(), $address->getCountry(), $address->getPhone()));
             if ($delivery) { $order->setShippingSnapshot($delivery->snapshot); }
@@ -61,16 +61,20 @@ class OrderManager
     }
 
     /** Seules les données Stripe vérifiées par le serveur sont acceptées. */
-    public function confirmPayment(Order $order, object $session): void
+    public function confirmPayment(Order $order, object $session, ?object $historicalIntent = null): void
     {
         if ($session->payment_status !== 'paid') {
             throw new \DomainException('Le paiement n’est pas confirmé.');
         }
-        $this->em->wrapInTransaction(function () use ($order, $session): void {
+        $this->em->wrapInTransaction(function () use ($order, $session, $historicalIntent): void {
             $this->em->refresh($order, LockMode::PESSIMISTIC_WRITE);
+            $historicalMatch = $historicalIntent !== null && HistoricalStripePaymentMatch::matches($order, $session, $historicalIntent);
+            if ($historicalMatch && $this->em->getRepository(Order::class)->count(['stripe_session_id' => $session->id]) !== 1) {
+                throw new \DomainException('La session Stripe est associée à plusieurs commandes.');
+            }
             if ($session->id !== $order->getStripeSessionId() || $session->payment_status !== 'paid'
                 || $session->currency !== 'eur' || $session->amount_total !== $order->getTotalCents()
-                || (string) $session->client_reference_id !== (string) $order->getId()) {
+                || (!$historicalMatch && (string) $session->client_reference_id !== (string) $order->getId())) {
                 throw new \DomainException('Le paiement ne correspond pas à la commande.');
             }
             if (isset($session->payment_intent)) {
@@ -81,7 +85,7 @@ class OrderManager
                 $order->setStripePaymentIntentId($intent);
             }
             if (in_array($order->getState(), [1, 2, 3, 4, 5, 6, 7], true)) { return; }
-            if ($order->getState() !== 0 || !$order->isStockReserved()) {
+            if ($order->getState() !== 0 || (!$historicalMatch && !$order->isStockReserved())) {
                 throw new \DomainException('Cette commande ne peut plus être payée.');
             }
             $order->setState(1);

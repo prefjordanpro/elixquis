@@ -46,7 +46,7 @@ final class PaymentController extends AbstractController
     }
 
     #[Route('/paiement/webhook', name: 'app_payment_webhook', methods: ['POST'])]
-    public function webhook(Request $request, OrderRepository $repository, OrderManager $orders, StripeRefund $refunds, LoggerInterface $logger): Response
+    public function webhook(Request $request, OrderRepository $repository, OrderManager $orders, StripeRefund $refunds, LoggerInterface $logger, StripePayment $payment): Response
     {
         $secret = $_ENV['STRIPE_WEBHOOK_SECRET'] ?? $_SERVER['STRIPE_WEBHOOK_SECRET'] ?? '';
         if (!$secret) { return new Response('Paiement indisponible.', 503); }
@@ -83,9 +83,16 @@ final class PaymentController extends AbstractController
             if ($event->type === 'checkout.session.completed' && $session->payment_status === 'paid') {
                 $orders->confirmPayment($order, $session);
             } elseif ($event->type === 'checkout.session.expired' && $order->getState() === 0) {
-                $orders->cancelUnpaid($order);
+                if ($session->status !== 'expired' || $session->payment_status !== 'unpaid') {
+                    return new Response('Événement d’expiration incompatible.', 409);
+                }
+                $payment->expireUnpaid($order, true);
             }
         } catch (\DomainException $e) { return new Response('Commande incompatible avec le paiement.', 409); }
+        catch (\Stripe\Exception\ApiErrorException $e) {
+            $logger->error('Vérification du paiement Stripe indisponible.', ['order' => $order->getId()]);
+            return new Response('Stripe indisponible, réessayer.', 503);
+        }
         return new Response('OK');
     }
 }

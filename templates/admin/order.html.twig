@@ -224,6 +224,6 @@
       </table>
     </div>
 
-    {% include 'admin/_order_actions.html.twig' %}
+    {% include 'admin/_order_actions.html.twig' with {historicalCancellationAllowed: field.customOptions.get('historicalCancellationAllowed')} %}
   </div>
 </div>

@@ -5,6 +5,7 @@ namespace App\Controller\Admin;
 use App\Entity\Order;
 use App\Repository\OrderRepository;
 use App\Service\{OrderCancellation, OrderManager, StripePayment, StripeRefund};
+use App\Service\HistoricalOrderCancellation;
 use EasyCorp\Bundle\EasyAdminBundle\Config\{Action, Actions, Crud};
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use EasyCorp\Bundle\EasyAdminBundle\Field\{AssociationField, DateField, Field, IdField, NumberField, TextField};
@@ -14,6 +15,25 @@ use Symfony\Component\Routing\Attribute\Route;
 #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class OrderCrudController extends AbstractCrudController
 {
+    public function __construct(private HistoricalOrderCancellation $historicalCancellation) {}
+
+    #[Route('/admin/commande/{id}/annuler-historique', name: 'app_admin_order_cancel_historical', methods: ['POST'])]
+    public function cancelHistorical(int $id, Request $request, OrderRepository $repository): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+        if (!$this->isCsrfTokenValid('order_historical_cancel_'.$id, $request->request->get('_token'))
+            || $request->request->get('confirmed') !== '1') {
+            throw $this->createAccessDeniedException('Confirmation et jeton de sécurité requis.');
+        }
+        $order = $repository->find($id);
+        if (!$order) { throw $this->createNotFoundException('Commande introuvable.'); }
+        try {
+            $this->historicalCancellation->cancel($order, $this->getUser());
+            $this->addFlash('success', 'Commande historique annulée manuellement, sans remboursement Stripe.');
+        } catch (\DomainException $e) { $this->addFlash('warning', $e->getMessage()); }
+        return $this->redirectToRoute('admin_order_detail', ['entityId' => $id]);
+    }
+
     public static function getEntityFqcn(): string { return Order::class; }
 
     public function configureCrud(Crud $crud): Crud
@@ -31,7 +51,8 @@ class OrderCrudController extends AbstractCrudController
     public function configureFields(string $pageName): iterable
     {
         if ($pageName === Crud::PAGE_DETAIL) {
-            return [Field::new('recap')->setVirtual(true)->setLabel(false)->setTemplatePath('admin/order.html.twig')->onlyOnDetail()];
+            return [Field::new('recap')->setVirtual(true)->setLabel(false)->setTemplatePath('admin/order.html.twig')->onlyOnDetail()
+                ->setCustomOption('historicalCancellationAllowed', $this->historicalCancellation->isEligible($this->getContext()->getEntity()->getInstance()))];
         }
         return [IdField::new('id'), DateField::new('createdAt', 'Date'),
             NumberField::new('state', 'Statut')->setTemplatePath('admin/state.html.twig'),

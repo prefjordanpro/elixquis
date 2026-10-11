@@ -14,6 +14,27 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\UniqueConstraint(name: 'UNIQ_ORDER_REFUND', columns: ['stripe_refund_id'])]
 class Order
 {
+    // Legacy rows remain untracked: no retroactive proof of absence of payment.
+    #[ORM\Column(options: ['default' => false])]
+    private bool $paymentTrackingEnabled = false;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $paymentInitiatedAt = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $stripeCheckoutRequest = null;
+
+    public function isPaymentTrackingEnabled(): bool { return $this->paymentTrackingEnabled; }
+    public function setPaymentTrackingEnabled(bool $enabled): static { $this->paymentTrackingEnabled = $enabled; return $this; }
+    public function getPaymentInitiatedAt(): ?\DateTimeImmutable { return $this->paymentInitiatedAt; }
+    public function getStripeCheckoutRequest(): ?array { return $this->stripeCheckoutRequest; }
+    public function recordPaymentAttempt(array $request): void
+    {
+        if ($this->paymentInitiatedAt !== null) { throw new \DomainException('Une tentative de paiement existe déjà.'); }
+        $this->paymentInitiatedAt = new \DateTimeImmutable();
+        $this->stripeCheckoutRequest = $request;
+    }
+
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $shippingSnapshot = null;
     public function getShippingSnapshot(): ?array { return $this->shippingSnapshot; }
