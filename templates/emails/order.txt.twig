@@ -1,0 +1,28 @@
+{{ title }}
+Bonjour {{ firstname }},
+Commande {{ reference }}.
+{% if state == 1 %}
+Votre paiement est confirmé. Merci pour votre commande.
+{% for line in lines %}{{ line.name }} — quantité {{ line.qty }} — {{ line.total|number_format(2, ',', ' ') }} €
+{% endfor %}
+Total TTC : {{ total|number_format(2, ',', ' ') }} €
+Livraison : {{ carrier }}
+Adresse de livraison :
+{{ delivery }}
+{% elseif state == 2 %}
+Votre commande est en cours de préparation.
+{% elseif state == 3 %}
+Votre commande a été expédiée avec {{ carrier }}.
+{% for number in tracking %}Numéro de suivi : {{ number }}
+{% endfor %}
+{% if trackingUrl %}Suivre votre colis : {{ trackingUrl }}{% endif %}
+{% elseif state == 5 %}
+La livraison de votre commande est confirmée.
+{% elseif state == 4 %}
+Votre commande a été annulée.
+{% elseif state == 6 %}
+Le remboursement de votre commande a été enregistré. Le délai bancaire peut dépendre de votre moyen de paiement.
+{% endif %}
+Mes commandes : {{ link }}
+À bientôt,
+L’équipe Elixquis

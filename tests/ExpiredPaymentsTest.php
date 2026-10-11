@@ -187,7 +187,10 @@ final class ExpiredPaymentsTest extends WebTestCase
         $this->em = new \Doctrine\ORM\EntityManager($connection, $this->em->getConfiguration());
         $this->order = $this->em->find(Order::class, $this->order->getId());
         $this->order->getUser()->setEmail('changed-after-timeout@example.test'); $this->em->flush();
-        $payment = new StripePayment($this->em, static::getContainer()->get('router'), new OrderManager($this->em));
+        $emails = new \App\Service\OrderEmails($this->em, $this->createMock(\App\Classe\Mail::class),
+            static::getContainer()->get('twig'), static::getContainer()->get('router'), new \Psr\Log\NullLogger(),
+            'https://shop.example.test', 'sender@example.test');
+        $payment = new StripePayment($this->em, static::getContainer()->get('router'), new OrderManager($this->em, $emails));
         $this->requests[] = ['post', '/v1/checkout/sessions', ['id' => 'cs_expiration', 'object' => 'checkout.session', 'url' => 'https://checkout.example.test'], 200,
             function ($params, $headers) use (&$firstParams, &$firstHeaders) {
                 self::assertSame($firstParams, $params);

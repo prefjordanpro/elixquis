@@ -8,7 +8,23 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class OrderManager
 {
-    public function __construct(private EntityManagerInterface $em) {}
+    // Operation-specific edges: payment/refund callers still verify Stripe and cancellation keeps its stock guards.
+    public const TRANSITIONS = [
+        'payment' => [0 => [1]],
+        'logistics' => [1 => [2], 2 => [3], 3 => [5]],
+        'unpaid_cancellation' => [0 => [4]],
+        'admin_cancellation' => [0 => [4], 1 => [4], 2 => [4]],
+        'refund' => [1 => [6], 2 => [6], 3 => [6], 4 => [6], 5 => [6], 7 => [6]],
+        'cancellation_request' => [1 => [7], 2 => [7]],
+        'cancellation_resolution' => [7 => [1, 2]],
+    ];
+
+    public static function allows(string $operation, ?int $from, int $to): bool
+    {
+        return in_array($to, self::TRANSITIONS[$operation][$from] ?? [], true);
+    }
+
+    public function __construct(private EntityManagerInterface $em, private OrderEmails $emails) {}
 
     public function create(User $user, Address $address, Carrier $carrier, array $lines, ?\App\Shipping\DeliverySelection $delivery = null): Order
     {
@@ -85,37 +101,39 @@ class OrderManager
                 $order->setStripePaymentIntentId($intent);
             }
             if (in_array($order->getState(), [1, 2, 3, 4, 5, 6, 7], true)) { return; }
-            if ($order->getState() !== 0 || (!$historicalMatch && !$order->isStockReserved())) {
+            if (!self::allows('payment', $order->getState(), 1) || (!$historicalMatch && !$order->isStockReserved())) {
                 throw new \DomainException('Cette commande ne peut plus être payée.');
             }
             $order->setState(1);
+            $this->emails->queue($order);
         });
     }
 
     /** La session Stripe doit avoir été expirée avant la libération du stock. */
     public function cancelUnpaid(Order $order): void
     {
-        $this->cancel($order, [0]);
+        $this->cancel($order, 'unpaid_cancellation');
     }
 
     /** Réservé au parcours administrateur ; aucun remboursement n’est effectué ici. */
     public function cancelForAdmin(Order $order): void
     {
-        $this->cancel($order, [0, 1, 2]);
+        $this->cancel($order, 'admin_cancellation');
     }
 
-    private function cancel(Order $order, array $allowedStates): void
+    private function cancel(Order $order, string $operation): void
     {
-        $this->em->wrapInTransaction(function () use ($order, $allowedStates): void {
+        $this->em->wrapInTransaction(function () use ($order, $operation): void {
             $this->em->refresh($order, LockMode::PESSIMISTIC_WRITE);
             if ($order->getState() === 4) { return; }
             $shipment = $this->em->getRepository(\App\Entity\Shipment::class)->findOneBy(['order' => $order]);
             if ($shipment?->isActive()) { throw new \DomainException('Une expédition Sendcloud existe ou reste à vérifier. Annulez-la dans Sendcloud puis actualisez son suivi avant d’annuler la commande.'); }
-            if (!in_array($order->getState(), $allowedStates, true)) {
+            if (!self::allows($operation, $order->getState(), 4)) {
                 throw new \DomainException('L’annulation n’est pas autorisée pour le statut actuel de cette commande.');
             }
             $this->releaseStock($order);
             $order->setState(4);
+            $this->emails->queue($order);
         });
     }
 
@@ -135,6 +153,7 @@ class OrderManager
             }
             $order->setStripeRefundId($refund->id)->setStripeRefundStatus($refund->status);
             if ($refund->status === 'succeeded' && $order->getState() !== 6) {
+                if (!self::allows('refund', $order->getState(), 6)) { throw new \DomainException('Ce remboursement n’est pas autorisé.'); }
                 if ($order->getState() === 7) {
                     // Un remboursement externe confirmé résout aussi la demande, sans la perdre.
                     $pending = $this->em->getRepository(\App\Entity\CancellationRequest::class)->findOneBy(['order' => $order, 'decision' => 'pending']);
@@ -145,6 +164,7 @@ class OrderManager
                 // Les articles expédiés/livrés ne reviennent pas physiquement par un remboursement.
                 if (in_array($order->getState(), [1, 2, 4], true)) { $this->releaseStock($order); }
                 $order->setState(6);
+                $this->emails->queue($order);
             } elseif ($refund->status !== 'succeeded' && $order->getState() === 6) {
                 // Stripe peut signaler un échec bancaire après une première confirmation.
                 $order->setState($order->getStateBeforeRefund() ?? 4);
@@ -173,10 +193,13 @@ class OrderManager
         $this->em->wrapInTransaction(function () use ($order, $from, $to): void {
             $this->em->refresh($order, LockMode::PESSIMISTIC_WRITE);
             if (in_array($order->getStripeRefundStatus(), ['pending', 'requires_action'], true)
-                || !in_array([$from, $to], [[1, 2], [2, 3], [3, 5]], true) || $order->getState() !== $from) {
+                || !self::allows('logistics', $from, $to)
+                || !in_array($order->getState(), [$from, $to], true)) {
                 throw new \DomainException('Ce changement de statut n’est pas autorisé.');
             }
+            if ($order->getState() === $to) { return; }
             $order->setState($to);
+            $this->emails->queue($order);
         });
     }
 }

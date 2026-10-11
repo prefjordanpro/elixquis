@@ -3,6 +3,13 @@
 {% set crud  = 'App\\\\Controller\\\\Admin\\\\OrderCrudController' %}
 {% include 'admin/_shipping.html.twig' %}
 {% include 'admin/_colis.html.twig' %}
+<div class="mb-3">
+  <strong>Paiement</strong> :
+  {% if order.stripePaymentIntentId %}Paiement Stripe enregistré : <code>{{ order.stripePaymentIntentId }}</code>
+  {% elseif order.state in [1, 2, 3, 5, 6, 7] %}Commande historique enregistrée comme payée
+  {% else %}Aucun paiement confirmé enregistré{% endif %}
+  {% if order.stripeRefundStatus %} — Remboursement : {{ order.stripeRefundStatus }}{% endif %}
+</div>
 
 {% macro euro(x) %}{{ (x|default(0))|number_format(2, ',', ' ') }} €{% endmacro %}
 {% import _self as ui %}
@@ -20,6 +27,14 @@
 
 {# --- En-tête + actions --- #}
 {% set badge = labels[order.state|default(0)]|default(['Statut inconnu','badge bg-secondary']) %}
+{% if order.notifications|length %}
+<details class="mb-3"><summary>Historique des notifications de statut</summary>
+  {% for notification in order.notifications %}
+    <p>{{ notification.createdAt|date('d/m/Y H:i') }} — {{ labels[notification.state][0]|default('Statut historique') }} —
+      Email : {{ {'pending': 'en attente', 'attempting': 'tentative à vérifier', 'sent': 'accepté par Mailjet', 'failed': 'échec à vérifier'}[notification.status]|default(notification.status) }}.</p>
+  {% endfor %}
+</details>
+{% endif %}
 <div class="d-flex flex-wrap justify-content-between align-items-start mb-3">
   <div class="me-3">
     <div class="mb-1"><span class="{{ badge[1] }}">{{ badge[0] }}</span></div>

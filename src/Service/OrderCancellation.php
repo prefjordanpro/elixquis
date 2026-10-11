@@ -31,6 +31,7 @@ final class OrderCancellation
                 $request->resolve('accepted');
                 $result = 'cancelled';
             } else {
+                if (!OrderManager::allows('cancellation_request', $order->getState(), 7)) { throw new \DomainException('Demande d’annulation non autorisée.'); }
                 $order->setState(7);
                 $result = 'requested';
             }
@@ -50,7 +51,7 @@ final class OrderCancellation
             $decision = $accept ? 'accepted' : 'refused';
             if ($request->getDecision() === $decision) { return; }
             if ($request->getDecision() !== 'pending' || $order->getState() !== 7
-                || !in_array($request->getPreviousState(), [1, 2], true)) {
+                || !OrderManager::allows('cancellation_resolution', $order->getState(), $request->getPreviousState())) {
                 throw new \DomainException('Cette demande d’annulation ne peut plus être traitée.');
             }
             if (!$accept && in_array($order->getStripeRefundStatus(), ['pending', 'requires_action'], true)) {

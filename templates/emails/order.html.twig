@@ -1,0 +1,21 @@
+<!doctype html><html lang="fr"><head><meta name="viewport" content="width=device-width,initial-scale=1"><meta charset="UTF-8"></head>
+<body style="margin:0;background:#f5f1e8;color:#171717;font-family:Arial,sans-serif;line-height:1.6">
+<div style="max-width:560px;margin:24px auto;padding:24px;background:#fff;border-top:4px solid #b39858">
+<p style="font-size:24px;font-weight:bold;color:#171717">Elixquis</p>
+<h1 style="font-size:22px">{{ title }}</h1><p>Bonjour {{ firstname }},</p><p>Commande <strong>{{ reference }}</strong>.</p>
+{% if state == 1 %}
+<p>Votre paiement est confirmé. Merci pour votre commande.</p>
+<table style="width:100%;border-collapse:collapse"><thead><tr><th align="left">Produit</th><th>Quantité</th><th align="right">Total TTC</th></tr></thead><tbody>
+{% for line in lines %}<tr><td>{{ line.name }}</td><td align="center">{{ line.qty }}</td><td align="right">{{ line.total|number_format(2, ',', ' ') }} €</td></tr>{% endfor %}
+</tbody></table><p><strong>Total TTC : {{ total|number_format(2, ',', ' ') }} €</strong></p>
+<p>Livraison : {{ carrier }}</p><p>Adresse de livraison :<br>{{ delivery|nl2br }}</p>
+{% elseif state == 2 %}<p>Votre commande est en cours de préparation.</p>
+{% elseif state == 3 %}<p>Votre commande a été expédiée avec {{ carrier }}.</p>
+{% for number in tracking %}<p>Numéro de suivi : {{ number }}</p>{% endfor %}
+{% if trackingUrl %}<p><a href="{{ trackingUrl }}" style="color:#795f28">Suivre votre colis</a></p>{% endif %}
+{% elseif state == 5 %}<p>La livraison de votre commande est confirmée.</p>
+{% elseif state == 4 %}<p>Votre commande a été annulée.</p>
+{% elseif state == 6 %}<p>Le remboursement de votre commande a été enregistré. Le délai bancaire peut dépendre de votre moyen de paiement.</p>
+{% endif %}
+<p><a href="{{ link }}" style="display:inline-block;padding:12px 20px;background:#171717;color:#f5f1e8;text-decoration:none;border-bottom:3px solid #b39858">Mes commandes</a></p>
+<p>À bientôt,<br>L’équipe Elixquis</p></div></body></html>

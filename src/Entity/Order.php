@@ -14,6 +14,16 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\UniqueConstraint(name: 'UNIQ_ORDER_REFUND', columns: ['stripe_refund_id'])]
 class Order
 {
+    /** @var Collection<int, OrderNotification> */
+    #[ORM\OneToMany(mappedBy: 'order', targetEntity: OrderNotification::class)]
+    #[ORM\OrderBy(['id' => \SortDirection::Ascending])]
+    private Collection $notifications;
+    public function getNotifications(): Collection { return $this->notifications; }
+    public function getLogisticsTarget(): ?int
+    {
+        if (in_array($this->stripeRefundStatus, ['pending', 'requires_action'], true)) { return null; }
+        return \App\Service\OrderManager::TRANSITIONS['logistics'][$this->state][0] ?? null;
+    }
     // Legacy rows remain untracked: no retroactive proof of absence of payment.
     #[ORM\Column(options: ['default' => false])]
     private bool $paymentTrackingEnabled = false;
@@ -138,6 +148,7 @@ class Order
 
     public function __construct()
     {
+        $this->notifications = new ArrayCollection();
         $this->colis = new ArrayCollection();
         $this->orderDetails = new ArrayCollection();
         $this->cancellationRequests = new ArrayCollection();
