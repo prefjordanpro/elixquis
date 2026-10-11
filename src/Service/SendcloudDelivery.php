@@ -44,6 +44,11 @@ final class SendcloudDelivery
                 $quote = $candidate; break;
             }
             if (!$quote) { continue; }
+            $amount = (string) $quote['price']['total']['value'];
+            if (count($parcels) > 1) {
+                $amount = $this->multiParcelAmount($option['quotes'] ?? [], count($parcels));
+                if ($amount === null) { continue; }
+            }
             $pointRequired = ($option['requirements']['is_service_point_required'] ?? false) === true;
             $contractId = $option['contract']['id'] ?? null;
             if ($contractId !== null && !is_int($contractId)) { continue; }
@@ -51,13 +56,30 @@ final class SendcloudDelivery
             $offers[$key] = ['key' => $key, 'code' => $option['code'], 'contract_id' => $contractId,
                 'carrier_code' => $option['carrier']['code'], 'carrier_name' => $option['carrier']['name'],
                 'method_name' => $option['name'] ?? $option['product']['name'] ?? $option['carrier']['name'],
-                'price_cents' => $this->configuration->sellingPrice((string) $quote['price']['total']['value']),
-                'api_amount' => $quote['price']['total']['value'], 'lead_time_hours' => $quote['lead_time'] ?? null,
+                'price_cents' => $this->configuration->sellingPrice($amount),
+                'api_amount' => count($parcels) > 1 ? $amount : $quote['price']['total']['value'], 'lead_time_hours' => $quote['lead_time'] ?? null,
                 'colisage' => $plan, 'parcels' => $parcels,
                 'category' => $category, 'point_required' => $pointRequired, 'kind' => match ($category) {
                     'relay' => 'Livraison en point relais', 'standard' => 'Livraison standard à domicile', 'express' => 'Livraison express'}];
         }
         return $this->policy->shortlist($offers);
+    }
+
+    /** L'API retourne un devis par colis au sein d'une même option/contrat. */
+    private function multiParcelAmount(array $quotes, int $parcelCount): ?string
+    {
+        if (count($quotes) !== $parcelCount || !array_is_list($quotes)) { return null; }
+        $total = 0;
+        foreach ($quotes as $quote) {
+            $price = $quote['price']['total'] ?? [];
+            $value = $price['value'] ?? null;
+            if (($quote['quote_error'] ?? null) !== null || ($price['currency'] ?? null) !== 'EUR'
+                || !is_string($value) || !preg_match('/^(\d{1,6})(?:\.(\d{1,4}))?$/D', $value, $parts)) { return null; }
+            // Addition exacte à quatre décimales ; TVA et arrondi appliqués une fois sur le total.
+            $total += (int) $parts[1] * 10000 + (int) str_pad($parts[2] ?? '', 4, '0');
+            if ($total > 9999999999) { return null; }
+        }
+        return intdiv($total, 10000).'.'.str_pad((string) ($total % 10000), 4, '0', STR_PAD_LEFT);
     }
 
     public function points(Address $address, array $offer): array

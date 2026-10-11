@@ -28,6 +28,7 @@ final class SendcloudTest extends WebTestCase
     private bool $announceError = false;
     private ?array $remote = null;
     private array $extraOptions = [];
+    private ?array $rawOptions = null;
     private bool $multiCompatible = true;
     private bool $announcementPending = false;
 
@@ -56,9 +57,17 @@ final class SendcloudTest extends WebTestCase
             $path = parse_url($url, PHP_URL_PATH); $this->calls[] = compact('method', 'url', 'body');
             if ($this->apiError) { return new MockResponse('{"error":"private-api-details"}', ['http_code' => 503]); }
             if (str_ends_with($path, '/shipping-options')) {
+                if ($this->rawOptions !== null) { return $this->response(['data' => $this->rawOptions]); }
                 if (isset($body['to_service_point']) && !$this->compatiblePoint) { return $this->response(['data' => []]); }
-                return $this->response(['data' => [$this->option('colissimo:home', 'colissimo', false, $this->homePrice),
-                    $this->option('mondial_relay:relay', 'mondial_relay', true, '4.00'), ['code' => 'chronopost:unpriced', 'carrier' => ['code' => 'chronopost', 'name' => 'Chronopost'], 'quotes' => []], ...$this->extraOptions]]);
+                $options = [$this->option('colissimo:home', 'colissimo', false, $this->homePrice),
+                    $this->option('mondial_relay:relay', 'mondial_relay', true, '4.00'), ['code' => 'chronopost:unpriced', 'carrier' => ['code' => 'chronopost', 'name' => 'Chronopost'], 'quotes' => []], ...$this->extraOptions];
+                foreach ($options as &$option) {
+                    if (count($option['quotes'] ?? []) === 1) {
+                        $option['quotes'] = array_fill(0, count($body['parcels']), $option['quotes'][0]);
+                    }
+                }
+                unset($option);
+                return $this->response(['data' => $options]);
             }
             if (str_ends_with($path, '/check-availability')) { return $this->response(['data' => ['is_available' => $this->availablePoint]]); }
             if (preg_match('#/service-points/(\d+)$#', $path, $matches)) {
@@ -191,6 +200,46 @@ final class SendcloudTest extends WebTestCase
         return $token;
     }
 
+    public function testSevenBottleCheckoutTotalsActualPerParcelQuoteShape(): void
+    {
+        $tester = new \Symfony\Component\Console\Tester\CommandTester(new \App\Command\EmballagesReferenceCommand(
+            $this->em, $this->em->getRepository(\App\Entity\Emballage::class), 'test'));
+        self::assertSame(0, $tester->execute(['--development' => true]));
+        $shop = $this->option('chronopost:shop2shop', 'chronopost', true, '9.97');
+        $shop['quotes'][] = ['price' => ['total' => ['value' => '5.04', 'currency' => 'EUR']]];
+        $home = $this->option('chronopost:18', 'chronopost', false, '18.56');
+        $home['quotes'][] = ['price' => ['total' => ['value' => '13.35', 'currency' => 'EUR']]];
+        $this->rawOptions = [$shop, $home];
+        $this->packingCheckout(7);
+        $offers = $this->client->getRequest()->getSession()->get('sendcloud_checkout')['offers'];
+        self::assertSame([1801, 3829], array_column(array_values($offers), 'price_cents'));
+        self::assertSame(['15.0100', '31.9100'], array_column(array_values($offers), 'api_amount'));
+        self::assertSame(['8.400', '1.500'], array_column(array_column($this->calls[0]['body']['parcels'], 'weight'), 'value'));
+        self::assertSame(0, $this->announcements());
+        self::assertSame(0, $this->em->getRepository(Shipment::class)->count([]));
+    }
+
+    public function testCheckoutDiscardsSessionQuotesFromBeforeMultiParcelPriceFix(): void
+    {
+        $this->packagingFixtures();
+        $this->packingCheckout(7);
+        $session = $this->client->getRequest()->getSession();
+        $saved = $session->get('sendcloud_checkout');
+        $delivery = static::getContainer()->get(\App\Service\SendcloudDelivery::class);
+        $saved['fingerprint'] = hash('sha256', json_encode([$this->address->getId(), $this->address->getAddress(),
+            $this->address->getPostal(), $this->address->getCity(), $this->address->getCountry(),
+            [['id' => $this->product->getId(), 'qty' => 7, 'weight_grams' => 1200,
+                'price_cents' => (int) round($this->product->getPriceWt() * 100)]], $delivery->packagingFingerprint()], JSON_THROW_ON_ERROR));
+        foreach ($saved['offers'] as &$offer) { $offer['price_cents'] = 1196; }
+        unset($offer);
+        $session->set('sendcloud_checkout', $saved); $session->save();
+        $this->client->request('GET', '/commande/sendcloud');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('input[name="method"]');
+        self::assertFalse($this->client->getRequest()->getSession()->has('sendcloud_checkout'));
+        self::assertSame(0, $this->announcements());
+    }
+
     public static function packagingCheckouts(): iterable
     {
         foreach ([2 => [2], 3 => [3], 6 => [6], 7 => [6, 1], 12 => [6, 6]] as $quantity => $expected) {
@@ -215,7 +264,8 @@ final class SendcloudTest extends WebTestCase
         }
         $this->client->request('POST', '/commande/sendcloud', $parameters); self::assertResponseRedirects();
         $order = $this->em->getRepository(Order::class)->findOneBy([]);
-        self::assertSame(match ($mode) { 'relay' => 480, 'express' => 1568, default => 1110 }, (int) round($order->getCarrierPrice() * 100));
+        $apiPrice = match ($mode) { 'relay' => 4.00, 'express' => 13.07, default => 9.25 };
+        self::assertSame((int) round($apiPrice * count($expected) * 100 * 1.2), (int) round($order->getCarrierPrice() * 100));
         self::assertCount(count($expected), $order->getColis());
         $snapshot = $order->getShippingSnapshot();
         self::assertSame($expected, array_column(array_column($snapshot['colisage'], 'emballage'), 'capacite'));

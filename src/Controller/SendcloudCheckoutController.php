@@ -102,6 +102,7 @@ final class SendcloudCheckoutController extends AbstractController
     {
         $items = [];
         foreach ($lines as $line) { $items[] = [$line['object']->getId(), $line['qty'], $line['object']->getPriceWt(), $line['object']->getShippingWeightGrams()]; }
-        return hash('sha256', json_encode([$address->getId(), $address->getAddress(), $address->getPostal(), $address->getCity(), $address->getCountry(), $items, $packaging], JSON_THROW_ON_ERROR));
+        // Invalider les offres en session calculées avant l'addition des devis multi-colis.
+        return hash('sha256', json_encode(['quotes-per-parcel-v2', $address->getId(), $address->getAddress(), $address->getPostal(), $address->getCity(), $address->getCountry(), $items, $packaging], JSON_THROW_ON_ERROR));
     }
 }
