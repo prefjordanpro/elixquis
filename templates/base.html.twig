@@ -10,7 +10,7 @@
   <link href="{{ asset('assets/css/palette.css') }}?v=20261018-immersive" rel="stylesheet">
   <link href="{{ asset('assets/css/elixquis.css') }}?v=20261005-footer-common" rel="stylesheet">
   {% block stylesheets %}{% endblock %}
-  <link href="{{ asset('assets/css/finish.css') }}?v=20261018-editorial" rel="stylesheet">
+  <link href="{{ asset('assets/css/finish.css') }}?v=20261018-selection-spacing" rel="stylesheet">
 </head>
 {% set route = app.request.attributes.get('_route')|default('') %}
 {% set checkout = route in ['app_order', 'app_sendcloud_checkout', 'app_payment_success'] or (route == 'app_account_order' and order is defined and order.state == 0) %}
