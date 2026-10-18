@@ -1,0 +1,20 @@
+/* Palette commune au site et à EasyAdmin. */
+:root {
+  --elixquis-noir: #1a1a1a;
+  --elixquis-blanc: #ffffff;
+  --elixquis-ivoire: #faf8f4;
+  --elixquis-beige: #f4ead0;
+  --elixquis-or: #ba9540;
+  --elixquis-orange: #e84d1f;
+  --elixquis-litchi: #ea5463;
+  --elixquis-ambre: #8b451f;
+  --elixquis-erreur: #923c43;
+  --elixquis-succes: #356047;
+  --elixquis-muted: #656057;
+  --elixquis-bordure: #ddd7ca;
+  --elixquis-filet: color-mix(in srgb, var(--elixquis-bordure) 65%, transparent);
+  --elixquis-overlay: color-mix(in srgb, var(--elixquis-noir) 90%, transparent);
+  --elixquis-hero-shade: color-mix(in srgb, var(--elixquis-noir) 76%, transparent);
+  --elixquis-hero-light: color-mix(in srgb, var(--elixquis-noir) 20%, transparent);
+  --elixquis-space-section: clamp(3.5rem, 7.5vw, 7.5rem);
+}

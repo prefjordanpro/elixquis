@@ -1,7 +1,7 @@
 {% extends 'base.html.twig' %}
 {% block title %}Elixquis — Découvrez nos rhums arrangés{% endblock %}
 {% block body %}
-<section class="home-hero">
+<section class="home-hero home-hero-immersive">
   <div class="container hero-grid">
     <div class="hero-copy">
       <p class="section-label">Rhums arrangés artisanaux</p>
@@ -35,30 +35,14 @@
     </div><p class="hero-image-note">Fruits · Épices · Caractère</p></div>
   </div>
 </section>
-<div class="container">
-  {% if productsInHomepage|length %}
-  <section class="section-space" aria-labelledby="selection-title">
-    <div class="section-heading"><div><p class="section-label">La sélection Elixquis</p><h2 id="selection-title">À découvrir, à savourer.</h2><p>Explorez les produits mis en avant dans notre boutique.</p></div><a class="btn btn-outline-secondary" href="{{ path('app_catalogue') }}">Voir toute la boutique →</a></div>
-    <div class="product-grid">
-      {% for product in productsInHomepage|slice(0, 8) %}<div class="product-cell">{% include 'components/_product_card.html.twig' with {product: product, heading: 'h3'} %}</div>{% endfor %}
-    </div>
-  </section>
-  {% endif %}
-  {% if allCategories|length %}
-  <section class="section-space pt-0" id="nos-saveurs" aria-labelledby="categories-title">
-    <div class="section-heading"><div><p class="section-label">À chacun ses envies</p><h2 id="categories-title">Choisissez vos saveurs.</h2></div></div>
-    <div class="category-grid">{% for category in allCategories %}<a class="category-tile" href="{{ path('app_category', {slug: category.slug}) }}"><span>{{ category.name }}</span><i data-feather="arrow-right"></i></a>{% endfor %}</div>
-  </section>
-  {% endif %}
-</div>
-<section class="story-band" aria-labelledby="story-title">
+<section class="story-band home-story" aria-labelledby="story-title">
   <div class="container editorial-grid">
     <div class="editorial-copy">
       <p class="editorial-index"><span class="editorial-number" aria-hidden="true">01</span><span class="section-label">L’esprit Elixquis</span></p>
       <h2 id="story-title">L’élixir.<br><span>L’exquis.</span></h2>
       <p class="story-origin">Deux mots, une invitation à découvrir.</p>
       <p>Elixquis associe l’univers de l’élixir à la délicatesse de l’exquis. Les fruits et les épices y rencontrent le caractère du rhum, avec une place essentielle accordée aux ingrédients naturels.</p>
-      <a class="btn btn-outline-primary" href="{{ path('app_catalogue') }}">Explorer les recettes</a>
+      <a class="editorial-link" href="{{ path('app_catalogue') }}">Explorer les recettes</a>
     </div>
     <figure class="editorial-photo">
       <img src="{{ asset('images/editorial/degustation-ambree-v2.jpg') }}" alt="Illustration d’ambiance : lumière chaude sur un verre de dégustation" width="1536" height="1024" loading="lazy" decoding="async">
@@ -66,6 +50,23 @@
     </figure>
   </div>
 </section>
+<div class="container">
+  {% if productsInHomepage|length %}
+  <section class="section-space home-selection-section" aria-labelledby="selection-title">
+    <div class="section-heading"><div><p class="section-label">La sélection Elixquis</p><h2 id="selection-title">À découvrir, à savourer.</h2><p>Explorez les produits mis en avant dans notre boutique.</p></div><a class="editorial-link" href="{{ path('app_catalogue') }}">Voir toute la boutique ↗</a></div>
+    <div class="product-grid home-selection">
+      {% for product in productsInHomepage|slice(0, 3) %}<div class="product-cell">{% include 'components/_product_card.html.twig' with {product: product, heading: 'h3'} %}</div>{% endfor %}
+    </div>
+  </section>
+  {% endif %}
+  {% if allCategories|length %}
+  <section class="section-space pt-0" id="nos-saveurs" aria-labelledby="categories-title">
+    <div class="section-heading"><div><p class="section-label">À chacun ses envies</p><h2 id="categories-title">Choisissez vos saveurs.</h2></div></div>
+    <div class="category-grid">{% for category in allCategories %}<a class="category-tile" href="{{ path('app_category', {slug: category.slug}) }}"><span>{{ category.name }}</span><i data-feather="arrow-right"></i></a>{% endfor %}</div>
+    <a class="editorial-link mt-4" href="{{ path('app_catalogue') }}#catalogue-saveurs">Voir toutes les saveurs <span aria-hidden="true">→</span></a>
+  </section>
+  {% endif %}
+</div>
 <section class="brand-story section-space" aria-labelledby="passion-title">
   <div class="container editorial-grid">
     <div class="editorial-copy">

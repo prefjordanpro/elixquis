@@ -1,17 +1,5 @@
 /* Identité Elixquis : voir docs/DESIGN_SYSTEM_ELIXQUIS.md. */
 :root {
-  --elixquis-noir: #1a1a1a;
-  --elixquis-blanc: #ffffff;
-  --elixquis-ivoire: #faf8f4;
-  --elixquis-beige: #f4ead0;
-  --elixquis-or: #ba9540;
-  --elixquis-orange: #e84d1f;
-  --elixquis-litchi: #ea5463;
-  --elixquis-ambre: #8b451f;
-  --elixquis-erreur: #923c43;
-  --elixquis-succes: #356047;
-  --elixquis-muted: #656057;
-  --elixquis-bordure: #ddd7ca;
   --elixquis-font-body: 'Segoe UI', Arial, sans-serif;
   --elixquis-font-title: 'Arial Narrow', 'Segoe UI', Arial, sans-serif;
   --elixquis-space: .5rem;

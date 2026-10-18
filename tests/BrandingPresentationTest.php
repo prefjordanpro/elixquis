@@ -10,6 +10,36 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 /** Cas complémentaires : carrousel administré et produit sans description. */
 final class BrandingPresentationTest extends WebTestCase
 {
+    public function testHomepageLimitsHighlightsWithoutHidingCatalogueCategories(): void
+    {
+        $client = static::createClient(); $client->disableReboot();
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        self::assertSame('pdo_sqlite', $em->getConnection()->getParams()['driver']);
+        (new SchemaTool($em))->createSchema($em->getMetadataFactory()->getAllMetadata());
+        for ($index = 1; $index <= 6; ++$index) {
+            $category = (new \App\Entity\Category())->setName('Saveur '.$index)->setSlug('saveur-'.$index);
+            $product = (new Product())->setName('Recette '.$index)->setSlug('recette-'.$index)
+                ->setDescription('Recette de test')->setIllustration('2025-08-30-851cfa871ccd52de3f20d860b2188b7f05abebe4.jpg')
+                ->setPrice(20)->setTva(20)->setStock(5)->setIsHomepage(true)->setCategory($category);
+            $em->persist($category); $em->persist($product);
+        }
+        $em->flush();
+        $crawler = $client->request('GET', '/');
+        self::assertResponseIsSuccessful();
+        self::assertCount(3, $crawler->filter('.home-selection .product-card'));
+        self::assertCount(6, $crawler->filter('#nos-saveurs .category-tile'));
+        self::assertSelectorExists('.home-hero + .home-story');
+        self::assertSelectorNotExists('.product-discover');
+        self::assertSelectorExists('#nos-saveurs a[href="/catalogue#catalogue-saveurs"]');
+        self::assertCount(6, $crawler->filter('#navbarCollapse .dropdown-item'));
+        $this->export($client, 'accueil-selection');
+        $crawler = $client->request('GET', '/catalogue');
+        self::assertResponseIsSuccessful();
+        self::assertCount(6, $crawler->filter('[data-product-grid] .product-card'));
+        self::assertCount(7, $crawler->filter('#catalogue-saveurs .category-link'));
+        $this->export($client, 'catalogue-selection');
+    }
+
     public function testCarouselAndUnavailableProductKeepTheirControls(): void
     {
         $client = static::createClient(); $client->disableReboot();

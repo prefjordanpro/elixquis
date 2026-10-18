@@ -3,7 +3,7 @@
 {% block body %}
 <div class="container my-5" data-catalogue>
   <div class="page-heading"><div><p class="section-label">La boutique Elixquis</p><h1>{{ category.name }}</h1><p>Parcourez les saveurs, comparez les prix et découvrez votre prochain produit.</p></div></div>
-  <nav class="category-links" aria-label="Catégories de produits">
+  <nav class="category-links" id="catalogue-saveurs" aria-label="Catégories de produits">
     <a class="category-link {{ app.request.attributes.get('_route') == 'app_catalogue' ? 'active' : '' }}" href="{{ path('app_catalogue') }}">Tous les produits</a>
     {% for item in allCategories %}<a class="category-link {{ category.slug is defined and category.slug == item.slug ? 'active' : '' }}" href="{{ path('app_category', {slug: item.slug}) }}">{{ item.name }}</a>{% endfor %}
   </nav>
