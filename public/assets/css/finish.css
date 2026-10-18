@@ -81,10 +81,17 @@
 .home-selection .product-card-body { padding-top: 20px; }
 .home-selection .product-category { margin-bottom: 10px; }
 /* Un fond continu distingue la sélection sans encadrer chaque produit. */
-.home-selection-section { background: #f7f3eb; padding-bottom: 80px; }
+.home-selection-section { background: #f7f3eb; padding-bottom: 80px; margin-top: clamp(80px, 7vw, 120px); }
 /* Un même retrait contient les titres, actions et listes de ces deux sections. */
-.home-selection-section, #nos-saveurs { padding-inline: clamp(1rem, 3vw, 2.5rem); }
-.home-selection-section + #nos-saveurs { margin-top: clamp(1.5rem, 3vw, 2.5rem); }
+.home-selection-section .home-selection-inner { padding-inline: calc(var(--bs-gutter-x, 1.5rem) * .5 + clamp(1rem, 3vw, 2.5rem)); }
+#nos-saveurs { padding-inline: clamp(1rem, 3vw, 2.5rem); }
+.home-selection-section + .container > #nos-saveurs { margin-top: clamp(1.5rem, 3vw, 2.5rem); }
+@media (min-width: 768px) and (max-width: 991px) {
+  .home-selection-section { margin-top: clamp(64px, 8vw, 80px); }
+}
+@media (max-width: 767px) {
+  .home-selection-section { margin-top: clamp(48px, 12vw, 64px); }
+}
 #nos-saveurs .category-tile { padding-inline: .75rem; }
 .home-selection .product-price { position: relative; padding-bottom: .5rem; }
 .home-selection .product-price::after {

@@ -50,15 +50,17 @@
     </figure>
   </div>
 </section>
-<div class="container">
   {% if productsInHomepage|length %}
   <section class="section-space home-selection-section" aria-labelledby="selection-title">
+    <div class="container home-selection-inner">
     <div class="section-heading"><div><p class="section-label">La sélection Elixquis</p><h2 id="selection-title">À découvrir, à savourer.</h2><p>Explorez les produits mis en avant dans notre boutique.</p></div><a class="editorial-link" href="{{ path('app_catalogue') }}">Voir toute la boutique ↗</a></div>
     <div class="product-grid home-selection">
       {% for product in productsInHomepage|slice(0, 3) %}<div class="product-cell">{% include 'components/_product_card.html.twig' with {product: product, heading: 'h3'} %}</div>{% endfor %}
     </div>
+    </div>
   </section>
   {% endif %}
+<div class="container">
   {% if allCategories|length %}
   <section class="section-space pt-0" id="nos-saveurs" aria-labelledby="categories-title">
     <div class="section-heading"><div><p class="section-label">À chacun ses envies</p><h2 id="categories-title">Choisissez vos saveurs.</h2></div></div>
