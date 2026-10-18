@@ -34,6 +34,42 @@ final class UxPresentationTest extends WebTestCase
         $this->em->flush();
     }
 
+    public function testOrderThumbnailsUseDistinctHistoricalSnapshots(): void
+    {
+        $this->client->loginUser($this->user);
+        $productPage = $this->client->request('GET', '/produit/demo-ux');
+        $this->client->submit($productPage->selectButton('Ajouter au panier')->form());
+        $order = (new Order())->setUser($this->em->find(User::class, $this->user->getId()))->setCreatedAt(new \DateTimeImmutable())
+            ->setState(1)->setCarrierName('Transporteur historique')->setCarrierPrice(5)->setDelivery('Adresse historique');
+        foreach ([1, 1, 2, 3, 4, 5] as $index) {
+            $order->addOrderDetail((new \App\Entity\OrderDetail())->setProductName('Recette historique '.$index)
+                ->setProductIllustration($index === 2 ? '' : 'historique-'.$index.'.jpg')
+                ->setProductQuantity(3)->setProductPrice(20)->setProductTva(20));
+        }
+        $this->em->persist($order); $this->em->flush();
+        $crawler = $this->client->request('GET', '/compte');
+        self::assertResponseIsSuccessful();
+        self::assertCount(3, $crawler->filter('.order-thumbnail'));
+        self::assertCount(2, $crawler->filter('.order-thumbnail img'));
+        self::assertSelectorTextContains('.order-thumbnail-more', '+2');
+        self::assertSelectorExists('.order-thumbnail img[src="/uploads/historique-1.jpg"]');
+        self::assertSelectorExists('.order-thumbnail[aria-label="Recette historique 2"] [data-feather="shopping-bag"]');
+        self::assertSelectorNotExists('.order-thumbnail img[src*="'.$this->product->getIllustration().'"]');
+        $this->export('compte-miniatures');
+        $order = $this->em->find(Order::class, $order->getId());
+        foreach ($order->getOrderDetails()->toArray() as $line) {
+            $order->removeOrderDetail($line);
+            $this->em->remove($line);
+        }
+        $this->em->flush();
+        $crawler = $this->client->request('GET', '/compte');
+        self::assertResponseIsSuccessful();
+        self::assertCount(1, $crawler->filter('.order-thumbnail'));
+        self::assertSelectorNotExists('.order-thumbnail img');
+        self::assertSelectorNotExists('.order-thumbnail-more');
+        $this->export('compte-miniatures-absentes');
+    }
+
     private function export(string $name): void
     {
         $directory = getenv('UX_EXPORT_DIR');

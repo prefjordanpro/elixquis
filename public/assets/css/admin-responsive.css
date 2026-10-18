@@ -68,3 +68,15 @@
   .content-body .d-flex { flex-wrap: wrap; }
   .content-body .table-responsive { max-width: 100%; }
 }
+
+/* Finition des formulaires et fiches, sans modifier les actions EasyAdmin. */
+.content-body :is(.form-control, .form-select, .form-widget input, .form-widget textarea) { border-radius: 4px; border-color: var(--elixquis-bordure); }
+.content-body :is(.form-control, .form-select):focus { border-color: var(--elixquis-ambre); box-shadow: 0 0 0 2px var(--elixquis-beige); }
+.content-body .form-group { margin-bottom: 1.5rem; }
+.content-body .form-fieldset-header { padding-block: 1rem; border-bottom: 1px solid var(--elixquis-filet); }
+.content-body .field-label { color: var(--elixquis-muted); font-weight: 500; }
+.content-body .field-value { line-height: 1.8; overflow-wrap: anywhere; }
+.content-body .btn, .page-actions .btn, #main-menu .menu-item a { transition: background-color .2s ease, color .2s ease, border-color .2s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .content-body .btn, .page-actions .btn, #main-menu .menu-item a { transition: none; }
+}

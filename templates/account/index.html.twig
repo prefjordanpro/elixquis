@@ -13,7 +13,28 @@
       <ul class="list-unstyled">
       {% for order in orders %}
         <li class="order-item d-flex align-items-center gap-3 p-3 mb-3 border rounded-4 bg-body">
-          <div class="order-badge flex-shrink-0 d-inline-flex align-items-center justify-content-center rounded-3"><i data-feather="shopping-bag"></i></div>
+          {# Uniquement les instantanés des lignes commandées, jamais le panier ou le catalogue actuel. #}
+          {% set references = [] %}
+          {% set referenceKeys = [] %}
+          {% for line in order.orderDetails %}
+            {% set snapshot = {name: line.productName|default('Produit commandé'), image: line.productIllustration|default('')|trim} %}
+            {% set key = [snapshot.name, snapshot.image]|json_encode %}
+            {% if key not in referenceKeys %}
+              {% set referenceKeys = referenceKeys|merge([key]) %}
+              {% set references = references|merge([snapshot]) %}
+            {% endif %}
+          {% endfor %}
+          <div class="order-thumbnails" role="group" aria-label="Produits de cette commande">
+            {% for snapshot in references|slice(0, 3) %}
+              <span class="order-thumbnail" role="img" aria-label="{{ snapshot.name }}">
+                <i data-feather="shopping-bag" aria-hidden="true"></i>
+                {% if snapshot.image %}<img src="{{ asset('uploads/' ~ snapshot.image) }}" alt="" width="56" height="56" loading="lazy" decoding="async" onerror="this.hidden = true">{% endif %}
+              </span>
+            {% else %}
+              <span class="order-thumbnail" role="img" aria-label="Commande sans illustration disponible"><i data-feather="shopping-bag" aria-hidden="true"></i></span>
+            {% endfor %}
+            {% if references|length > 3 %}<span class="order-thumbnail-more" aria-label="{{ references|length - 3 }} références supplémentaires">+{{ references|length - 3 }}</span>{% endif %}
+          </div>
           <div class="flex-grow-1">
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
               <div><strong>{{ order.reference }}</strong><span class="text-muted small d-block">{{ order.createdAt|date('d/m/Y à H:i') }}</span></div>

@@ -68,13 +68,50 @@
 .product-grid .availability { margin-top: .75rem; font-size: .78rem; font-weight: 400; }
 .product-grid .product-card-footer { border: 0; padding-top: 0; margin-top: .85rem; }
 .product-grid .product-price { font-size: 1.15rem; font-weight: 500; }
-/* Sélection : rapprocher la photographie de sa légende, sans surface de carte. */
+/* Sélection : surfaces crème discrètes, photographie et légende rapprochées. */
 .home-selection-section .section-heading { margin-bottom: clamp(1rem, 1.5vw, 1.25rem); }
-.home-selection .product-card { width: min(100%, 248px); margin-inline: auto; }
+.product-grid.home-selection .product-card {
+  width: min(100%, 268px); margin-inline: auto; padding: 20px;
+  background: var(--elixquis-ivoire); border: 0; border-radius: 12px;
+  box-shadow: 0 2px 12px rgb(26 26 26 / 3%);
+}
+.product-grid.home-selection .product-card:is(:hover, :focus-within) .product-photo img { transform: none; }
 .home-selection .product-photo { aspect-ratio: 4 / 5; padding: 0; max-height: none; }
 .home-selection .product-photo img { display: block; object-fit: cover; object-position: center; }
 .home-selection .product-card-body { padding-top: 20px; }
 .home-selection .product-category { margin-bottom: 10px; }
+/* Un fond continu distingue la sélection sans encadrer chaque produit. */
+.home-selection-section { background: #f7f3eb; padding-bottom: 80px; }
+/* Un même retrait contient les titres, actions et listes de ces deux sections. */
+.home-selection-section, #nos-saveurs { padding-inline: clamp(1rem, 3vw, 2.5rem); }
+.home-selection-section + #nos-saveurs { margin-top: clamp(1.5rem, 3vw, 2.5rem); }
+#nos-saveurs .category-tile { padding-inline: .75rem; }
+.home-selection .product-price { position: relative; padding-bottom: .5rem; }
+.home-selection .product-price::after {
+  content: ''; position: absolute; left: 0; bottom: 0;
+  width: 1.75rem; height: 1px; background: var(--elixquis-ambre);
+  transform: scaleX(0); transform-origin: left;
+}
+@media (min-width: 992px) and (hover: hover) and (pointer: fine) {
+  .home-selection .product-photo { overflow: visible; }
+  .product-grid.home-selection .product-card { transition: transform 220ms ease, box-shadow 220ms ease; }
+  .home-selection .product-card h3 a { transition: color 220ms ease; }
+  .home-selection .product-price::after { transition: transform 220ms ease; }
+  .product-grid.home-selection .product-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgb(26 26 26 / 5%); }
+  .home-selection .product-card:hover h3 a { color: var(--elixquis-ambre); }
+  .home-selection .product-card:hover .product-price::after { transform: scaleX(1); }
+}
+@media (max-width: 991px), (hover: none), (pointer: coarse) {
+  .product-grid.home-selection .product-card:is(:hover, :focus-within) .product-photo img { transform: none; }
+}
+@media (max-width: 767px) {
+  .product-grid.home-selection .product-card { width: 100%; padding: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-grid.home-selection .product-card:hover { transform: none; }
+  .product-grid.home-selection .product-card:is(:hover, :focus-within) .product-photo img { transform: none; }
+  .home-selection .product-price::after { transition: none; }
+}
 /* Les lignes partagées alignent aussi les prix lorsque les noms se replient. */
 @supports (grid-template-rows: subgrid) {
   .product-grid.home-selection { row-gap: 0; }
@@ -84,6 +121,14 @@
   .home-selection .product-photo { margin-bottom: 20px; }
   .home-selection .product-category { align-self: start; }
   .home-selection .product-card-footer { align-self: start; }
+}
+/* La dernière rangée ne cumule pas sa marge avec le padding de section. */
+@media (min-width: 992px) {
+  .home-selection-section .home-selection > .product-cell:nth-last-child(-n + 3) { margin-bottom: 0; }
+}
+@media (max-width: 991px) {
+  .home-selection-section .home-selection > .product-cell:last-child,
+  .home-selection-section .home-selection > .product-cell:nth-last-child(2):nth-child(odd) { margin-bottom: 0; }
 }
 .category-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 1.25rem 2.5rem; }
 .category-tile { padding: 1.25rem 0; border: 0; border-bottom: 1px solid var(--elixquis-filet); background: transparent; }
@@ -218,4 +263,130 @@
 @media (prefers-reduced-motion: reduce) {
   .product-grid .product-photo img { transition: none; }
   .product-grid .product-card:hover .product-photo img { transform: none; }
+}
+
+/* Finition globale : surfaces ouvertes et rythme commun aux parcours. */
+.elixquis-site { --el-radius: 4px; }
+.elixquis-site main :is(.card, .account-form, .service-point-summary, .confirmation-details) { border-radius: 4px !important; box-shadow: none !important; border-color: var(--elixquis-filet); }
+.elixquis-site main .btn { border-radius: 4px !important; min-height: 44px; white-space: normal; }
+.elixquis-site main :is(.form-control, .form-select) { border-radius: 4px; }
+.elixquis-site main :is(.form-control, .form-select):focus { border-color: var(--elixquis-ambre); box-shadow: none; outline: 2px solid var(--elixquis-ambre); outline-offset: 2px; }
+.elixquis-site main .auth-card .input-group .form-control:focus { outline: none; }
+.elixquis-site main a { text-underline-offset: .25em; }
+.page-heading h1 { font-size: clamp(2.25rem, 4vw, 3.75rem); font-weight: 500; line-height: 1.15; }
+.page-heading p:not(.section-label) { max-width: 65ch; line-height: 1.8; }
+[data-catalogue] .card { background: transparent; border: 0; }
+.catalogue-tools > * { min-width: 0; }
+.category-links { flex-wrap: wrap; }
+.product-grid .product-cell { min-width: 0; }
+.product-grid .product-card :is(h2, h3) { overflow-wrap: anywhere; line-height: 1.35; }
+.product-grid .product-card :is(h2, h3) a { display: inline; }
+.product-grid .product-card :is(h2, h3) { min-height: 2.7em; }
+.product-grid .product-category { overflow-wrap: anywhere; }
+.product-grid .product-photo img { transition: transform .28s ease; }
+.product-grid .product-card:hover .product-photo img { transform: none; }
+.product-grid .product-card:focus-within .product-photo img { transform: scale(1.025); }
+@media (min-width: 992px) {
+  .home-selection { max-width: 960px; margin-inline: auto; column-gap: clamp(2rem, 5vw, 5rem); }
+  [data-product-grid] .product-card { width: min(100%, 260px); margin-inline: auto; }
+  [data-product-grid] .product-photo { padding: 0; }
+  .product-page .product-detail-photo img { max-height: 540px; }
+}
+.product-page .product-description { line-height: 1.85; max-width: 65ch; }
+.product-page .recipe-story { padding-inline: 0; }
+.purchase-page .card { background: transparent; }
+.purchase-page .summary-card { background: var(--elixquis-ivoire); }
+.purchase-page .choice-card { border-radius: 4px; transition: border-color .2s ease, background-color .2s ease; }
+.purchase-page .choice-card:has(input:checked) { border-color: var(--elixquis-ambre); background: var(--elixquis-ivoire); }
+.purchase-page .checkout-steps { flex-wrap: wrap; }
+.purchase-page .step-number { font-variant-numeric: tabular-nums; }
+.cart-page .quantity-controls .btn { padding-inline: .75rem; }
+.account-layout .card, .account-form { background: transparent; }
+.account-layout .order-item { border: 0 !important; border-bottom: 1px solid var(--elixquis-filet) !important; border-radius: 0 !important; background: transparent !important; padding-block: 1.5rem !important; }
+.account-layout .order-item > .flex-grow-1 { min-width: 0; overflow-wrap: anywhere; }
+.account-layout .order-item strong { font-variant-numeric: tabular-nums; }
+.order-item .order-thumbnails { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.order-item .order-thumbnail {
+  position: relative; display: grid; place-items: center; flex: 0 0 56px;
+  width: 56px; height: 56px; overflow: hidden; border-radius: 4px;
+  background: var(--elixquis-beige); color: var(--elixquis-muted);
+}
+.order-thumbnail .feather { width: 20px; height: 20px; }
+.order-thumbnail img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: var(--elixquis-ivoire); }
+.order-thumbnail-more { font-size: .75rem; color: var(--elixquis-muted); white-space: nowrap; }
+.account-layout .badge { border-radius: 4px; font-weight: 500; white-space: normal; line-height: 1.5; }
+.account-sidebar .nav-link { border-radius: 4px !important; transition: color .2s ease, background-color .2s ease; }
+.account-sidebar .nav-link:not(.active) { background: transparent !important; }
+.account-sidebar .nav-link:not(.active):hover { color: var(--elixquis-ambre); background: var(--elixquis-ivoire) !important; }
+.account-form { border-width: 0; border-top: 1px solid var(--elixquis-filet); padding-inline: 0; }
+.auth-card { border: 0; border-top: 1px solid var(--elixquis-filet); background: transparent; }
+.account-layout .table > :not(caption) > * > * { padding-block: 1rem; border-color: var(--elixquis-filet); }
+.site-footer { margin-top: clamp(1.5rem, 3vw, 3rem); padding-top: clamp(2.5rem, 5vw, 4.5rem); }
+.site-footer .footer-bottom { margin-top: 2rem; }
+.editorial-link .feather, .category-tile .feather { transition: transform .2s ease; }
+@media (hover: hover) {
+  .product-grid .product-card:hover .product-photo img { transform: scale(1.025); }
+  .editorial-link:hover .feather, .category-tile:hover .feather { transform: translateX(3px); }
+}
+@media (max-width: 767px) {
+  .product-grid .product-card :is(h2, h3) { min-height: 2.6em; }
+  .product-page .recipe-story { padding-inline: 0; }
+  .account-layout .order-item { gap: .75rem !important; padding-inline: 0 !important; }
+  .account-layout .order-badge { display: none !important; }
+  .account-layout .order-item:has(.order-thumbnails) { display: grid !important; grid-template-columns: minmax(0, 1fr); }
+  .order-item .order-thumbnail { width: 48px; height: 48px; flex-basis: 48px; }
+  .account-layout .order-detail-heading { flex-wrap: wrap; gap: 1rem; }
+  .account-layout .order-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+}
+/* Fiche produit : deux zones éditoriales légères, sans surface de carte lourde. */
+.product-page .product-detail-grid {
+  padding: clamp(1.25rem, 3vw, 3rem);
+  background: var(--elixquis-ivoire); border-radius: 8px;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+}
+.product-page .product-detail-grid > * { min-width: 0; }
+.product-page .product-detail-photo { padding: clamp(.5rem, 1.5vw, 1.5rem); }
+.product-page .product-detail-info { padding-top: 0; }
+.product-page .product-detail-info > .section-label { color: var(--elixquis-muted); font-size: .7rem; margin-bottom: .75rem; }
+.product-page .product-detail-info h1 { font-weight: 600; margin-bottom: 1rem; }
+.product-page .product-price-line { margin-block: 1rem 1.25rem; gap: .5rem 1rem; }
+.product-page .detail-price { font-weight: 600; }
+.product-page .buy-box { margin-block: 0; padding-block: 1rem; border-top: 1px solid var(--elixquis-filet); border-radius: 0; }
+.product-page .buy-box > .section-label { margin-bottom: .75rem; font-size: .65rem; color: var(--elixquis-muted); }
+.product-page .availability { background: transparent; padding: 0; font-weight: 400; font-size: .8rem; }
+.product-page .availability.unavailable { background: transparent; }
+.product-page .buy-box > .text-muted { font-size: .75rem; margin-bottom: 1rem; }
+.product-page .buy-row { margin-top: 1rem; }
+.product-page .product-purchase-form > .btn {
+  --bs-btn-bg: var(--elixquis-noir); --bs-btn-border-color: var(--elixquis-noir);
+  --bs-btn-hover-bg: var(--elixquis-ambre); --bs-btn-hover-border-color: var(--elixquis-ambre);
+  transition: background-color 220ms ease, border-color 220ms ease, transform 220ms ease;
+}
+.product-page .purchase-reassurance { margin-block: 1.25rem 0; gap: .75rem; }
+.product-page .purchase-reassurance li { gap: .6rem; }
+.product-page .purchase-reassurance .feather { width: 16px; height: 16px; flex: 0 0 16px; }
+.product-page .purchase-reassurance strong { font-size: .8rem; color: var(--elixquis-muted); }
+.product-page .purchase-reassurance small { font-size: .75rem; margin-top: .15rem; line-height: 1.6; }
+.product-page .recipe-story {
+  max-width: none; margin-top: clamp(2rem, 4vw, 4rem); padding: clamp(1.5rem, 4vw, 3.5rem);
+  background: #f7f3eb; border: 0; border-radius: 8px;
+}
+.product-page .recipe-heading .section-label { border: 0; padding-left: 0; font-size: .7rem; margin-bottom: 1rem; }
+.product-page .recipe-text { line-height: 1.9; }
+@media (min-width: 992px) and (hover: hover) and (pointer: fine) {
+  .product-page .product-detail-photo img { transition: transform 220ms ease; }
+  .product-page .product-detail-photo:hover img { transform: scale(1.02); }
+  .product-page .product-purchase-form > .btn:hover:not(:disabled) { transform: translateY(-2px); }
+}
+@media (max-width: 767px) {
+  .product-page .product-detail-grid { padding: 1.25rem; gap: 1.5rem; }
+  .product-page .product-detail-info h1 { font-size: clamp(2rem, 7vw, 2.75rem); }
+  .product-page .product-detail-photo { padding: 0; }
+  .product-page .recipe-story { padding: 1.5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .product-page .product-detail-photo:hover img, .product-page .product-purchase-form > .btn:hover:not(:disabled) { transform: none; }
+  .elixquis-site *, .elixquis-site *::before, .elixquis-site *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
+  .product-grid .product-card:is(:hover, :focus-within) .product-photo img,
+  .editorial-link:hover .feather, .category-tile:hover .feather { transform: none; }
 }

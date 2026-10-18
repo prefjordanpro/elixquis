@@ -1,4 +1,20 @@
 /* Authentication only: one focus indicator per field or grouped control. */
+.auth-form-column { width: 100%; max-width: 560px; }
+.elixquis-site .auth-card { background: var(--elixquis-ivoire); border: 1px solid var(--elixquis-filet); }
+.elixquis-site .auth-card h1 { margin-bottom: .75rem; }
+.elixquis-site .auth-card h1 + p { margin-bottom: 1.5rem; }
+.elixquis-site .auth-card form .mb-3 { margin-bottom: 1rem !important; }
+.elixquis-site .auth-card .form-label { margin-bottom: .5rem; font-size: .9rem; font-weight: 500; }
+.elixquis-site .auth-card .form-control { background: var(--elixquis-blanc); font-size: 1rem; }
+.elixquis-site .auth-card a { color: var(--elixquis-ambre); text-underline-offset: .25em; }
+.elixquis-site .auth-card a:is(:hover, :focus-visible) { color: var(--elixquis-noir); }
+.elixquis-site .auth-card .btn-brand { --bs-btn-bg: var(--elixquis-noir); --bs-btn-border-color: var(--elixquis-noir); --bs-btn-hover-bg: var(--elixquis-ambre); --bs-btn-hover-border-color: var(--elixquis-ambre); }
+.elixquis-site main .auth-card .form-control:focus {
+  outline: 2px solid var(--elixquis-ambre); outline-offset: -1px;
+  border-color: transparent; box-shadow: none;
+}
+.elixquis-site main .auth-card .input-group .form-control:focus { outline: none; }
+.elixquis-site .auth-card a:focus-visible { outline: 2px solid var(--elixquis-ambre); outline-offset: 3px; }
 .elixquis-site .auth-card .input-group {
   border: 1px solid var(--el-border);
   border-radius: var(--el-radius);
