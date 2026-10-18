@@ -14,9 +14,9 @@ Stripe utilise les montants nets historiques, sans coupon Stripe distant ni appe
 
 - `CommercialSettings` : configuration unique (id 1), seuil de stock faible, mode de livraison offerte et seuil TTC en centimes.
 - `HomepageContent` : 35 contenus identifiés par clés fixes ; texte, destination ou image. Le type et le layout ne sont pas éditables.
-- `PromoCode` : code unique normalisé en majuscules, nom interne, activation, type, valeur, dates, minimum, limite, compteur d'utilisations réservées et autorisation du cumul.
+- `PromoCode` : code unique normalisé en majuscules, nom interne, activation, type, valeur, dates, minimum, nombre maximum d'utilisations confirmées et autorisation du cumul.
 - `Product` : pourcentage facultatif (5 à 90, par pas de 5), activation, début et fin facultatifs. L'ancien prix promotionnel TTC reste conservé pour compatibilité ; le prix HT normal existant reste inchangé.
-- `Order` : code historique, remise totale en centimes, coût transport TTC avant gratuité (nullable pour les anciennes commandes).
+- `Order` : code historique, remise totale en centimes, coût transport TTC avant gratuité (nullable pour les anciennes commandes), lien vers la définition du code et date de comptabilisation de l'utilisation après paiement.
 - `OrderDetail` : remise commerciale de la ligne en centimes, à zéro pour les anciennes commandes.
 
 ## Migration
@@ -47,7 +47,9 @@ Saisie, application et retrait dans le panier ; récapitulatif et lien de modifi
 
 Par défaut, un code ne s'applique pas aux lignes bénéficiant d'une promotion produit. Dans un panier mixte, les autres lignes restent éligibles. L'option **Cumulable avec les promotions produits** autorise aussi la remise sur les lignes en promotion. Aucune restriction supplémentaire par catégorie ou produit n'a été ajoutée.
 
-La limite globale est réservée atomiquement dès la création de commande, y compris en attente. Les reprises de paiement ne consomment pas une nouvelle utilisation. Les annulations et abandons ne recréditent pas automatiquement ce compteur : règle conservatrice explicitée dans le CRUD. Les usages restent consommés même si une ancienne commande est ensuite annulée. Modifier le code ou son montant ne réécrit aucun snapshot.
+Le champ **Nombre maximum d’utilisations** peut rester vide pour un nombre illimité. Une utilisation est comptabilisée uniquement dans `OrderManager::confirmPayment`, après validation de la confirmation Stripe et de sa correspondance avec la commande. La création, l'attente, les événements non payés et l'expiration avant paiement ne consomment aucune utilisation. Le verrou sur la commande, le marqueur `promoUsageCountedAt` et le verrou sur le code rendent le comptage atomique et idempotent : retour de paiement et webhook, ou plusieurs webhooks, ne comptent qu'une seule utilisation par commande. Le lien stable permet de compter la définition d'origine même si le code a été renommé entre la création et le paiement ; une nouvelle définition portant le même texte après suppression ne reçoit pas l'utilisation d'une ancienne commande. Les paiements déjà confirmés restent comptés après annulation ou remboursement. Modifier le code ou son montant ne réécrit aucun snapshot.
+
+La migration additive `Version20261018131227` crée le lien et le marqueur et réconcilie les anciens compteurs : seules les commandes déjà payées sont comptées, sans changer les statuts, les stocks ou les montants. Les commandes payées historiques sont marquées pour éviter tout double comptage lors d'une notification ultérieure. Les définitions historiques sont reliées par leur code enregistré lorsqu'elles existent encore.
 
 ## Livraison offerte
 
@@ -57,6 +59,6 @@ Trois modes : désactivée, toutes les commandes, seuil. Le seuil porte sur les 
 
 Tests commerciaux sur SQLite en mémoire, Stripe mocké et Sendcloud mocké : seuils stock, périodes de promotion, prix panier, code fixe/pourcentage, minima, dates, limites, cumul, gratuité, montants Stripe exacts, snapshot après modification, restitution du stock, TVA à plusieurs taux, formulaires admin, uploads autorisés/refusés, édition de texte, unicité et droits ROLE_ADMIN.
 
-Dernier résultat : **392 tests réussis, 4 147 assertions**. Les 45 templates Twig et le conteneur Symfony sont valides. Les dépendances émettent toujours des dépréciations Doctrine/Symfony. La revue initiale portait sur 145 rendus ; la passe promotions ajoute 30 rendus dédiés à 1440, 1024, 768, 430 et 390 px, sans débordement horizontal ni erreur JavaScript. L'aide dynamique, la saisie avec virgule et les transitions de type de code ont été vérifiées dans Edge. Aucun appel réel Stripe, Sendcloud ou Mailjet.
+Dernier résultat : **402 tests réussis, 4 224 assertions**, avec `php -d memory_limit=1G vendor/bin/phpunit` (522 Mo utilisés pour l'ensemble de la suite). Aucun changement de configuration mémoire de l'application. Les 45 templates Twig et le conteneur Symfony sont valides. Les nouveaux tests couvrent notamment le double webhook signé, le retour Stripe suivi du webhook, l'expiration sans paiement, les événements invalides/non payés, deux commandes distinctes, le renommage/suppression du code et la réconciliation historique. La migration du comptage est appliquée localement ; Mapping et Database OK, et les empreintes des 18 tables confirment la conservation des données hors compteur et nouveaux marqueurs. Les dépendances émettent toujours des dépréciations Doctrine/Symfony. La revue initiale portait sur 145 rendus ; la passe promotions ajoute 30 rendus dédiés à 1440, 1024, 768, 430 et 390 px, sans débordement horizontal ni erreur JavaScript. L'aide dynamique, la saisie avec virgule et les transitions de type de code ont été vérifiées dans Edge. Aucun appel réel Stripe, Sendcloud ou Mailjet.
 
 Le CSS ajouté se limite à l'indicateur de réduction. Pas de modification du header, du layout hero, de l'authentification ou des données clients, des emails, des remboursements, du moteur de colisage ou de `.env.local`. Le template de détail de commande client présente les nouveaux montants nets.

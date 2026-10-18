@@ -89,6 +89,8 @@ class CommercialPromotionsTest extends WebTestCase
         $this->client->loginUser($this->user);
         $page = $this->client->request('GET', '/admin/promo-code/'.$id.'/edit'); $this->export('promotion-code-percent');
         self::assertSelectorTextContains('form[name="PromoCode"]', 'Montant minimum du panier TTC');
+        self::assertSelectorTextContains('form[name="PromoCode"]', 'Nombre maximum d’utilisations');
+        self::assertSelectorTextContains('form[name="PromoCode"]', 'Laisser vide pour un nombre illimité. Une utilisation est comptabilisée après paiement confirmé.');
         $form = $page->filter('form[name="PromoCode"]')->form(['PromoCode[type]' => 'fixed', 'PromoCode[value]' => '5,25']);
         $this->client->submit($form); self::assertResponseRedirects();
         self::assertSame(525, $this->em->find(PromoCode::class, $id)->getValue());

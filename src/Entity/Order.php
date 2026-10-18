@@ -12,8 +12,18 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: '`order`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_ORDER_PAYMENT_INTENT', columns: ['stripe_payment_intent_id'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_ORDER_REFUND', columns: ['stripe_refund_id'])]
+#[ORM\Index(name: 'IDX_ORDER_PROMO_CODE_DEFINITION', columns: ['promo_code_definition_id'])]
 class Order
 {
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?PromoCode $promoCodeDefinition = null;
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $promoUsageCountedAt = null;
+    public function getPromoCodeDefinition(): ?PromoCode { return $this->promoCodeDefinition; }
+    public function setPromoCodeDefinition(?PromoCode $code): static { $this->promoCodeDefinition = $code; return $this; }
+    public function getPromoUsageCountedAt(): ?\DateTimeImmutable { return $this->promoUsageCountedAt; }
+    public function markPromoUsageCounted(): void { $this->promoUsageCountedAt ??= new \DateTimeImmutable(); }
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $promoCode = null;
     #[ORM\Column(options: ['default' => 0])]

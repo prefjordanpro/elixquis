@@ -84,7 +84,7 @@ class CommercialTest extends WebTestCase
             'expired' => $coupon->setEndsAt(new \DateTimeImmutable('-1 day')),
             'future' => $coupon->setStartsAt(new \DateTimeImmutable('+1 day')),
             'minimum' => $coupon->setMinimumCents(2401),
-            'limit' => $coupon->setUsageLimit(1)->reserve(),
+            'limit' => $coupon->setUsageLimit(1)->recordConfirmedUse(),
             'inactive' => $coupon->setActive(false),
         };
         $this->expectException(\DomainException::class); $this->expectExceptionMessage(CommercialPricing::INVALID_CODE);
@@ -134,10 +134,16 @@ class CommercialTest extends WebTestCase
         static::getContainer()->get(OrderManager::class)->cancelUnpaid($order);
         self::assertSame(100, $this->em->find(Product::class, $this->product->getId())->getStock());
     }
-    public function testUsageLimitIsReservedAtOrderCreation(): void
+    public function testUsageLimitIsCountedOnlyAfterPaymentConfirmation(): void
     {
         $coupon = $this->coupon()->setUsageLimit(1); $this->em->flush();
-        $this->order(1, 'TEST'); self::assertSame(1, $coupon->getUses());
+        $order = $this->order(1, 'TEST'); self::assertSame(0, $coupon->getUses());
+        $order->setStripeSessionId('cs_usage_confirmed'); $this->em->flush();
+        static::getContainer()->get(OrderManager::class)->confirmPayment($order, (object) [
+            'id' => 'cs_usage_confirmed', 'payment_status' => 'paid', 'currency' => 'eur',
+            'amount_total' => $order->getTotalCents(), 'client_reference_id' => (string) $order->getId(),
+        ]);
+        self::assertSame(1, $coupon->getUses());
         $this->expectException(\DomainException::class); $this->order(1, 'TEST');
     }
     public function testCartUsesPromotionAndCodeWithCsrf(): void

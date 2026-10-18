@@ -52,7 +52,7 @@ class PromoCode
     public function getUsageLimit(): ?int { return $this->usageLimit; }
     public function setUsageLimit(?int $value): static { $this->usageLimit = $value; return $this; }
     public function getUses(): int { return $this->uses; }
-    public function reserve(): void { ++$this->uses; }
+    public function recordConfirmedUse(): void { ++$this->uses; }
     public function isStackable(): bool { return $this->stackable; }
     public function setStackable(bool $value): static { $this->stackable = $value; return $this; }
     public function isAvailable(?\DateTimeImmutable $now = null): bool

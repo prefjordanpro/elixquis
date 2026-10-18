@@ -30,8 +30,8 @@ class PromoCodeCrudController extends AbstractCrudController
         yield DateTimeField::new('startsAt', 'Début inclus')->setRequired(false);
         yield DateTimeField::new('endsAt', 'Fin exclue')->setRequired(false);
         yield MoneyField::new('minimumCents', 'Montant minimum du panier TTC')->setCurrency('EUR')->setRequired(false);
-        yield IntegerField::new('usageLimit', 'Limite globale')->setRequired(false)->setHelp('Une utilisation est réservée dès la création de commande, y compris en attente. Pas de restitution automatique.');
-        yield IntegerField::new('uses', 'Utilisations réservées')->hideOnForm();
+        yield IntegerField::new('usageLimit', 'Nombre maximum d’utilisations')->setRequired(false)->setHelp('Laisser vide pour un nombre illimité. Une utilisation est comptabilisée après paiement confirmé.');
+        yield IntegerField::new('uses', 'Utilisations confirmées')->hideOnForm();
         yield BooleanField::new('stackable', 'Cumulable avec les promotions produits')->renderAsSwitch(false)->setHelp('Sinon, la remise porte uniquement sur les articles sans promotion produit.');
     }
 }

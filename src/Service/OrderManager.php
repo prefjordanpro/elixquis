@@ -64,7 +64,7 @@ class OrderManager
             $transportCents = (int) round($carrier->getPrice() * 100);
             $order->recordCommercialSnapshot($quote['coupon']?->getCode(), $quote['discountCents'], $transportCents);
             if ($quote['freeShipping']) { $order->setCarrierPrice(0); }
-            $quote['coupon']?->reserve();
+            $order->setPromoCodeDefinition($quote['coupon']);
             foreach ($lines as $key => $line) {
                 $product = $this->em->find(Product::class, $line['object']->getId());
                 if (!$product) { throw new \DomainException('Un produit n’est plus disponible.'); }
@@ -118,6 +118,14 @@ class OrderManager
             if (in_array($order->getState(), [1, 2, 3, 4, 5, 6, 7], true)) { return; }
             if (!self::allows('payment', $order->getState(), 1) || (!$historicalMatch && !$order->isStockReserved())) {
                 throw new \DomainException('Cette commande ne peut plus être payée.');
+            }
+            if ($order->getPromoCode() !== null && $order->getPromoDiscountCents() > 0 && $order->getPromoUsageCountedAt() === null) {
+                if ($code = $order->getPromoCodeDefinition()) {
+                    // Même transaction que le paiement ; le verrou évite les incréments perdus entre commandes.
+                    $this->em->refresh($code, LockMode::PESSIMISTIC_WRITE);
+                    $code->recordConfirmedUse();
+                }
+                $order->markPromoUsageCounted();
             }
             $order->setState(1);
             $this->emails->queue($order);
