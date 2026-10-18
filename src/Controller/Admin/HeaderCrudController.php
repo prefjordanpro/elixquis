@@ -46,7 +46,8 @@ class HeaderCrudController extends AbstractCrudController
                 ->setUploadedFileNamePattern('[year]-[month]-[day]-[contenthash].[extension]')
                 ->setBasePath('/uploads')
                 ->setUploadDir('/public/uploads')
-                ->setFormTypeOption('file_constraints', [new Image(maxSize: '5M', mimeTypes: ['image/jpeg', 'image/png', 'image/webp'])])
+                ->setFormTypeOption('upload_delete', static function ($file): void { /* Conservation des images partagées. */ })
+                ->setFileConstraints([new Image(maxSize: '5M', mimeTypes: ['image/jpeg', 'image/png', 'image/webp'])])
                 ->setRequired($required),
 
         ];

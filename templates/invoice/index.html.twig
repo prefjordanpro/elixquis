@@ -194,8 +194,8 @@
     {# PU HT en CENTIMES : on TRONQUE (floor) pour garantir 19,99 plutôt que 20,00 #}
     {% set unit_ht_c = (put_c / coeff)|round(0, 'common') %}
 
-    {% set line_ht_c  = put_c * q - product.totalTvaCents %}
-    {% set line_ttc_c = put_c * q %}
+    {% set line_ht_c  = product.totalPriceCents - product.totalTvaCents %}
+    {% set line_ttc_c = product.totalPriceCents %}
     {% set line_tva_c = line_ttc_c - line_ht_c %}
 
     {% set total_ht_c  = total_ht_c  + line_ht_c %}
@@ -203,7 +203,7 @@
     {% set total_ttc_c = total_ttc_c + line_ttc_c %}
 
     <tr>
-      <td><strong>{{ product.productName }}</strong></td>
+      <td><strong>{{ product.productName }}</strong>{% if product.commercialDiscountCents %}<br><small>Remise incluse : {{ (product.commercialDiscountCents / 100)|price }}</small>{% endif %}</td>
       <td>{{ q }}</td>
       <td>{{ (unit_ht_c / 100)|number_format(2, ',', ' ') ~ ' €' }}</td>
       <td>{{ rate }}%</td>

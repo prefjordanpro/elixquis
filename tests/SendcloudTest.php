@@ -134,6 +134,20 @@ final class SendcloudTest extends WebTestCase
         $this->select($this->addressStep()); self::assertResponseRedirects();
         return $this->em->getRepository(Order::class)->findOneBy([]);
     }
+    public function testCommercialFreeShippingPreservesRealQuoteAndMethod(): void
+    {
+        $settings = (new \App\Entity\CommercialSettings())->setFreeShippingMode('all');
+        $this->em->persist($settings); $this->em->flush();
+        $token = $this->addressStep();
+        self::assertSelectorTextContains('#checkout-delivery', 'Offerte');
+        $this->select($token); self::assertResponseRedirects();
+        $order = $this->em->getRepository(Order::class)->findOneBy([]);
+        self::assertSame(0.0, $order->getCarrierPrice());
+        self::assertGreaterThan(0, $order->getTransportCostCents());
+        self::assertNotEmpty($order->getShippingSnapshot());
+        self::assertSame(2400, $order->getTotalCents());
+        self::assertSame(0, $this->announcements());
+    }
     private function paidOrder(): Order
     {
         $order = $this->checkoutOrder(); $order->setState(1)->setStripePaymentIntentId('pi_sendcloud_test'); $this->em->flush(); return $order;

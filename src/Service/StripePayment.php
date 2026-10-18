@@ -40,8 +40,14 @@ class StripePayment
             }
             $lines = [];
             foreach ($order->getOrderDetails() as $detail) {
-                $lines[] = ['price_data' => ['currency' => 'eur', 'unit_amount' => (int) round($detail->getProductPrice() * 100),
-                    'product_data' => ['name' => $detail->getProductName()]], 'quantity' => $detail->getProductQuantity()];
+                // Écart d'arrondi réparti uniquement dans la requête Stripe ; les lignes métier restent intactes.
+                $quantity = $detail->getProductQuantity(); $net = $detail->getTotalPriceCents();
+                $unit = intdiv($net, $quantity); $remainder = $net % $quantity;
+                foreach ([[$quantity - $remainder, $unit], [$remainder, $unit + 1]] as [$count, $cents]) {
+                    if ($count === 0) { continue; }
+                    $lines[] = ['price_data' => ['currency' => 'eur', 'unit_amount' => $cents,
+                        'product_data' => ['name' => $detail->getProductName()]], 'quantity' => $count];
+                }
             }
             if ($order->getCarrierPrice() > 0) {
                 $lines[] = ['price_data' => ['currency' => 'eur', 'unit_amount' => (int) round($order->getCarrierPrice() * 100),

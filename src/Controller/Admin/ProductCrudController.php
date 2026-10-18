@@ -49,6 +49,9 @@ class ProductCrudController extends AbstractCrudController
 
     public function configureFields(string $pageName): iterable
     {
+        $promotionChoices = [];
+        foreach (Product::PROMOTION_PERCENTAGES as $percent) { $promotionChoices[$percent.' %'] = $percent; }
+        if ($this->getContext()?->getEntity()?->getInstance()?->getPromotionSelection() === -1) { $promotionChoices['Conserver le prix promotionnel historique'] = -1; }
         $required = true;
 
         if ($pageName == 'edit') {
@@ -62,6 +65,7 @@ class ProductCrudController extends AbstractCrudController
                 ->setFormTypeOption('data', $this->getContext()?->getEntity()?->getInstance()?->getVersion() ?? 1)
                 ->onlyOnForms(),
             IntegerField::new('stock', 'Stock disponible'),
+            IntegerField::new('stockLevel', 'Disponibilité')->setTemplatePath('admin/stock.html.twig')->hideOnForm(),
             IntegerField::new('shippingWeightGrams', 'Poids d’expédition (g)')->setRequired(false)->setFormTypeOption('attr', ['min' => 1, 'step' => 1])->setHelp('Poids réel d’une unité, bouteille pleine et bouchon compris, en grammes. L’emballage du colis est ajouté séparément.'),
             BooleanField::new('isActive', 'Produit actif'),
             TextField::new('name')
@@ -80,11 +84,15 @@ class ProductCrudController extends AbstractCrudController
                 ->setUploadedFileNamePattern('[year]-[month]-[day]-[contenthash].[extension]')
                 ->setBasePath('/uploads')
                 ->setUploadDir('/public/uploads')
-                ->setFormTypeOption('file_constraints', [new Image(maxSize: '5M', mimeTypes: ['image/jpeg', 'image/png', 'image/webp'], mimeTypesMessage: 'Choisissez une image JPEG, PNG ou WebP.')])
+                ->setFormTypeOption('upload_delete', static function ($file): void { /* Les commandes conservent les anciennes illustrations. */ })
+                ->setFileConstraints([new Image(maxSize: '5M', mimeTypes: ['image/jpeg', 'image/png', 'image/webp'], mimeTypesMessage: 'Choisissez une image JPEG, PNG ou WebP.')])
                 ->setRequired($required),
             NumberField::new('price')
                 ->setLabel('Prix H.T')
                 ->setHelp('Prix H.T du produit sans le sigle €.'),
+            \EasyCorp\Bundle\EasyAdminBundle\Field\MoneyField::new('regularPriceWt', 'Prix normal TTC')->setCurrency('EUR')->setStoredAsCents(false)->hideOnForm(),
+            TextField::new('promotionSummary', 'Promotion')->hideOnForm(),
+            \EasyCorp\Bundle\EasyAdminBundle\Field\MoneyField::new('priceWt', 'Prix appliqué TTC')->setCurrency('EUR')->setStoredAsCents(false)->hideOnForm(),
             ChoiceField::new('tva')
                 ->setLabel('Taux de TVA')
                 ->setChoices([
@@ -92,7 +100,13 @@ class ProductCrudController extends AbstractCrudController
                 '10%'=>'10',
                 '20%'=>'20'
             ]),
-            AssociationField::new('category')->setLabel('Catégorie associée')
+            AssociationField::new('category')->setLabel('Catégorie associée'),
+            \EasyCorp\Bundle\EasyAdminBundle\Field\FormField::addFieldset('Promotion'),
+            ChoiceField::new('promotionSelection', 'Réduction')->setChoices($promotionChoices)->setRequired(false)->renderAsNativeWidget()
+                ->setFormTypeOption('placeholder', 'Aucune promotion')->onlyOnForms()
+                ->setHelp('De 5 à 90 %, par pas de 5. Sans dates, la promotion s’applique immédiatement. Choisissez « Aucune promotion » pour la retirer.'),
+            \EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField::new('promotionStartsAt', 'Début promotion inclus')->setRequired(false)->onlyOnForms(),
+            \EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField::new('promotionEndsAt', 'Fin promotion exclue')->setRequired(false)->onlyOnForms(),
         ];
     }
 }

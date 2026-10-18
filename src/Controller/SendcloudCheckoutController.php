@@ -75,7 +75,7 @@ final class SendcloudCheckoutController extends AbstractController
                             $session->set('sendcloud_checkout', $saved);
                             return $this->json(['point' => $point]);
                         }
-                        $order = $manager->create($user, $address, $selection->carrier(), $lines, $selection);
+                        $order = $manager->create($user, $address, $selection->carrier(), $lines, $selection, $cart->getPromoCode());
                         $session->set('current_order_id', $order->getId()); $session->remove('sendcloud_checkout'); $cart->remove();
                         return $this->redirectToRoute('app_account_order', ['id_order' => $order->getId()]);
                     }

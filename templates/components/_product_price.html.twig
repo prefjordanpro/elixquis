@@ -1,0 +1,3 @@
+{% if product.promotionActive %}<del class="small text-muted" aria-label="Prix normal">{{ product.regularPriceWt|price }}</del>{% endif %}
+<span class="{{ priceClass|default('product-price') }}">{{ product.pricewt|price }}</span>
+{% if product.promotionActive and product.promotionDiscountPercent %}<span class="product-promotion-label">−{{ product.promotionDiscountPercent }} %</span>{% endif %}

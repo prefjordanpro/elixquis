@@ -185,11 +185,10 @@ class StorefrontTest extends WebTestCase
         $this->user->setRoles(['ROLE_ADMIN']); $this->em->flush();
         $this->client->loginUser($this->user);
         $this->client->request('GET', '/admin');
-        self::assertResponseRedirects('/admin/order');
-        $crawler = $this->client->followRedirect();
+        $crawler = $this->client->getCrawler();
         self::assertResponseIsSuccessful();
         self::assertSame(['Tableau de bord', 'COMMANDES', 'Commandes', 'CATALOGUE', 'Produits', 'Catégories',
-            'LIVRAISON', 'Emballages', 'CONTENU', 'Bannières', 'ADMINISTRATION', 'Utilisateurs'],
+            'COMMERCIAL', 'Codes promo', 'Configuration commerciale', 'LIVRAISON', 'Emballages', 'CONTENU', 'Accueil du site', 'Bannières', 'ADMINISTRATION', 'Utilisateurs'],
             $crawler->filter('#main-menu .menu-item-label')->each(fn ($node) => trim($node->text())));
         self::assertSelectorTextNotContains('#main-menu', 'Transporteurs');
         foreach (['Commandes', 'Produits', 'Catégories', 'Emballages', 'Bannières', 'Utilisateurs'] as $label) {

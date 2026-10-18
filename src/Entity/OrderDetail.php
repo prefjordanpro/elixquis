@@ -9,6 +9,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: OrderDetailRepository::class)]
 class OrderDetail
 {
+    #[ORM\Column(options: ['default' => 0])]
+    private int $commercialDiscountCents = 0;
+    public function getCommercialDiscountCents(): int { return $this->commercialDiscountCents; }
+    public function setCommercialDiscountCents(int $value): static { $this->commercialDiscountCents = max(0, $value); return $this; }
+    public function getTotalPriceCents(): int { return max(0, (int) round($this->productPrice * 100) * $this->productQuantity - $this->commercialDiscountCents); }
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Product $product = null;
@@ -18,7 +23,7 @@ class OrderDetail
 
     public function getTotalTvaCents(): int
     {
-        $ttc = (int) round($this->productPrice * 100) * $this->productQuantity;
+        $ttc = $this->getTotalPriceCents();
         return $ttc - (int) round($ttc / (1 + $this->productTva / 100));
     }
     #[ORM\Id]

@@ -2,6 +2,8 @@
 {% block title %}Votre livraison — Elixquis{% endblock %}
 {% block stylesheets %}<link href="{{ asset('assets/css/purchase.css') }}?v=20261005-service-point-picker" rel="stylesheet">{% endblock %}
 {% block body %}
+{% set commercial = commercial_cart() %}
+{% set offered = commercial.freeShipping %}
 <div class="container my-5 purchase-page">
   {% include 'components/_steps.html.twig' with {step: offers|length ? 3 : 2} %}
   <div class="page-heading"><div><p class="section-label">Préparer ma commande</p><h1>Votre livraison</h1><p>{{ selected ? 'Choisissez où retirer votre colis.' : (offers|length ? 'Choisissez la livraison qui vous convient.' : 'Sélectionnez votre adresse pour découvrir les livraisons disponibles.') }}</p></div></div>
@@ -21,14 +23,14 @@
         <fieldset class="card card-body" id="checkout-delivery"><legend>{{ selected ? 'Votre point relais' : 'Votre mode de livraison' }}</legend>
           {% if selected %}
           <input type="hidden" name="method" value="{{ selected.key }}">
-          <p>{{ selected.carrier_name }} · {{ selected.method_name }}<br><strong>{{ (selected.price_cents / 100)|price }} TTC</strong></p>
+          <p>{{ selected.carrier_name }} · {{ selected.method_name }}<br><strong>{{ offered ? 'Offerte · 0,00 €' : ((selected.price_cents / 100)|price) ~ ' TTC' }}</strong></p>
           {% include 'components/_service_point_picker.html.twig' %}
           <a href="{{ path('app_sendcloud_checkout', {reset: 1}) }}">Choisir une autre livraison</a>
           {% else %}
           {% for category, label in {'relay': 'Livraison en point relais', 'standard': 'Livraison standard à domicile', 'express': 'Livraison express'} %}
             {% set categoryOffers = offers|filter(offer => offer.category == category) %}
             {% if categoryOffers|length %}<h2 class="h5 mt-3">{{ label }}</h2>
-            {% for offer in categoryOffers %}<div class="form-check choice-card"><input class="form-check-input" type="radio" name="method" data-point-required="{{ offer.point_required ? 1 : 0 }}" id="shipping-method-{{ offer.key }}" value="{{ offer.key }}" required><label for="shipping-method-{{ offer.key }}"><strong>{{ offer.carrier_name }}</strong><br>{{ offer.method_name }}<br><span class="small text-muted">{{ offer.kind }}</span><br><strong>{{ (offer.price_cents / 100)|price }} TTC</strong>{% if offer.lead_time_hours %}<span class="small text-muted d-block">Délai indicatif : {{ (offer.lead_time_hours / 24)|round(0, 'ceil') }} jour{{ offer.lead_time_hours > 24 ? 's' : '' }}</span>{% endif %}</label></div>{% endfor %}
+            {% for offer in categoryOffers %}<div class="form-check choice-card"><input class="form-check-input" type="radio" name="method" data-point-required="{{ offer.point_required ? 1 : 0 }}" id="shipping-method-{{ offer.key }}" value="{{ offer.key }}" required><label for="shipping-method-{{ offer.key }}"><strong>{{ offer.carrier_name }}</strong><br>{{ offer.method_name }}<br><span class="small text-muted">{{ offer.kind }}</span><br><strong>{{ offered ? 'Offerte · 0,00 €' : ((offer.price_cents / 100)|price) ~ ' TTC' }}</strong>{% if offer.lead_time_hours %}<span class="small text-muted d-block">Délai indicatif : {{ (offer.lead_time_hours / 24)|round(0, 'ceil') }} jour{{ offer.lead_time_hours > 24 ? 's' : '' }}</span>{% endif %}</label></div>{% endfor %}
             {% endif %}
           {% endfor %}
           {% endif %}
@@ -38,7 +40,8 @@
       <aside class="card summary-card"><div class="card-body"><h2>Votre sélection</h2>
         {% for item in cart %}<div class="checkout-product"><img src="{{ asset('uploads/' ~ item.object.illustration) }}" alt="{{ item.object.name }}" width="56" height="56"><span>{{ item.object.name }}<small>Quantité : {{ item.qty }}</small></span><strong>{{ (item.object.pricewt * item.qty)|price }}</strong></div>{% endfor %}
         <div class="summary-row"><span>Articles TTC</span><strong>{{ totalWt|price }}</strong></div>
-        {% if selected %}<div class="summary-row"><span>Livraison TTC</span><strong>{{ (selected.price_cents / 100)|price }}</strong></div><div class="summary-total d-flex justify-content-between gap-2"><strong>Total TTC</strong><strong>{{ (totalWt + selected.price_cents / 100)|price }}</strong></div>{% else %}<p class="small text-muted">La livraison est ajoutée au récapitulatif selon votre choix.</p>{% endif %}
+        {% if commercial.coupon %}<p class="small">Code {{ commercial.coupon.code }} : −{{ (commercial.discountCents / 100)|price }} · <a href="{{ path('app_cart') }}">Modifier dans le panier</a></p>{% endif %}
+        {% if selected %}<div class="summary-row"><span>Livraison TTC</span><strong>{{ offered ? 'Offerte · 0,00 €' : (selected.price_cents / 100)|price }}</strong></div><div class="summary-total d-flex justify-content-between gap-2"><strong>Total TTC</strong><strong>{{ (totalWt + (offered ? 0 : selected.price_cents / 100))|price }}</strong></div>{% else %}<p class="small text-muted">{{ offered ? 'La livraison est offerte. Choisissez votre mode de livraison.' : 'La livraison est ajoutée au récapitulatif selon votre choix.' }}</p>{% endif %}
         <button class="btn btn-brand btn-lg w-100 mt-3" type="submit" name="action" value="{{ selected ? 'confirm' : (offers|length ? 'method' : 'address') }}" {{ selected and not point ? 'disabled' : '' }}>{{ offers|length ? 'Vérifier ma commande' : 'Voir les livraisons disponibles' }}</button>
         <a href="{{ path('app_cart') }}" class="d-block text-center mt-3">Retour au panier</a><p class="small text-muted mt-3 mb-0">Le paiement s’effectue ensuite via Stripe. Aucun débit à cette étape.</p>
       </div></aside>

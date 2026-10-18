@@ -1,5 +1,5 @@
 {# Point unique de contenu ; announcement_message pourra être fourni par le back-office. #}
-{% set message = announcement_message|default('Rhum arrangé artisanal • Livraison en France') %}
+{% set message = announcement_message|default(home_content('announcement')) %}
 {% if message|trim %}
 <div class="site-announcement"><div class="container">{{ message }}</div></div>
 {% endif %}

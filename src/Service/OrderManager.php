@@ -24,14 +24,15 @@ class OrderManager
         return in_array($to, self::TRANSITIONS[$operation][$from] ?? [], true);
     }
 
-    public function __construct(private EntityManagerInterface $em, private OrderEmails $emails) {}
+    private CommercialPricing $pricing;
+    public function __construct(private EntityManagerInterface $em, private OrderEmails $emails, ?CommercialPricing $pricing = null) { $this->pricing = $pricing ?? new CommercialPricing($em); }
 
-    public function create(User $user, Address $address, Carrier $carrier, array $lines, ?\App\Shipping\DeliverySelection $delivery = null): Order
+    public function create(User $user, Address $address, Carrier $carrier, array $lines, ?\App\Shipping\DeliverySelection $delivery = null, ?string $promoCode = null): Order
     {
         if (!$lines || $address->getUser()?->getId() !== $user->getId()) {
             throw new \DomainException('Le panier ou l’adresse de livraison est invalide.');
         }
-        return $this->em->wrapInTransaction(function () use ($user, $address, $carrier, $lines, $delivery): Order {
+        return $this->em->wrapInTransaction(function () use ($user, $address, $carrier, $lines, $delivery, $promoCode): Order {
             if ($delivery) { $carrier = $delivery->carrier(); }
             $order = (new Order())->setUser($user)->setCreatedAt(new \DateTime())
                 ->setState(0)->setCarrierName($carrier->getName())->setCarrierPrice($carrier->getPrice())
@@ -51,7 +52,20 @@ class OrderManager
                 $order->addColis(new \App\Entity\ColisCommande($order, $index + 1, $colis, $emballage));
             }
             ksort($lines);
-            foreach ($lines as $line) {
+            // Relecture sous verrou avant tout calcul commercial : aucun prix navigateur.
+            foreach ($lines as &$line) {
+                $current = $this->em->find(Product::class, $line['object']->getId());
+                if (!$current) { throw new \DomainException('Un produit n’est plus disponible.'); }
+                $this->em->refresh($current, LockMode::PESSIMISTIC_WRITE);
+                $line['object'] = $current;
+            }
+            unset($line);
+            $quote = $this->pricing->quote($lines, $promoCode, true);
+            $transportCents = (int) round($carrier->getPrice() * 100);
+            $order->recordCommercialSnapshot($quote['coupon']?->getCode(), $quote['discountCents'], $transportCents);
+            if ($quote['freeShipping']) { $order->setCarrierPrice(0); }
+            $quote['coupon']?->reserve();
+            foreach ($lines as $key => $line) {
                 $product = $this->em->find(Product::class, $line['object']->getId());
                 if (!$product) { throw new \DomainException('Un produit n’est plus disponible.'); }
                 $this->em->refresh($product, LockMode::PESSIMISTIC_WRITE);
@@ -59,7 +73,7 @@ class OrderManager
                 if ($delivery) {
                     $facts = array_values(array_filter($delivery->snapshot['items'], static fn ($item) => $item['id'] === $product->getId()))[0] ?? null;
                     if (!$facts || $facts['qty'] !== $qty || $facts['weight_grams'] !== $product->getShippingWeightGrams()
-                        || $facts['price_cents'] !== (int) round($product->getPriceWt() * 100)) {
+                        || $facts['price_cents'] !== $quote['unitCents'][$key]) {
                         throw new \DomainException('Votre sélection a changé. Vérifiez à nouveau le panier et la livraison.');
                     }
                 }
@@ -69,7 +83,8 @@ class OrderManager
                 $product->setStock($product->getStock() - $qty);
                 $order->addOrderDetail((new OrderDetail())->setProduct($product)->setProductName($product->getName())
                     ->setProductIllustration($product->getIllustration())->setProductQuantity($qty)
-                    ->setProductPrice($product->getPriceWt())->setProductTva($product->getTva()));
+                    ->setProductPrice($quote['unitCents'][$key] / 100)->setProductTva($product->getTva())
+                    ->setCommercialDiscountCents($quote['discounts'][$key]));
             }
             $this->em->persist($order);
             return $order;

@@ -68,6 +68,7 @@
 .product-grid .availability { margin-top: .75rem; font-size: .78rem; font-weight: 400; }
 .product-grid .product-card-footer { border: 0; padding-top: 0; margin-top: .85rem; }
 .product-grid .product-price { font-size: 1.15rem; font-weight: 500; }
+.product-promotion-label { display: inline-flex; align-items: center; padding: .2rem .45rem; border-radius: 3px; background: var(--elixquis-beige); color: var(--elixquis-ambre); font-size: .72rem; font-weight: 500; line-height: 1.4; white-space: nowrap; }
 /* Sélection : surfaces crème discrètes, photographie et légende rapprochées. */
 .home-selection-section .section-heading { margin-bottom: clamp(1rem, 1.5vw, 1.25rem); }
 .product-grid.home-selection .product-card {

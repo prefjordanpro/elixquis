@@ -3,6 +3,8 @@
 {% set crud  = 'App\\\\Controller\\\\Admin\\\\OrderCrudController' %}
 {% include 'admin/_shipping.html.twig' %}
 {% include 'admin/_colis.html.twig' %}
+{% if order.promoCode %}<p>Code promo : <strong>{{ order.promoCode }}</strong> · remise incluse dans les totaux : {{ (order.promoDiscountCents / 100)|price }}</p>{% endif %}
+{% if order.transportCostCents is not null %}<p class="small text-muted">Coût transport TTC du devis : {{ (order.transportCostCents / 100)|price }} · Livraison facturée : {{ order.carrierPrice|price }}</p>{% endif %}
 <div class="mb-3">
   <strong>Paiement</strong> :
   {% if order.stripePaymentIntentId %}Paiement Stripe enregistré : <code>{{ order.stripePaymentIntentId }}</code>
@@ -124,8 +126,8 @@
         {% set tvaP = d.productTva|default(0) %}
         {% set coef = 1 + (tvaP/100) %}
         {% set puh  = (coef > 0) ? (put / coef) : put %}  {# PU HT recalculé #}
-        {% set lht  = put * q - d.totalTvaCents / 100 %}
-        {% set lttc = put * q %}
+        {% set lht  = (d.totalPriceCents - d.totalTvaCents) / 100 %}
+        {% set lttc = d.totalPriceCents / 100 %}
         {% set ltv  = lttc - lht %}
         {% set total_ht  = total_ht + lht %}
         {% set total_tva = total_tva + ltv %}

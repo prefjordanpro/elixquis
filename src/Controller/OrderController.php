@@ -62,7 +62,7 @@ final class OrderController extends AbstractController
         }
         $lines = $cart->getCart();
         try {
-            $order = $orders->create($user, $form->get('addresses')->getData(), $form->get('carriers')->getData(), $lines);
+            $order = $orders->create($user, $form->get('addresses')->getData(), $form->get('carriers')->getData(), $lines, null, $cart->getPromoCode());
         } catch (\DomainException $e) {
             $this->addFlash('warning', $e->getMessage());
             return $this->redirectToRoute('app_cart');

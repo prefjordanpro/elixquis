@@ -15,7 +15,7 @@
     <div class="product-detail-info">
       <p class="section-label">{{ product.category ? product.category.name : 'La boutique Elixquis' }}</p>
       <h1>{{ product.name }}</h1>
-      <div class="product-price-line"><span class="detail-price">{{ product.pricewt|price }}</span><span class="text-muted">TTC · TVA incluse</span></div>
+      <div class="product-price-line">{% include 'components/_product_price.html.twig' with {product: product, priceClass: 'detail-price'} only %}<span class="text-muted">TTC · TVA incluse</span></div>
       <div class="buy-box">
         <p class="section-label">Votre sélection</p>
         <p class="availability {{ product.stock < 1 ? 'unavailable' : '' }}">{{ product.stock > 0 ? 'Disponible' : 'Rupture de stock' }}</p>

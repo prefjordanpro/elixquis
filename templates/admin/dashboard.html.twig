@@ -1,0 +1,16 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% block content_title %}Gestion commerciale Elixquis{% endblock %}
+{% block main %}
+<div class="row g-4">
+  <section class="col-lg-6"><h2 class="h4">Commandes</h2><p><strong>{{ pending }}</strong> en attente de paiement</p>
+    <div class="table-responsive"><table class="table"><thead><tr><th>Référence</th><th>Date</th><th>Statut</th><th>Total TTC</th></tr></thead><tbody>
+    {% for order in recent %}<tr><td><a href="{{ path('admin_order_detail', {entityId: order.id}) }}">{{ order.reference }}</a></td><td>{{ order.createdAt|date('d/m/Y') }}</td><td>{{ include('admin/state.html.twig', {field: {value: order.state}}) }}</td><td>{{ order.totalWt|price }}</td></tr>{% else %}<tr><td colspan="4">Aucune commande.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+  <section class="col-lg-6"><h2 class="h4">Stocks</h2><p>Stock faible : de 1 à {{ threshold }} unités.</p>
+    <h3 class="h5">Ruptures · {{ ruptures|length }}</h3><ul>{% for product in ruptures %}<li><a href="{{ stockLinks[product.id] }}">{{ product.name }}</a></li>{% else %}<li>Aucune rupture.</li>{% endfor %}</ul>
+    <h3 class="h5">Stocks faibles · {{ lowStock|length }}</h3><ul>{% for product in lowStock %}<li><a href="{{ stockLinks[product.id] }}">{{ product.name }}</a> · {{ product.stock }}</li>{% else %}<li>Aucune alerte.</li>{% endfor %}</ul>
+    <h2 class="h4 mt-4">Offres commerciales</h2><p>{{ promotionCount }} promotion(s) produit active(s) · {{ codeCount }} code(s) disponible(s).</p>
+  </section>
+</div>
+{% endblock %}

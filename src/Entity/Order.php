@@ -14,6 +14,19 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\UniqueConstraint(name: 'UNIQ_ORDER_REFUND', columns: ['stripe_refund_id'])]
 class Order
 {
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $promoCode = null;
+    #[ORM\Column(options: ['default' => 0])]
+    private int $promoDiscountCents = 0;
+    #[ORM\Column(nullable: true)]
+    private ?int $transportCostCents = null;
+    public function getPromoCode(): ?string { return $this->promoCode; }
+    public function getPromoDiscountCents(): int { return $this->promoDiscountCents; }
+    public function getTransportCostCents(): ?int { return $this->transportCostCents; }
+    public function recordCommercialSnapshot(?string $code, int $discount, int $transport): void
+    {
+        $this->promoCode = $code; $this->promoDiscountCents = $discount; $this->transportCostCents = $transport;
+    }
     /** @var Collection<int, OrderNotification> */
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: OrderNotification::class)]
     #[ORM\OrderBy(['id' => \SortDirection::Ascending])]
@@ -137,7 +150,7 @@ class Order
     {
         $total = (int) round($this->carrierPrice * 100);
         foreach ($this->orderDetails as $line) {
-            $total += (int) round($line->getProductPrice() * 100) * $line->getProductQuantity();
+            $total += $line->getTotalPriceCents();
         }
         return $total;
     }
