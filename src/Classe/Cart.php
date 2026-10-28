@@ -8,7 +8,19 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class Cart
 {
-    public function __construct(private RequestStack $requestStack, private ProductRepository $products) {}
+    public function __construct(private RequestStack $requestStack, private ProductRepository $products, private \App\Service\CommercialPricing $pricing) {}
+    public function getPromoCode(): ?string { return $this->requestStack->getCurrentRequest()?->hasSession() ? $this->requestStack->getSession()->get('promo_code') : null; }
+    public function setPromoCode(?string $code): void { $this->requestStack->getSession()->set('promo_code', $code); }
+    public function getCommercialQuote(): array
+    {
+        $lines = $this->getCart();
+        try { return $this->pricing->quote($lines, $this->getPromoCode()); }
+        catch (\DomainException) {
+            $this->setPromoCode(null);
+            $this->requestStack->getSession()->getFlashBag()->add('warning', \App\Service\CommercialPricing::INVALID_CODE);
+            return $this->pricing->quote($lines);
+        }
+    }
 
     public function add(Product $product, int $amount = 1): void
     {
@@ -44,14 +56,10 @@ class Cart
 
     public function getTotalWt(): float
     {
-        $cents = 0;
-        foreach ($this->getCart() as $line) {
-            $cents += (int) round($line['object']->getPriceWt() * 100) * $line['qty'];
-        }
-        return $cents / 100;
+        return $this->getCommercialQuote()['totalCents'] / 100;
     }
 
-    public function remove(): void { $this->requestStack->getSession()->remove('cart'); }
+    public function remove(): void { $this->requestStack->getSession()->remove('cart'); $this->setPromoCode(null); }
 
     /** Les objets Doctrine ne sont jamais conservés en session. */
     public function getCart(): array

@@ -4,7 +4,7 @@ namespace App\Twig;
 
 use App\Classe\Cart;
 use App\Repository\CategoryRepository;
-use App\Repository\HeaderRepository; // ⬅️ ajouter
+use App\Repository\HeaderRepository;
 use Twig\Extension\AbstractExtension;
 use Twig\Extension\GlobalsInterface;
 use Twig\TwigFilter;
@@ -15,7 +15,8 @@ class AppExtensions extends AbstractExtension implements GlobalsInterface
         private CategoryRepository $categoryRepository,
         private Cart $cart,
         private HeaderRepository $headerRepository,
-        private \App\Service\CompanySettings $company
+        private \App\Service\CompanySettings $company,
+        private \App\Service\HomeContent $homeContent
     ) {}
 
     public function getFilters(): array
@@ -35,11 +36,10 @@ class AppExtensions extends AbstractExtension implements GlobalsInterface
     {
         return [
             'company' => $this->company->details(),
+            'homeContent' => $this->homeContent->get(),
             'allCategories'     => $this->categoryRepository->findAll(),
             'fullCartQuantity'  => $this->cart->fullQuantity(),
-            // Adapte le tri/filtre si tu as isActive/position
-            'siteHeaders'       => $this->headerRepository->findBy([], ['id' => 'ASC']),
-            // ex : findBy(['isActive' => true], ['position' => 'ASC'])
+            'siteHeaders'       => $this->headerRepository->findBy(['active' => true], ['position' => 'ASC', 'id' => 'ASC']),
         ];
     }
 }

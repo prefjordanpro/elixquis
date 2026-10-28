@@ -38,13 +38,16 @@ class OrderCrudController extends AbstractCrudController
 
     public function configureFilters(\EasyCorp\Bundle\EasyAdminBundle\Config\Filters $filters): \EasyCorp\Bundle\EasyAdminBundle\Config\Filters
     {
-        return $filters->add(\EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter::new('user', 'Client'));
+        return $filters->add(\EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter::new('user', 'Client'))
+            ->add(\EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter::new('state', 'Statut')->setChoices(['Paiement en attente' => 0, 'Payée' => 1, 'En préparation' => 2, 'Expédiée' => 3, 'Annulée' => 4, 'Livrée' => 5, 'Remboursée' => 6, 'Demande d’annulation' => 7]));
     }
 
     public function configureCrud(Crud $crud): Crud
     {
         return $crud->setEntityLabelInSingular('Commande')->setEntityLabelInPlural('Commandes')
-            ->setDefaultSort(['createdAt' => 'DESC']);
+            ->setDefaultSort(['createdAt' => 'DESC'])->setDefaultRowAction(Action::DETAIL)
+            ->setPageTitle(Crud::PAGE_DETAIL, fn (Order $order) => 'Commande '.htmlspecialchars($order->getReference(), ENT_QUOTES, 'UTF-8'))
+            ->setSearchFields(['id', 'user.firstname', 'user.lastname', 'user.email', 'carrierName']);
     }
 
     public function configureActions(Actions $actions): Actions
@@ -59,10 +62,16 @@ class OrderCrudController extends AbstractCrudController
             return [Field::new('recap')->setVirtual(true)->setLabel(false)->setTemplatePath('admin/order.html.twig')->onlyOnDetail()
                 ->setCustomOption('historicalCancellationAllowed', $this->historicalCancellation->isEligible($this->getContext()->getEntity()->getInstance()))];
         }
-        return [IdField::new('id'), DateField::new('createdAt', 'Date'),
+        return [TextField::new('reference', 'N° de commande'), DateField::new('createdAt', 'Date'),
             NumberField::new('state', 'Statut')->setTemplatePath('admin/state.html.twig'),
-            AssociationField::new('user', 'Client'), TextField::new('carrierName', 'Transporteur'),
-            NumberField::new('carrierPrice', 'Livraison'), NumberField::new('totalTva', 'TVA totale'), NumberField::new('totalWt', 'Total TTC')];
+            AssociationField::new('user', 'Client'),
+            \EasyCorp\Bundle\EasyAdminBundle\Field\MoneyField::new('totalWt', 'Total TTC')->setCurrency('EUR')->setStoredAsCents(false)];
+    }
+    public function createIndexQueryBuilder(\EasyCorp\Bundle\EasyAdminBundle\Dto\SearchDto $searchDto, \EasyCorp\Bundle\EasyAdminBundle\Dto\EntityDto $entityDto, \EasyCorp\Bundle\EasyAdminBundle\Collection\FieldCollection $fields, \EasyCorp\Bundle\EasyAdminBundle\Collection\FilterCollection $filters): \Doctrine\ORM\QueryBuilder
+    {
+        $query = parent::createIndexQueryBuilder($searchDto, $entityDto, $fields, $filters);
+        if ($this->getContext()->getRequest()->query->get('traitement') === 'a-preparer') $query->andWhere('entity.state IN (1, 2)');
+        return $query;
     }
 
     #[Route('/admin/commande/{id}/statut', name: 'app_admin_order_state', methods: ['POST'])]

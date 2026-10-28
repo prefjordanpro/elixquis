@@ -1,14 +1,14 @@
 {% extends 'base.html.twig' %}
-{% block title %}Elixquis — Découvrez nos rhums arrangés{% endblock %}
+{% block title %}{{ homeContent.pageTitle }}{% endblock %}
 {% block body %}
 <section class="home-hero home-hero-immersive">
   <div class="container hero-grid">
     <div class="hero-copy">
-      <p class="section-label">Rhums arrangés artisanaux</p>
-      <h1>Le caractère<br>du rhum.<br><span>L’exquis des fruits.</span></h1>
-      <p class="lead">Des rhums arrangés, des fruits et des épices. Un univers gourmand à découvrir, pour des moments conviviaux.</p>
+      <p class="section-label">{{ homeContent.heroEyebrow }}</p>
+      <h1>{{ homeContent.heroTitle }}<br>{{ homeContent.heroTitleSecondLine }}<br><span>{{ homeContent.heroAccent }}</span></h1>
+      <p class="lead">{{ homeContent.heroParagraph }}</p>
       <div class="hero-actions">
-        <a class="btn btn-brand btn-lg" href="{{ path('app_catalogue') }}">Découvrir la boutique <i data-feather="arrow-right"></i></a>
+        <a class="btn btn-brand btn-lg" href="{{ homeContent.heroUrl }}">{{ homeContent.heroCta|trim }} <i data-feather="arrow-right"></i></a>
       </div>
     </div>
     <div class="hero-stage"><div class="hero-image">
@@ -17,10 +17,10 @@
         <div class="carousel-inner">
           {% for header in siteHeaders %}
           <div class="carousel-item {{ loop.first ? 'active' : '' }}">
-            <img src="{{ asset('uploads/' ~ header.illustration) }}" alt="{{ header.title }}" width="800" height="650" loading="{{ loop.first ? 'eager' : 'lazy' }}" fetchpriority="{{ loop.first ? 'high' : 'auto' }}">
+            <img src="{{ asset('uploads/' ~ header.illustration) }}" alt="{{ header.alt ?: header.title }}" width="800" height="650" loading="{{ loop.first ? 'eager' : 'lazy' }}" fetchpriority="{{ loop.first ? 'high' : 'auto' }}">
             <div class="hero-caption"><h2>{{ header.title }}</h2>
               {% if header.content %}<p>{{ header.content }}</p>{% endif %}
-              {% if header.buttonLink and header.buttonTitle %}<a class="editorial-link" href="{{ header.buttonLink }}">{{ 'parfum' in header.buttonTitle|lower ? 'Découvrir nos rhums' : header.buttonTitle }}</a>{% endif %}
+              {% if header.buttonLink and header.buttonTitle %}<a class="editorial-link" href="{{ header.buttonLink }}">{{ header.buttonTitle }}</a>{% endif %}
             </div>
           </div>
           {% endfor %}
@@ -30,30 +30,30 @@
         {% endif %}
       </div>
       {% else %}
-      <img src="{{ asset('images/editorial/degustation-ambree-v2.jpg') }}" alt="Illustration d’ambiance : un verre ambré et un zeste d’orange" width="1536" height="1024" fetchpriority="high">
+      <img src="{{ asset(homeContent.heroImage) }}" alt="{{ homeContent.heroAlt }}" width="1536" height="1024" fetchpriority="high">
       {% endif %}
-    </div><p class="hero-image-note">Fruits · Épices · Caractère</p></div>
+    </div><p class="hero-image-note">{{ homeContent.heroNote }}</p></div>
   </div>
 </section>
 <section class="story-band home-story" aria-labelledby="story-title">
   <div class="container editorial-grid">
     <div class="editorial-copy">
-      <p class="editorial-index"><span class="editorial-number" aria-hidden="true">01</span><span class="section-label">L’esprit Elixquis</span></p>
-      <h2 id="story-title">L’élixir.<br><span>L’exquis.</span></h2>
-      <p class="story-origin">Deux mots, une invitation à découvrir.</p>
-      <p>Elixquis associe l’univers de l’élixir à la délicatesse de l’exquis. Les fruits et les épices y rencontrent le caractère du rhum, avec une place essentielle accordée aux ingrédients naturels.</p>
-      <a class="editorial-link" href="{{ path('app_catalogue') }}">Explorer les recettes</a>
+      <p class="editorial-index"><span class="editorial-number" aria-hidden="true">{{ homeContent.storyNumber }}</span><span class="section-label">{{ homeContent.storyEyebrow }}</span></p>
+      <h2 id="story-title">{{ homeContent.storyTitle }}<br><span>{{ homeContent.storyAccent }}</span></h2>
+      <p class="story-origin">{{ homeContent.storySubtitle }}</p>
+      <p>{{ homeContent.storyParagraph }}</p>
+      <a class="editorial-link" href="{{ homeContent.storyUrl }}">{{ homeContent.storyLinkLabel }}</a>
     </div>
     <figure class="editorial-photo">
-      <img src="{{ asset('images/editorial/degustation-ambree-v2.jpg') }}" alt="Illustration d’ambiance : lumière chaude sur un verre de dégustation" width="1536" height="1024" loading="lazy" decoding="async">
-      <figcaption>Le goût des moments partagés</figcaption>
+      <img src="{{ asset(homeContent.storyImage) }}" alt="{{ homeContent.storyAlt }}" width="1536" height="1024" loading="lazy" decoding="async">
+      <figcaption>{{ homeContent.storyCaption }}</figcaption>
     </figure>
   </div>
 </section>
   {% if productsInHomepage|length %}
   <section class="section-space home-selection-section" aria-labelledby="selection-title">
     <div class="container home-selection-inner">
-    <div class="section-heading"><div><p class="section-label">La sélection Elixquis</p><h2 id="selection-title">À découvrir, à savourer.</h2><p>Explorez les produits mis en avant dans notre boutique.</p></div><a class="editorial-link" href="{{ path('app_catalogue') }}">Voir toute la boutique ↗</a></div>
+    <div class="section-heading"><div><p class="section-label">{{ homeContent.selectionEyebrow }}</p><h2 id="selection-title">{{ homeContent.selectionTitle }}</h2><p>{{ homeContent.selectionDescription }}</p></div><a class="editorial-link" href="{{ homeContent.selectionUrl }}">{{ homeContent.selectionLinkLabel }}</a></div>
     <div class="product-grid home-selection">
       {% for product in productsInHomepage|slice(0, 3) %}<div class="product-cell">{% include 'components/_product_card.html.twig' with {product: product, heading: 'h3'} %}</div>{% endfor %}
     </div>
@@ -63,27 +63,27 @@
 <div class="container">
   {% if allCategories|length %}
   <section class="section-space pt-0" id="nos-saveurs" aria-labelledby="categories-title">
-    <div class="section-heading"><div><p class="section-label">À chacun ses envies</p><h2 id="categories-title">Choisissez vos saveurs.</h2></div></div>
+    <div class="section-heading"><div><p class="section-label">{{ homeContent.flavoursEyebrow }}</p><h2 id="categories-title">{{ homeContent.flavoursTitle }}</h2></div></div>
     <div class="category-grid">{% for category in allCategories %}<a class="category-tile" href="{{ path('app_category', {slug: category.slug}) }}"><span>{{ category.name }}</span><i data-feather="arrow-right"></i></a>{% endfor %}</div>
-    <a class="editorial-link mt-4" href="{{ path('app_catalogue') }}#catalogue-saveurs">Voir toutes les saveurs <span aria-hidden="true">→</span></a>
+    <a class="editorial-link mt-4" href="{{ homeContent.flavoursUrl }}">{{ homeContent.flavoursCta|trim }} <span aria-hidden="true">→</span></a>
   </section>
   {% endif %}
 </div>
 <section class="brand-story section-space" aria-labelledby="passion-title">
   <div class="container editorial-grid">
     <div class="editorial-copy">
-      <p class="editorial-index"><span class="editorial-number" aria-hidden="true">02</span><span class="section-label">L’histoire d’un passionné</span></p>
-      <h2 id="passion-title">Tout commence<br>par une <span>découverte.</span></h2>
-      <p>Lors d’un séjour au ski entre amis, Paul découvre les rhums arrangés. Le mélange du rhum, des fruits et des épices lui donne envie de créer ses propres compositions, d’abord pour lui et ses proches.</p>
-      <p>Ces moments partagés font naître Elixquis : une passion des saveurs et l’envie de la transmettre.</p>
+      <p class="editorial-index"><span class="editorial-number" aria-hidden="true">{{ homeContent.passionNumber }}</span><span class="section-label">{{ homeContent.passionEyebrow }}</span></p>
+      <h2 id="passion-title">{{ homeContent.passionTitle }}<br>{{ homeContent.passionTitleSecondLine|trim }} <span>{{ homeContent.passionAccent }}</span></h2>
+      <p>{{ homeContent.passionParagraph }}</p>
+      <p>{{ homeContent.passionSecondParagraph }}</p>
     </div>
     <figure class="editorial-photo">
-      <img src="{{ asset('images/editorial/fruits-epices-v2.jpg') }}" alt="Illustration d’ambiance : oranges, litchis, vanille et cannelle sur une table claire" width="1536" height="1024" loading="lazy" decoding="async">
-      <figcaption>Fruits &amp; épices · L’inspiration</figcaption>
+      <img src="{{ asset(homeContent.passionImage) }}" alt="{{ homeContent.passionAlt }}" width="1536" height="1024" loading="lazy" decoding="async">
+      <figcaption>{{ homeContent.passionCaption }}</figcaption>
     </figure>
   </div>
 </section>
 <div class="container">
-  {% include 'components/_reassurance.html.twig' %}
+  {% include 'home/_reassurance.html.twig' %}
 </div>
 {% endblock %}

@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
-#[\Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity(fields: ['slug'], message: 'Ce lien de catégorie est déjà utilisé.')]
+#[\Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity(fields: ['slug'], errorPath: 'name', message: 'Cette catégorie existe déjà. Choisissez un nom distinct.')]
 class Category
 {
     #[ORM\Id]
@@ -57,6 +57,7 @@ class Category
     public function setName(string $name): static
     {
         $this->name = $name;
+        if (!$this->slug) { $this->slug = (new \Symfony\Component\String\Slugger\AsciiSlugger('fr'))->slug($name)->lower()->toString(); }
 
         return $this;
     }

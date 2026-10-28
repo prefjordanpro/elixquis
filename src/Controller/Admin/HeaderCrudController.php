@@ -4,12 +4,8 @@ namespace App\Controller\Admin;
 
 use App\Entity\Header;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use Symfony\Component\Validator\Constraints\Image;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 
 #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
@@ -22,7 +18,8 @@ class HeaderCrudController extends AbstractCrudController
 
     public function configureCrud(Crud $crud): Crud
     {
-        return $crud->setEntityLabelInSingular('Bannière')->setEntityLabelInPlural('Bannières');
+        return $crud->setEntityLabelInSingular('Image du carrousel')->setEntityLabelInPlural('Images du carrousel')
+            ->addFormTheme('admin/content_image_theme.html.twig')->setDefaultSort(['position' => 'ASC', 'id' => 'ASC']);
     }
 
     
@@ -36,17 +33,21 @@ class HeaderCrudController extends AbstractCrudController
         }
         
         return [
+            \EasyCorp\Bundle\EasyAdminBundle\Field\FormField::addFieldset('Affichage de cette image'),
+            \EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField::new('active', 'Actif')->renderAsSwitch(false),
+            \EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField::new('position', 'Ordre'),
+            TextField::new('alt', 'Texte alternatif')->setRequired(false)->setFormTypeOption('empty_data', '')->setHelp('Description de l’image utilisée pour l’accessibilité.'),
             TextField::new('title')->setLabel('Titre'),
             TextareaField::new('content')->setLabel('Contenu'),
             TextField::new('buttonTitle')->setLabel('Titre du bouton'),
-            TextField::new('buttonLink')->setLabel('URL du bouton'),
-            ImageField::new('illustration')
-                ->setLabel('Image de fond')
-                ->setHelp('Image de la bannière en JPG, PNG ou WebP')
-                ->setUploadedFileNamePattern('[year]-[month]-[day]-[contenthash].[extension]')
+            TextField::new('buttonLink')->setLabel('Lien du bouton'),
+            ContentImage::field('illustration', 'Photo')
+                ->setLabel('Photo')
+                ->setHelp('JPEG, PNG ou WebP. Taille maximale : 5 Mo.')
+                ->setUploadedFileNamePattern('[randomhash].[extension]')
                 ->setBasePath('/uploads')
                 ->setUploadDir('/public/uploads')
-                ->setFormTypeOption('file_constraints', [new Image(maxSize: '5M', mimeTypes: ['image/jpeg', 'image/png', 'image/webp'])])
+                ->setFileConstraints([ContentImage::constraint()])
                 ->setRequired($required),
 
         ];

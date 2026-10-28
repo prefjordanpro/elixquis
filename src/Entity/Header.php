@@ -10,6 +10,18 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: HeaderRepository::class)]
 class Header
 {
+    #[ORM\Column(options: ['default' => true])]
+    private bool $active = true;
+    #[ORM\Column(options: ['default' => 0])]
+    private int $position = 0;
+    #[ORM\Column(length: 255, options: ['default' => ''])]
+    private string $alt = '';
+    public function isActive(): bool { return $this->active; }
+    public function setActive(bool $value): static { $this->active = $value; return $this; }
+    public function getPosition(): int { return $this->position; }
+    public function setPosition(int $value): static { $this->position = $value; return $this; }
+    public function getAlt(): string { return $this->alt; }
+    public function setAlt(string $value): static { $this->alt = $value; return $this; }
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -26,7 +38,7 @@ class Header
     private ?string $buttonTitle = null;
 
     #[ORM\Column(length: 255)]
-    #[Assert\Regex(pattern: '~^(?:/(?!/)|https?://)~i', message: 'Utilisez une URL http(s) ou un chemin local.')]
+    #[\App\Validator\PublicContentUrl]
     private ?string $buttonLink = null;
 
     #[ORM\Column(length: 255)]

@@ -1,0 +1,15 @@
+{% extends 'admin/legal/base.html.twig' %}
+{% block content_title %}Pages légales{% endblock %}
+{% block main %}
+<p class="workspace-intro">Préparez vos documents, vérifiez leur aperçu, puis publiez-les. Les brouillons restent privés.</p>
+<div class="workspace-columns">
+{% for page in pages %}<section class="workspace-panel">
+  <h2>{{ page.label }}</h2>
+  <p><span class="badge {{ page.publishedVersion ? 'bg-success' : 'bg-secondary' }}">{{ page.publishedVersion ? 'Publiées' : (page.draftContent|striptags|trim ? 'Brouillon' : 'À compléter') }}</span></p>
+  {% if page.draftContent|striptags|trim and not legal_complete(page.draftContent) %}<p class="text-warning-emphasis">À compléter avant publication définitive</p>{% endif %}
+  {% if page.publishedVersion and page.hasChanges %}<p>Un brouillon contient des modifications non publiées.</p>{% endif %}
+  <p class="text-muted small">Dernière modification : {{ page.updatedAt|date('d/m/Y H:i') }}<br>Publication : {{ page.publishedVersion ? page.publishedVersion.publishedAt|date('d/m/Y H:i') : 'Jamais publié' }}</p>
+  <div class="workspace-shortcuts"><a class="btn btn-primary" href="{{ path('admin_legal_edit', {type: page.id}) }}">Modifier</a><a class="btn btn-secondary" href="{{ path('admin_legal_preview', {type: page.id}) }}">Aperçu</a><a class="btn btn-secondary" href="{{ path('admin_legal_history', {type: page.id}) }}">Historique</a></div>
+</section>{% endfor %}
+</div>
+{% endblock %}

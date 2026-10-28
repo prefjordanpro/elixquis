@@ -1,0 +1,6 @@
+{% extends 'admin/legal/base.html.twig' %}
+{% block content_title %}Historique — {{ page.label }}{% endblock %}
+{% block main %}
+<p><a href="{{ path('admin_legal_edit', {type: page.id}) }}">Retour au document</a></p>
+{% for version in versions %}<section class="workspace-panel mb-3"><h2>Version {{ version.number }} — {{ version.status }}</h2><p>{{ version.title }}</p><p>Publiée le {{ version.publishedAt|date('d/m/Y H:i') }}{% if version.publisherLabel %} par {{ version.publisherLabel }}{% endif %}</p><a class="btn btn-secondary" href="{{ path('admin_legal_version', {type: page.id, id: version.id}) }}">Consulter en lecture seule</a></section>{% else %}<p>Aucune version publiée pour ce document.</p>{% endfor %}
+{% endblock %}

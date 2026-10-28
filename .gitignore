@@ -24,5 +24,8 @@
 /public/assets/*
 !/public/assets/css/
 !/public/assets/js/
+!/public/assets/vendor/
+/public/assets/vendor/*
+!/public/assets/vendor/leaflet/
 /assets/vendor/
 ###< symfony/asset-mapper ###

@@ -1,0 +1,2 @@
+{% set label = stock_status(field.value) %}
+<span class="badge {{ field.value <= 0 ? 'bg-danger' : (label == 'Stock faible' ? 'bg-warning' : 'bg-success') }}">{{ label }}</span>

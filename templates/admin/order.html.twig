@@ -1,17 +1,18 @@
 {# templates/admin/order.html.twig #}
 {% set order = (entity.instance is defined) ? entity.instance : ea.entity.instance %}
 {% set crud  = 'App\\\\Controller\\\\Admin\\\\OrderCrudController' %}
-{% include 'admin/_shipping.html.twig' %}
-{% include 'admin/_colis.html.twig' %}
+{% if order.promoCode %}<p>Code promo : <strong>{{ order.promoCode }}</strong> · remise incluse dans les totaux : {{ (order.promoDiscountCents / 100)|price }}</p>{% endif %}
+{% if order.transportCostCents is not null %}<p class="small text-muted">Coût transport TTC du devis : {{ (order.transportCostCents / 100)|price }} · Livraison facturée : {{ order.carrierPrice|price }}</p>{% endif %}
 <div class="mb-3">
   <strong>Paiement</strong> :
-  {% if order.stripePaymentIntentId %}Paiement Stripe enregistré : <code>{{ order.stripePaymentIntentId }}</code>
+  {% if order.stripePaymentIntentId %}Paiement confirmé
   {% elseif order.state in [1, 2, 3, 5, 6, 7] %}Commande historique enregistrée comme payée
   {% else %}Aucun paiement confirmé enregistré{% endif %}
-  {% if order.stripeRefundStatus %} — Remboursement : {{ order.stripeRefundStatus }}{% endif %}
+  {% if order.stripeRefundStatus %} — Remboursement : {{ {succeeded: 'Confirmé', pending: 'En cours', requires_action: 'À vérifier', failed: 'Échec à vérifier', canceled: 'Annulé'}[order.stripeRefundStatus]|default('À vérifier') }}{% endif %}
 </div>
 
 {% macro euro(x) %}{{ (x|default(0))|number_format(2, ',', ' ') }} €{% endmacro %}
+{% if order.acceptedTermsVersion %}<p class="small">Conditions Générales de Vente acceptées : <a href="{{ path('app_legal_cgv_version', {id: order.acceptedTermsVersion.id}) }}" target="_blank" rel="noopener noreferrer">Version {{ order.acceptedTermsVersion.number }}</a>, le {{ order.termsAcceptedAt|date('d/m/Y H:i') }}.</p>{% endif %}
 {% import _self as ui %}
 
 {% set labels = {
@@ -31,7 +32,7 @@
 <details class="mb-3"><summary>Historique des notifications de statut</summary>
   {% for notification in order.notifications %}
     <p>{{ notification.createdAt|date('d/m/Y H:i') }} — {{ labels[notification.state][0]|default('Statut historique') }} —
-      Email : {{ {'pending': 'en attente', 'attempting': 'tentative à vérifier', 'sent': 'accepté par Mailjet', 'failed': 'échec à vérifier'}[notification.status]|default(notification.status) }}.</p>
+      Email : {{ {'pending': 'en attente', 'attempting': 'envoi à vérifier', 'sent': 'envoyé', 'failed': 'échec à vérifier'}[notification.status]|default('à vérifier') }}.</p>
   {% endfor %}
 </details>
 {% endif %}
@@ -124,8 +125,8 @@
         {% set tvaP = d.productTva|default(0) %}
         {% set coef = 1 + (tvaP/100) %}
         {% set puh  = (coef > 0) ? (put / coef) : put %}  {# PU HT recalculé #}
-        {% set lht  = put * q - d.totalTvaCents / 100 %}
-        {% set lttc = put * q %}
+        {% set lht  = (d.totalPriceCents - d.totalTvaCents) / 100 %}
+        {% set lttc = d.totalPriceCents / 100 %}
         {% set ltv  = lttc - lht %}
         {% set total_ht  = total_ht + lht %}
         {% set total_tva = total_tva + ltv %}
@@ -242,3 +243,5 @@
     {% include 'admin/_order_actions.html.twig' with {historicalCancellationAllowed: field.customOptions.get('historicalCancellationAllowed')} %}
   </div>
 </div>
+{% include 'admin/_shipping.html.twig' %}
+{% include 'admin/_colis.html.twig' %}

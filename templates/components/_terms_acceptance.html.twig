@@ -1,0 +1,8 @@
+{% set terms = legal_terms() %}
+{% if terms %}
+<div class="form-check checkout-terms mt-3 mb-3">
+  <input class="form-check-input" type="checkbox" name="accept_terms" value="1" id="checkout-accept-terms" required>
+  <input type="hidden" name="terms_version" value="{{ terms.id }}">
+  <label class="form-check-label" for="checkout-accept-terms">J’ai lu et j’accepte les <a href="{{ path('app_legal_cgv_version', {id: terms.id}) }}" target="_blank" rel="noopener noreferrer">Conditions Générales de Vente</a>.</label>
+</div>
+{% else %}<p class="alert alert-info">La validation de commande est momentanément indisponible.</p>{% endif %}

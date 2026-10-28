@@ -1,0 +1,8 @@
+{% set commercial = commercial_cart() %}
+<div class="mt-3 mb-3">
+  {% if commercial.coupon %}
+  <form method="post" action="{{ path('app_cart_promo') }}"><input type="hidden" name="_token" value="{{ csrf_token('cart') }}"><input type="hidden" name="action" value="remove"><p class="small mb-1">Code {{ commercial.coupon.code }} : −{{ (commercial.discountCents / 100)|price }}</p><button class="btn btn-link" type="submit">Retirer le code</button></form>
+  {% else %}
+  <form method="post" action="{{ path('app_cart_promo') }}"><input type="hidden" name="_token" value="{{ csrf_token('cart') }}"><label class="form-label small" for="promo-code">Code promo</label><input class="form-control mb-2" id="promo-code" name="code" maxlength="50" autocomplete="off" required><button class="btn btn-outline-primary" type="submit">Appliquer</button></form>
+  {% endif %}
+</div>

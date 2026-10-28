@@ -11,6 +11,24 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class CartController extends AbstractController
 {
+    #[Route('/cart/promo', name: 'app_cart_promo', methods: ['POST'])]
+    public function promo(Request $request, Cart $cart, \App\Service\CommercialPricing $pricing): Response
+    {
+        $this->validateToken($request);
+        $cart->setPromoCode(null);
+        if ($request->request->getString('action') === 'remove') {
+            $this->addFlash('info', 'Code retiré.');
+        } else {
+            $code = strtoupper(trim($request->request->getString('code')));
+            try {
+                if ($code === '' || strlen($code) > 50) { throw new \DomainException(\App\Service\CommercialPricing::INVALID_CODE); }
+                $pricing->quote($cart->getCart(), $code);
+                $cart->setPromoCode($code); $this->addFlash('success', 'Code appliqué à votre sélection.');
+            } catch (\DomainException) { $this->addFlash('warning', \App\Service\CommercialPricing::INVALID_CODE); }
+        }
+        $request->getSession()->remove('current_order_id');
+        return $this->redirectToRoute('app_cart');
+    }
     #[Route('/mon-panier/{motif}', name: 'app_cart', defaults: ['motif' => null], methods: ['GET'])]
     public function index(Cart $cart, ?string $motif): Response
     {

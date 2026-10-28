@@ -14,13 +14,15 @@ class EmballageCrudController extends AbstractCrudController
     public static function getEntityFqcn(): string { return Emballage::class; }
     public function configureCrud(Crud $crud): Crud
     {
-        return $crud->setEntityLabelInSingular('Emballage')->setEntityLabelInPlural('Emballages')->setDefaultSort(['priorite' => 'ASC', 'capacite' => 'ASC']);
+        return $crud->setEntityLabelInSingular('Emballage')->setEntityLabelInPlural('Emballages')->setDefaultSort(['priorite' => 'ASC', 'capacite' => 'ASC'])
+            ->setHelp(Crud::PAGE_INDEX, 'Ces emballages sont utilisés automatiquement pour calculer le nombre de colis et le tarif de livraison.');
     }
-    public function configureActions(Actions $actions): Actions { return $actions->disable(Action::BATCH_DELETE); }
+    public function configureActions(Actions $actions): Actions { return $actions->disable(Action::BATCH_DELETE)->update(Crud::PAGE_INDEX, Action::NEW, fn (Action $a) => $a->setLabel('Ajouter un emballage')); }
     public function configureFields(string $pageName): iterable
     {
+        yield \EasyCorp\Bundle\EasyAdminBundle\Field\FormField::addFieldset('Le carton');
         yield TextField::new('nom', 'Nom');
-        yield IntegerField::new('capacite', $pageName === Crud::PAGE_INDEX ? 'Capacité' : 'Capacité (bouteilles)')->setFormTypeOption('attr', ['min' => 1]);
+        yield IntegerField::new('capacite', $pageName === Crud::PAGE_INDEX ? 'Capacité' : 'Nombre maximal de bouteilles')->setFormTypeOption('attr', ['min' => 1]);
         yield TextField::new('dimensions', 'L × l × H')->hideOnForm();
         yield IntegerField::new('poidsVideGrammes', $pageName === Crud::PAGE_INDEX ? 'Poids emballage (g)' : 'Poids emballage et protections (g)')->setRequired(false)
             ->setHelp('Mesurez le carton vide avec toutes ses protections. Obligatoire avant activation ; aucune valeur estimée automatique.')->setFormTypeOption('attr', ['min' => 1]);

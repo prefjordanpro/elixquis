@@ -12,8 +12,43 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: '`order`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_ORDER_PAYMENT_INTENT', columns: ['stripe_payment_intent_id'])]
 #[ORM\UniqueConstraint(name: 'UNIQ_ORDER_REFUND', columns: ['stripe_refund_id'])]
+#[ORM\Index(name: 'IDX_ORDER_PROMO_CODE_DEFINITION', columns: ['promo_code_definition_id'])]
 class Order
 {
+    #[ORM\ManyToOne(targetEntity: LegalVersion::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    private ?LegalVersion $acceptedTermsVersion = null;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $termsAcceptedAt = null;
+    public function getAcceptedTermsVersion(): ?LegalVersion { return $this->acceptedTermsVersion; }
+    public function getTermsAcceptedAt(): ?\DateTimeImmutable { return $this->termsAcceptedAt; }
+    public function acceptTerms(LegalVersion $version): void
+    {
+        if ($this->acceptedTermsVersion !== null || $version->getPage()->getId() !== 'cgv') throw new \LogicException('La version de CGV acceptée ne peut pas être remplacée.');
+        $this->acceptedTermsVersion = $version; $this->termsAcceptedAt = new \DateTimeImmutable();
+    }
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?PromoCode $promoCodeDefinition = null;
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $promoUsageCountedAt = null;
+    public function getPromoCodeDefinition(): ?PromoCode { return $this->promoCodeDefinition; }
+    public function setPromoCodeDefinition(?PromoCode $code): static { $this->promoCodeDefinition = $code; return $this; }
+    public function getPromoUsageCountedAt(): ?\DateTimeImmutable { return $this->promoUsageCountedAt; }
+    public function markPromoUsageCounted(): void { $this->promoUsageCountedAt ??= new \DateTimeImmutable(); }
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $promoCode = null;
+    #[ORM\Column(options: ['default' => 0])]
+    private int $promoDiscountCents = 0;
+    #[ORM\Column(nullable: true)]
+    private ?int $transportCostCents = null;
+    public function getPromoCode(): ?string { return $this->promoCode; }
+    public function getPromoDiscountCents(): int { return $this->promoDiscountCents; }
+    public function getTransportCostCents(): ?int { return $this->transportCostCents; }
+    public function recordCommercialSnapshot(?string $code, int $discount, int $transport): void
+    {
+        $this->promoCode = $code; $this->promoDiscountCents = $discount; $this->transportCostCents = $transport;
+    }
     /** @var Collection<int, OrderNotification> */
     #[ORM\OneToMany(mappedBy: 'order', targetEntity: OrderNotification::class)]
     #[ORM\OrderBy(['id' => \SortDirection::Ascending])]
@@ -137,7 +172,7 @@ class Order
     {
         $total = (int) round($this->carrierPrice * 100);
         foreach ($this->orderDetails as $line) {
-            $total += (int) round($line->getProductPrice() * 100) * $line->getProductQuantity();
+            $total += $line->getTotalPriceCents();
         }
         return $total;
     }

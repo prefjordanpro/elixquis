@@ -74,8 +74,8 @@
                         {% set rate = item.productTva|default(20) %}      {# % TVA (adapte si autre champ) #}
                         {% set coef = 1 + (rate/100) %}
                         {% set puh  = (coef > 0) ? (put / coef) : put %}  {# PU HT #}
-                        {% set lht  = put * q - item.totalTvaCents / 100 %}
-                        {% set lttc = put * q %}
+                        {% set lht  = (item.totalPriceCents - item.totalTvaCents) / 100 %}
+                        {% set lttc = item.totalPriceCents / 100 %}
                         {% set ltv  = lttc - lht %}
 
                         {% set articles_ht  = articles_ht  + lht %}
@@ -145,6 +145,7 @@
                 {% set total_ht = order.totalWt - order.totalTva %}
 
                 <h6 class="fw-semibold mb-3">Résumé</h6>
+                {% if order.promoCode %}<p class="small">Code {{ order.promoCode }} · remise incluse : {{ (order.promoDiscountCents / 100)|price }}</p>{% endif %}
 
                 <div class="d-flex justify-content-between mb-1">
                     <span class="text-muted">Sous-total H.T (articles)</span>

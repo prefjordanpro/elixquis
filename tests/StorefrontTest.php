@@ -11,6 +11,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class StorefrontTest extends WebTestCase
 {
+    use \App\Tests\Support\LegalTerms;
     private $client;
     private EntityManagerInterface $em;
     private User $user;
@@ -129,11 +130,12 @@ class StorefrontTest extends WebTestCase
 
     public function testCheckoutThroughFormsAndDuplicateSubmission(): void
     {
+        $this->publishTestTerms($this->em);
         $this->client->loginUser($this->user);
         $crawler = $this->client->request('GET', '/produit/rhum');
         $this->client->submit($crawler->selectButton('Ajouter au panier')->form());
         $crawler = $this->client->request('GET', '/commande/livraison');
-        $form = $crawler->filter('form')->form(['order[addresses]' => $this->address->getId(), 'order[carriers]' => $this->carrier->getId()]);
+        $form = $crawler->filter('form')->form(['order[addresses]' => $this->address->getId(), 'order[carriers]' => $this->carrier->getId(), 'accept_terms' => '1']);
         $this->client->submit($form);
         $order = $this->em->getRepository(\App\Entity\Order::class)->findOneBy(['user' => $this->user]);
         self::assertResponseRedirects('/compte/commande/'.$order->getId());
@@ -184,15 +186,13 @@ class StorefrontTest extends WebTestCase
     {
         $this->user->setRoles(['ROLE_ADMIN']); $this->em->flush();
         $this->client->loginUser($this->user);
-        $this->client->request('GET', '/admin');
-        self::assertResponseRedirects('/admin/order');
-        $crawler = $this->client->followRedirect();
+        $crawler = $this->client->request('GET', '/admin');
         self::assertResponseIsSuccessful();
-        self::assertSame(['Tableau de bord', 'COMMANDES', 'Commandes', 'CATALOGUE', 'Produits', 'Catégories',
-            'LIVRAISON', 'Emballages', 'CONTENU', 'Bannières', 'ADMINISTRATION', 'Utilisateurs'],
+        self::assertSame(['Vue d’ensemble', 'VENTES', 'Commandes', 'Clients', 'CATALOGUE', 'Produits', 'Catégories', 'Stock',
+            'PROMOTIONS', 'Promotions produits', 'Codes promo', 'Livraison offerte', 'LIVRAISON', 'Emballages', 'SITE', 'Modifier le site', 'Pages légales', 'Revendeurs', 'Voir la boutique'],
             $crawler->filter('#main-menu .menu-item-label')->each(fn ($node) => trim($node->text())));
         self::assertSelectorTextNotContains('#main-menu', 'Transporteurs');
-        foreach (['Commandes', 'Produits', 'Catégories', 'Emballages', 'Bannières', 'Utilisateurs'] as $label) {
+        foreach (['Commandes', 'Clients', 'Produits', 'Catégories', 'Stock', 'Promotions produits', 'Codes promo', 'Emballages', 'Modifier le site', 'Revendeurs'] as $label) {
             $this->client->click($this->client->getCrawler()->filter('#main-menu')->selectLink($label)->link());
             self::assertResponseIsSuccessful();
             self::assertSelectorExists('.content-header');

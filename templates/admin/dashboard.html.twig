@@ -1,0 +1,32 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% block content_title %}Vue d’ensemble{% endblock %}
+{% block main %}
+<div class="workspace-intro"><p class="workspace-eyebrow">VOTRE BOUTIQUE AU QUOTIDIEN</p><p>Les commandes à préparer, les stocks à surveiller et vos raccourcis essentiels.</p></div>
+<div class="workspace-metrics">
+  {% for metric in [
+    {label: 'Commandes à préparer', value: prepareCount, url: path('admin_order_index', {traitement: 'a-preparer'}), note: 'Payées et en préparation'},
+    {label: 'Commandes payées', value: paidCount, url: path('admin_order_index', {filters: {state: {comparison: '=', value: 1}}}), note: 'À prendre en charge'},
+    {label: 'Commandes expédiées', value: shippedCount, url: path('admin_order_index', {filters: {state: {comparison: '=', value: 3}}}), note: 'En cours de livraison'},
+    {label: 'Produits en rupture', value: outCount, url: path('admin_stock', {niveau: 'rupture'}), note: 'Aucune unité disponible'},
+    {label: 'Produits en stock faible', value: lowCount, url: path('admin_stock', {niveau: 'faible'}), note: 'De 1 à ' ~ threshold ~ ' unités'},
+    {label: 'Promotions actives', value: promotionCount, url: path('admin_promotions', {selection: 'configurees'}), note: 'Produits visibles et période en cours'},
+    {label: 'Codes promo actifs', value: codeCount, url: path('admin_promo_code_index'), note: 'Utilisables maintenant'}
+  ] %}<a class="workspace-metric" href="{{ metric.url }}"><span>{{ metric.label }}</span><strong>{{ metric.value }}</strong><small>{{ metric.note }}</small></a>{% endfor %}
+</div>
+<section class="workspace-section"><h2>Que souhaitez-vous faire ?</h2><div class="workspace-shortcuts">
+  <a class="btn btn-primary" href="{{ path('admin_product_new') }}">Ajouter un produit</a>
+  <a class="btn btn-secondary" href="{{ path('admin_order_index', {traitement: 'a-preparer'}) }}">Voir les commandes à préparer</a>
+  <a class="btn btn-secondary" href="{{ path('admin_home_content') }}">Modifier la page d’accueil</a>
+  <a class="btn btn-secondary" href="{{ path('admin_promotions') }}">Créer une promotion</a>
+  <a class="btn btn-secondary" href="{{ path('admin_promo_code_new') }}">Créer un code promo</a>
+  <a class="btn btn-secondary" href="{{ path('admin_revendeur_new') }}">Ajouter un revendeur</a>
+  <a class="btn btn-secondary" href="{{ path('admin_emballage_index') }}">Gérer les emballages</a>
+</div></section>
+<div class="workspace-columns">
+<section class="workspace-panel"><div class="workspace-panel-heading"><h2>Commandes à préparer</h2><a href="{{ path('admin_order_index', {traitement: 'a-preparer'}) }}">Tout voir</a></div>
+{% for order in preparing %}<a class="workspace-row" href="{{ path('admin_order_detail', {entityId: order.id}) }}"><span><strong>{{ order.reference }}</strong><br>{{ order.user }}<br><small>{{ order.createdAt|date('d/m/Y') }}</small></span><span>{% include 'admin/state.html.twig' with {field: {value: order.state}} %}<br>{{ order.totalWt|number_format(2, ',', ' ') }} €</span></a>{% else %}<p>Aucune commande à préparer pour le moment.</p>{% endfor %}
+</section>
+<section class="workspace-panel"><div class="workspace-panel-heading"><h2>Stocks à surveiller</h2><a href="{{ path('admin_stock') }}">Voir le stock</a></div><p class="text-muted">Stock faible : de 1 à {{ threshold }} unités.</p>
+{% for product in stockAlerts %}<a class="workspace-row" href="{{ path('admin_product_edit', {entityId: product.id}) }}#Product_stock"><strong>{{ product.name }}</strong><span>{{ product.stock }} unité{{ product.stock > 1 ? 's' : '' }}<br>{{ stock_status(product.stock) }}</span></a>{% else %}<p>Aucun produit à réapprovisionner.</p>{% endfor %}
+</section></div>
+{% endblock %}

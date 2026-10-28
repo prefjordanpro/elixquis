@@ -1,0 +1,68 @@
+{
+  "announcement": {
+    "announcementEnabled": true,
+    "announcementMessage": "Rhum arrangé artisanal • Livraison en France",
+    "pageTitle": "Elixquis — Découvrez nos rhums arrangés"
+  },
+  "hero": {
+    "heroEyebrow": "Rhums arrangés artisanaux",
+    "heroTitle": "Le caractère",
+    "heroTitleSecondLine": "du rhum.",
+    "heroAccent": "L’exquis des fruits.",
+    "heroParagraph": "Des rhums arrangés, des fruits et des épices. Un univers gourmand à découvrir, pour des moments conviviaux.",
+    "heroCta": "Découvrir la boutique ",
+    "heroUrl": "/catalogue",
+    "heroNote": "Fruits · Épices · Caractère",
+    "heroImage": "images/editorial/degustation-ambree-v2.jpg",
+    "heroAlt": "Illustration d’ambiance : un verre ambré et un zeste d’orange"
+  },
+  "story": {
+    "storyNumber": "01",
+    "storyEyebrow": "L’esprit Elixquis",
+    "storyTitle": "L’élixir.",
+    "storyAccent": "L’exquis.",
+    "storySubtitle": "Deux mots, une invitation à découvrir.",
+    "storyParagraph": "Elixquis associe l’univers de l’élixir à la délicatesse de l’exquis. Les fruits et les épices y rencontrent le caractère du rhum, avec une place essentielle accordée aux ingrédients naturels.",
+    "storyLinkLabel": "Explorer les recettes",
+    "storyUrl": "/catalogue",
+    "storyCaption": "Le goût des moments partagés",
+    "storyImage": "images/editorial/degustation-ambree-v2.jpg",
+    "storyAlt": "Illustration d’ambiance : lumière chaude sur un verre de dégustation"
+  },
+  "selection": {
+    "selectionEyebrow": "La sélection Elixquis",
+    "selectionTitle": "À découvrir, à savourer.",
+    "selectionDescription": "Explorez les produits mis en avant dans notre boutique.",
+    "selectionLinkLabel": "Voir toute la boutique ↗",
+    "selectionUrl": "/catalogue"
+  },
+  "flavours": {
+    "flavoursEyebrow": "À chacun ses envies",
+    "flavoursTitle": "Choisissez vos saveurs.",
+    "flavoursCta": "Voir toutes les saveurs ",
+    "flavoursUrl": "/catalogue#catalogue-saveurs"
+  },
+  "passion": {
+    "passionNumber": "02",
+    "passionEyebrow": "L’histoire d’un passionné",
+    "passionTitle": "Tout commence",
+    "passionTitleSecondLine": "par une ",
+    "passionAccent": "découverte.",
+    "passionParagraph": "Lors d’un séjour au ski entre amis, Paul découvre les rhums arrangés. Le mélange du rhum, des fruits et des épices lui donne envie de créer ses propres compositions, d’abord pour lui et ses proches.",
+    "passionSecondParagraph": "Ces moments partagés font naître Elixquis : une passion des saveurs et l’envie de la transmettre.",
+    "passionCaption": "Fruits & épices · L’inspiration",
+    "passionImage": "images/editorial/fruits-epices-v2.jpg",
+    "passionAlt": "Illustration d’ambiance : oranges, litchis, vanille et cannelle sur une table claire"
+  },
+  "reassurance": {
+    "paymentTitle": "Paiement via Stripe",
+    "paymentText": "Le règlement s’effectue sur la page sécurisée de Stripe.",
+    "deliveryTitle": "Livraison au choix",
+    "deliveryText": "Adresse, transporteur et frais affichés avant le paiement.",
+    "trackingTitle": "Votre suivi de commande",
+    "trackingText": "Retrouvez vos achats et leur statut dans votre espace client."
+  },
+  "retailers": {
+    "retailersIntro": "Retrouvez les saveurs Elixquis près de chez vous."
+  }
+}

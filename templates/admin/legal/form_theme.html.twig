@@ -1,0 +1,6 @@
+{% use 'form_div_layout.html.twig' %}
+{% block ea_text_editor_widget %}
+  {% set attr = attr|merge({class: 'ea-text-editor-content d-none', 'data-number-of-rows': 24, 'data-trix-editor-config': 'null'}) %}
+  {{ block('textarea_widget') }}
+  <div class="ea-text-editor-wrapper legal-editor"><trix-editor input="{{ id }}" class="trix-content"></trix-editor></div>
+{% endblock %}

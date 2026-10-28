@@ -11,6 +11,7 @@
   <link href="{{ asset('assets/css/elixquis.css') }}?v=20261005-footer-common" rel="stylesheet">
   {% block stylesheets %}{% endblock %}
   <link href="{{ asset('assets/css/finish.css') }}?v=20261018-selection-spacing" rel="stylesheet">
+  <link href="{{ asset('assets/css/legal.css') }}" rel="stylesheet">
 </head>
 {% set route = app.request.attributes.get('_route')|default('') %}
 {% set checkout = route in ['app_order', 'app_sendcloud_checkout', 'app_payment_success'] or (route == 'app_account_order' and order is defined and order.state == 0) %}
@@ -49,6 +50,7 @@
               {% endfor %}</ul>
             </li>
             {% endif %}
+            <li class="nav-item"><a class="nav-link {{ route == 'app_revendeurs' ? 'active' : '' }}" {% if route == 'app_revendeurs' %}aria-current="page"{% endif %} href="{{ path('app_revendeurs') }}">Nos revendeurs</a></li>
             {% if app.user and not checkout %}<li class="nav-item d-lg-none"><a class="nav-link" href="{{ path('app_account') }}">Mes commandes</a></li>{% endif %}
             <li class="nav-item d-lg-none"><a class="nav-link" href="{{ app.user ? path('app_account') : path('app_login') }}">Compte</a></li>
             <li class="nav-item d-lg-none"><a class="nav-link" href="{{ path('app_cart') }}">Panier <span class="badge cart-count">{{ fullCartQuantity }}</span></a></li>

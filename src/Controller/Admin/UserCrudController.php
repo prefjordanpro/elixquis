@@ -29,8 +29,8 @@ class UserCrudController extends AbstractCrudController
     public function configureCrud(Crud $crud): Crud
     {
         return $crud
-            ->setEntityLabelInSingular('Utilisateur')
-            ->setEntityLabelInPlural('Utilisateurs')
+            ->setEntityLabelInSingular('Client')
+            ->setEntityLabelInPlural('Clients')->setSearchFields(['firstname', 'lastname', 'email'])
             ->setDefaultRowAction(\EasyCorp\Bundle\EasyAdminBundle\Config\Action::DETAIL)
             ->setPageTitle(Crud::PAGE_EDIT, 'Modifier le client')
             ->setPageTitle(Crud::PAGE_DETAIL, fn (User $user) => htmlspecialchars((string) $user, ENT_QUOTES, 'UTF-8'))

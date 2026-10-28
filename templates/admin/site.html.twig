@@ -1,0 +1,10 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% block content_title %}Modifier le site{% endblock %}
+{% block main %}
+<div class="workspace-intro"><p>Choisissez la page à modifier. Les textes et photos changent ; la mise en page reste protégée.</p></div>
+<div class="workspace-columns">
+  <section class="workspace-panel"><p class="workspace-eyebrow">PAGE D’ACCUEIL</p><h2>La première impression</h2><p>Modifiez les textes, les photos et les boutons de votre page d’accueil.</p><a class="btn btn-primary" href="{{ path('admin_home_content') }}">Modifier la page d’accueil</a><a class="workspace-secondary-link" href="{{ path('admin_header_index') }}">Images du carrousel</a></section>
+  <section class="workspace-panel"><p class="workspace-eyebrow">NOS REVENDEURS</p><h2>Vos points de vente</h2><p>Présentez votre réseau et mettez à jour les adresses affichées sur la carte.</p><a class="btn btn-primary" href="{{ path('admin_revendeur_index') }}">Gérer les revendeurs</a><a class="workspace-secondary-link" href="{{ path('admin_home_content', {bloc: 'revendeurs'}) }}">Modifier le texte de la page</a></section>
+</div>
+<section class="workspace-panel mt-4"><p class="workspace-eyebrow">PAGES LÉGALES</p><h2>Les informations de votre boutique</h2><p>Préparez les documents, vérifiez les éléments à compléter et publiez leurs versions.</p><a class="btn btn-primary" href="{{ path('admin_legal') }}">Pages légales</a></section>
+{% endblock %}

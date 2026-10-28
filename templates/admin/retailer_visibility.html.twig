@@ -1,0 +1,6 @@
+<span class="badge {{ field.value ? 'bg-success' : 'bg-secondary' }}">{{ field.value ? 'Visible' : 'Masqué' }}</span>
+<form method="post" action="{{ path('admin_revendeur_visibility', {id: entity.instance.id}) }}" class="mt-2" onsubmit="return confirm('Modifier la visibilité de ce revendeur sur le site ?');">
+  <input type="hidden" name="_token" value="{{ csrf_token('retailer_visibility_' ~ entity.instance.id) }}">
+  <input type="hidden" name="visible" value="{{ field.value ? '0' : '1' }}">
+  <button type="submit" class="btn btn-secondary btn-sm">{{ field.value ? 'Masquer' : 'Activer' }}</button>
+</form>

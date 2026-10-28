@@ -133,7 +133,7 @@ final class OrderEmailsTest extends WebTestCase
     public function testHistoricalStatusRendersWithoutCrash(): void
     {
         $html = static::getContainer()->get('twig')->render('admin/state.html.twig', ['field' => ['value' => 99]]);
-        self::assertStringContainsString('Statut historique (99)', $html);
+        self::assertStringContainsString('Statut à vérifier', $html);
     }
     public function testDispatchWaitsForOuterTransaction(): void
     {

@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ version.title }} — Elixquis{% endblock %}
+{% block body %}
+<div class="container section-space"><article class="legal-reading">
+  <p class="section-label">Informations</p><h1>{{ version.title }}</h1>
+  <p class="legal-version-date">Version en vigueur depuis le {{ version.publishedAt|date('d/m/Y') }} · Version {{ version.number }}</p>
+  {% if not version.isCurrent %}<p class="legal-version-date">Version conservée dans l’historique. <a href="{{ path('app_legal_cgv') }}">Consulter la version en vigueur</a>.</p>{% endif %}
+  <div class="legal-document-body">{{ body|raw }}</div>
+</article></div>
+{% endblock %}

@@ -14,6 +14,8 @@ use Symfony\Component\HttpClient\Response\MockResponse;
 /** Réponses v3 simulées uniquement : aucun contact avec Sendcloud ou Stripe. */
 final class SendcloudTest extends WebTestCase
 {
+    use \App\Tests\Support\LegalTerms;
+    private string $termsId;
     private $client;
     private EntityManagerInterface $em;
     private User $user;
@@ -43,6 +45,7 @@ final class SendcloudTest extends WebTestCase
         $this->address = (new Address())->setUser($this->user)->setFirstname('Camille')->setLastname('Test')->setAddress('10 rue de Test')->setPostal('75001')->setCity('Paris')->setCountry('FR')->setPhone('0612345678');
         $this->product = (new Product())->setName('Rhum de test')->setSlug('rhum-sendcloud')->setDescription('Produit de test')->setIllustration('2025-08-30-851cfa871ccd52de3f20d860b2188b7f05abebe4.jpg')->setPrice(20)->setTva(20)->setStock(10)->setShippingWeightGrams(1200)->setIsHomepage(false);
         foreach ([$this->user, $this->admin, $this->address, $this->product] as $entity) { $this->em->persist($entity); } $this->em->flush();
+        $this->termsId = (string) $this->publishTestTerms($this->em)->getId();
         static::getContainer()->set(ShippingConfiguration::class, new ShippingConfiguration(true,
             ['name' => 'Expéditeur de test', 'address_line_1' => '1 rue de Test', 'postal_code' => '69001', 'city' => 'Lyon', 'country_code' => 'FR'],
             ['length_cm' => 30, 'width_cm' => 20, 'height_cm' => 15, 'packaging_weight_g' => 200, 'max_units' => 6], 20, false,
@@ -126,6 +129,7 @@ final class SendcloudTest extends WebTestCase
     private function select(string $token, bool $relay = false, ?int $point = null): void
     {
         $this->client->request('POST', '/commande/sendcloud', ['_token' => $token, 'address' => $this->address->getId(),
+            'accept_terms' => '1', 'terms_version' => $this->termsId,
             'action' => $point ? 'confirm' : 'method', 'method' => hash('sha256', ($relay ? 'mondial_relay:relay' : 'colissimo:home').'|21'),
             'point' => $point, 'price' => '0.01', 'state' => '1']);
     }
@@ -133,6 +137,24 @@ final class SendcloudTest extends WebTestCase
     {
         $this->select($this->addressStep()); self::assertResponseRedirects();
         return $this->em->getRepository(Order::class)->findOneBy([]);
+    }
+    public function testLegalAcceptanceIsRequiredForCreatingAnOrder(): void
+    {
+        $token = $this->addressStep();
+        $this->client->request('POST', '/commande/sendcloud', ['_token'=>$token, 'address'=>$this->address->getId(), 'action'=>'method', 'method'=>hash('sha256', 'colissimo:home|21')]);
+        self::assertResponseIsSuccessful(); self::assertSelectorTextContains('main', 'Veuillez lire et accepter les Conditions Générales de Vente.');
+        self::assertSame(0, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM `order`'));
+        self::assertSame(10, (int) $this->em->getConnection()->fetchOne('SELECT stock FROM product WHERE id = ?', [$this->product->getId()]));
+    }
+    public function testAChangeOfTermsDuringDeliverySelectionRequiresNewConsent(): void
+    {
+        $token = $this->addressStep(); $page = $this->em->find(\App\Entity\LegalPage::class, 'cgv');
+        $content = static::getContainer()->get(\App\Service\LegalContent::class);
+        $content->saveDraft($page, 'Version suivante de test', '<p>Document fictif suivant pour les tests.</p>', $page->getRevision());
+        $content->publish($page, $page->getRevision(), null);
+        $this->client->request('POST', '/commande/sendcloud', ['_token'=>$token, 'address'=>$this->address->getId(), 'action'=>'method', 'method'=>hash('sha256', 'colissimo:home|21'), 'accept_terms'=>'1', 'terms_version'=>$this->termsId]);
+        self::assertResponseIsSuccessful(); self::assertSelectorTextContains('main', 'Conditions Générales de Vente ont changé');
+        self::assertSame(0, (int) $this->em->getConnection()->fetchOne('SELECT COUNT(*) FROM `order`'));
     }
     private function paidOrder(): Order
     {
@@ -257,7 +279,7 @@ final class SendcloudTest extends WebTestCase
         foreach ($expected as $index => $capacity) { self::assertSame(number_format(($capacity * 1200 + 200) / 1000, 3, '.', ''), $payload['parcels'][$index]['weight']['value']); }
         if (count($expected) > 1) { self::assertTrue($payload['functionalities']['multicollo']); }
         $code = match ($mode) { 'relay' => 'mondial_relay:relay', 'express' => 'chronopost:express', default => 'colissimo:home' };
-        $parameters = ['_token' => $token, 'address' => $this->address->getId(), 'method' => hash('sha256', $code.'|21'), 'action' => 'method'];
+        $parameters = ['_token' => $token, 'address' => $this->address->getId(), 'method' => hash('sha256', $code.'|21'), 'action' => 'method', 'accept_terms' => '1', 'terms_version' => $this->termsId];
         if ($mode === 'relay') {
             $this->client->request('POST', '/commande/sendcloud', $parameters); self::assertSelectorExists('[data-open-picker]');
             $parameters['point'] = 42; $parameters['action'] = 'confirm';
@@ -490,7 +512,7 @@ final class SendcloudTest extends WebTestCase
         self::assertFalse($this->client->getRequest()->getSession()->has('sendcloud_checkout'));
         self::assertSame(0, $this->announcements());
         $token = $this->addressStep();
-        $this->client->request('POST', '/commande/sendcloud', array_replace($parameters, ['_token' => $token, 'action' => 'confirm']));
+        $this->client->request('POST', '/commande/sendcloud', array_replace($parameters, ['_token' => $token, 'action' => 'confirm', 'accept_terms' => '1', 'terms_version' => $this->termsId]));
         self::assertResponseRedirects();
         $order = $this->em->getRepository(Order::class)->findOneBy([]);
         self::assertSame('12345678', $order->getShippingSnapshot()['service_point']['post_number']);
@@ -665,7 +687,7 @@ final class SendcloudTest extends WebTestCase
         self::assertFalse($this->client->getRequest()->getSession()->has('shipping_legacy_fallback'));
         $crawler = $this->client->submit($crawler->selectButton('Voir les livraisons disponibles')->form(['address' => $this->address->getId()]));
         self::assertSelectorTextContains('main', 'Colissimo');
-        $this->client->submit($crawler->selectButton('Vérifier ma commande')->form(['method' => hash('sha256', 'colissimo:home|21')]));
+        $this->client->submit($crawler->selectButton('Vérifier ma commande')->form(['method' => hash('sha256', 'colissimo:home|21'), 'accept_terms' => '1']));
         self::assertResponseRedirects();
         $this->client->followRedirect();
         self::assertResponseIsSuccessful();

@@ -1,16 +1,17 @@
   <footer class="site-footer" data-bs-theme="dark">
     <div class="container">
-      <div class="row g-4">
-        <div class="col-lg-5">
+      {% set legalLinks = legal_links() %}
+      <div class="footer-grid {{ legalLinks is empty ? 'footer-grid--no-legal' : '' }}">
+        <div class="footer-brand">
           <a class="navbar-brand" href="{{ path('app_home') }}">Elixquis</a>
           <p class="footer-intro">Des saveurs épicées &amp; fruitées pour des moments conviviaux.</p>
           <p class="small">Rhums arrangés · Fabriqués en France</p>
         </div>
-        <div class="col-6 col-lg-3">
+        <div class="footer-section">
           <h2 class="footer-title">La boutique</h2>
-          <ul class="list-unstyled">{% for category in allCategories %}<li><a href="{{ path('app_category', {slug: category.slug}) }}">{{ category.name }}</a></li>{% endfor %}<li><a href="{{ path('app_catalogue') }}">Tous les produits</a></li></ul>
+          <ul class="list-unstyled">{% for category in footer_categories() %}<li><a href="{{ path('app_category', {slug: category.slug}) }}">{{ category.name }}</a></li>{% endfor %}<li><a href="{{ path('app_catalogue') }}">Tous les produits</a></li></ul>
         </div>
-        <div class="col-6 col-lg-4">
+        <div class="footer-section">
           <h2 class="footer-title">Votre espace</h2>
           <ul class="list-unstyled">
             <li><a href="{{ app.user ? path('app_account') : path('app_login') }}">{{ app.user ? 'Mes commandes' : 'Se connecter' }}</a></li>
@@ -19,13 +20,11 @@
             {% if company.email %}<li><a href="mailto:{{ company.email }}">Nous contacter</a></li>{% endif %}
           </ul>
         </div>
+        {% if legalLinks %}<div class="footer-section"><h2 class="footer-title">Informations</h2><ul class="list-unstyled">{% for link in legalLinks %}<li><a href="{{ path(link.route) }}">{{ link.label }}</a></li>{% endfor %}</ul></div>{% endif %}
       </div>
       <div class="footer-bottom">
         <p>© {{ "now"|date("Y") }} Elixquis</p>
         <p>L’abus d’alcool est dangereux pour la santé, à consommer avec modération. Vente interdite aux mineurs de moins de 18 ans.</p>
       </div>
-      <details class="legal-pending"><summary>Informations légales à compléter avant la mise en production</summary>
-        <p>Mentions légales, CGV, CGU et politique de retour : à compléter. {% if not company.email %}Coordonnées de contact : à compléter.{% endif %}</p>
-      </details>
     </div>
   </footer>

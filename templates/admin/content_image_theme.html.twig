@@ -1,0 +1,22 @@
+{% block content_image_widget %}
+  <div class="ea-fileupload">
+    <div class="input-group">
+      <div class="custom-file">
+        {{ form_widget(form.file, {attr: form.file.vars.attr|merge({class: 'd-none'})}) }}
+        <label class="custom-file-label form-control-label" for="{{ form.file.vars.id }}">{{ content_image_url ? 'Remplacer l’image' : 'Ajouter une image' }}</label>
+      </div>
+      <div class="input-group-text">
+        {# EasyAdmin's upload handler expects this element, even when deletion is disabled. #}
+        <span class="ea-fileupload-delete-btn" hidden aria-hidden="true" style="display: none !important;"></span>
+        {% if currentFiles %}{{ (currentFiles|first).size|ea_filesize }}{% endif %}
+      </div>
+    </div>
+  </div>
+  {% do form.delete.setRendered %}
+  {{ form_errors(form.file) }}
+  {% if content_image_url %}
+    <a href="{{ asset(content_image_url) }}" target="_blank" rel="noopener noreferrer" class="d-inline-block mt-3" aria-label="Voir l’image actuelle (nouvelle fenêtre)">
+      <img class="content-image-preview img-fluid" src="{{ asset(content_image_url) }}" alt="Aperçu de l’image actuelle" style="max-width: 100%; max-height: 180px; object-fit: contain;">
+    </a>
+  {% endif %}
+{% endblock %}

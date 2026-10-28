@@ -1,98 +1,67 @@
 <?php
-
 namespace App\Controller\Admin;
 
 use App\Entity\Product;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
-use EasyCorp\Bundle\EasyAdminBundle\Field\SlugField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Config\{Action, Actions, Crud};
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\IntegerField;
-use Symfony\Component\Validator\Constraints\Image;
+use EasyCorp\Bundle\EasyAdminBundle\Field\{AssociationField, BooleanField, ChoiceField, DateTimeField, Field, FormField, IntegerField, MoneyField, TextEditorField, TextField};
+use Doctrine\ORM\EntityManagerInterface;
 
 #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class ProductCrudController extends AbstractCrudController
 {
-    public function updateEntity(\Doctrine\ORM\EntityManagerInterface $entityManager, $entityInstance): void
+    public static function getEntityFqcn(): string { return Product::class; }
+    public function configureCrud(Crud $crud): Crud
+    {
+        return $crud->setEntityLabelInSingular('Produit')->setEntityLabelInPlural('Produits')
+            ->setPageTitle(Crud::PAGE_NEW, 'Ajouter un produit')->setPageTitle(Crud::PAGE_EDIT, 'Modifier le produit')
+            ->addFormTheme('admin/content_image_theme.html.twig')->setSearchFields(['name', 'category.name'])->setDefaultSort(['name' => 'ASC']);
+    }
+    public function configureActions(Actions $actions): Actions
+    {
+        return $actions->disable(Action::DELETE, Action::BATCH_DELETE)
+            ->update(Crud::PAGE_INDEX, Action::NEW, fn (Action $a) => $a->setLabel('Ajouter un produit'));
+    }
+    public function configureFields(string $pageName): iterable
+    {
+        yield FormField::addTab('Informations');
+        yield Field::new('version')->setFormType(\Symfony\Component\Form\Extension\Core\Type\HiddenType::class)
+            ->setFormTypeOption('mapped', false)->setFormTypeOption('data', $this->getContext()?->getEntity()?->getInstance()?->getVersion() ?? 1)->onlyOnForms();
+        yield TextField::new('name', 'Nom');
+        yield AssociationField::new('category', 'Catégorie')->setRequired(false);
+        yield TextEditorField::new('description', 'Description')->setNumOfRows(6)->setRequired(false)->setFormTypeOption('empty_data', '')->hideOnIndex();
+        yield ContentImage::field('illustration', 'Photo du produit')->setRequired($pageName === Crud::PAGE_NEW);
+        yield BooleanField::new('isActive', 'Visible dans la boutique')->renderAsSwitch(false);
+        yield BooleanField::new('isHomepage', 'Afficher dans la sélection de l’accueil')->renderAsSwitch(false)->hideOnIndex();
+        yield FormField::addTab('Prix');
+        yield MoneyField::new('price', 'Prix hors taxes (€)')->setCurrency('EUR')->setStoredAsCents(false)->onlyOnForms()->setHelp('La TVA est ajoutée automatiquement pour afficher le prix TTC au client.');
+        yield ChoiceField::new('tva', 'TVA')->setChoices(['5,5 %' => 5.5, '10 %' => 10, '20 %' => 20])->onlyOnForms();
+        yield MoneyField::new('regularPriceWt', 'Prix normal TTC')->setCurrency('EUR')->setStoredAsCents(false)->hideOnForm();
+        yield MoneyField::new('priceWt', 'Prix appliqué TTC')->setCurrency('EUR')->setStoredAsCents(false)->hideOnForm();
+        yield TextField::new('promotionSummary', 'Promotion')->hideOnForm()->setSortable(false);
+        yield FormField::addTab('Stock');
+        yield IntegerField::new('stock', 'Quantité disponible')->setFormTypeOption('attr', ['min' => 0])->setHelp('Nombre de bouteilles disponibles à la vente.');
+        yield Field::new('stockLevel', 'État du stock')->setTemplatePath('admin/stock.html.twig')->hideOnForm()->setSortable(false);
+        yield FormField::addTab('Promotion');
+        $choices = ['Pas de promotion' => null];
+        foreach (Product::PROMOTION_PERCENTAGES as $percent) $choices['−'.$percent.' %'] = $percent;
+        if ($this->getContext()?->getEntity()?->getInstance()?->getPromotionSelection() === -1) $choices['Conserver la promotion existante'] = -1;
+        yield ChoiceField::new('promotionSelection', 'Réduction')->setChoices($choices)->setRequired(false)->setFormTypeOption('placeholder', false)
+            ->setFormTypeOption('choice_value', static fn (?int $value) => $value === null ? '' : (string) $value)
+            ->renderAsNativeWidget()->onlyOnForms()->setHelp('Sans dates, la réduction reste active jusqu’à son retrait.');
+        yield DateTimeField::new('promotionStartsAt', 'Date de début (facultative)')->setRequired(false)->onlyOnForms();
+        yield DateTimeField::new('promotionEndsAt', 'Date de fin (facultative)')->setRequired(false)->onlyOnForms();
+        yield FormField::addTab('Livraison');
+        yield IntegerField::new('shippingWeightGrams', 'Poids d’une bouteille pleine (g)')->setRequired(false)->onlyOnForms()->setFormTypeOption('attr', ['min' => 1])->setHelp('Bouteille et bouchon compris. Le carton est ajouté automatiquement.');
+    }
+    public function updateEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         $submitted = $this->getContext()->getRequest()->request->all('Product');
         try {
             $entityManager->lock($entityInstance, \Doctrine\DBAL\LockMode::OPTIMISTIC, (int) ($submitted['version'] ?? 0));
             parent::updateEntity($entityManager, $entityInstance);
-        } catch (\Doctrine\ORM\OptimisticLockException $e) {
-            throw new \Symfony\Component\HttpKernel\Exception\ConflictHttpException('Le produit a changé depuis l’ouverture du formulaire. Rechargez la page avant de modifier le stock.');
+        } catch (\Doctrine\ORM\OptimisticLockException) {
+            throw new \Symfony\Component\HttpKernel\Exception\ConflictHttpException('Ce produit a été modifié depuis l’ouverture du formulaire. Rechargez la page avant d’enregistrer.');
         }
-    }
-
-    public static function getEntityFqcn(): string
-    {
-        return Product::class;
-    }
-
-    public function configureCrud(Crud $crud): Crud
-    {
-        return $crud
-            ->setEntityLabelInSingular('Produit')
-            ->setEntityLabelInPlural('Produits')
-            ;
-    }
-
-
-    public function configureFields(string $pageName): iterable
-    {
-        $required = true;
-
-        if ($pageName == 'edit') {
-            $required = false;
-        }
-        
-        return [
-            \EasyCorp\Bundle\EasyAdminBundle\Field\Field::new('version')
-                ->setFormType(\Symfony\Component\Form\Extension\Core\Type\HiddenType::class)
-                ->setFormTypeOption('mapped', false)
-                ->setFormTypeOption('data', $this->getContext()?->getEntity()?->getInstance()?->getVersion() ?? 1)
-                ->onlyOnForms(),
-            IntegerField::new('stock', 'Stock disponible'),
-            IntegerField::new('shippingWeightGrams', 'Poids d’expédition (g)')->setRequired(false)->setFormTypeOption('attr', ['min' => 1, 'step' => 1])->setHelp('Poids réel d’une unité, bouteille pleine et bouchon compris, en grammes. L’emballage du colis est ajouté séparément.'),
-            BooleanField::new('isActive', 'Produit actif'),
-            TextField::new('name')
-                ->setLabel('Nom')
-                ->setHelp('Nom de votre produit'),
-            BooleanField::new('isHomepage')->setLabel('Produit à la une ?')->setHelp("Vous permet d'afficher un produit sur la homepage"),
-            SlugField::new('slug')
-                ->setTargetFieldName('name')
-                ->setLabel('URL')->setHelp('URL de votre catégorie générée automatiquement'),
-            TextEditorField::new('description')
-                ->setLabel('Description')
-                ->setHelp('Description de votre produit'),
-            ImageField::new('illustration')
-                ->setLabel('image')
-                ->setHelp('Image du produit')
-                ->setUploadedFileNamePattern('[year]-[month]-[day]-[contenthash].[extension]')
-                ->setBasePath('/uploads')
-                ->setUploadDir('/public/uploads')
-                ->setFormTypeOption('file_constraints', [new Image(maxSize: '5M', mimeTypes: ['image/jpeg', 'image/png', 'image/webp'], mimeTypesMessage: 'Choisissez une image JPEG, PNG ou WebP.')])
-                ->setRequired($required),
-            NumberField::new('price')
-                ->setLabel('Prix H.T')
-                ->setHelp('Prix H.T du produit sans le sigle €.'),
-            ChoiceField::new('tva')
-                ->setLabel('Taux de TVA')
-                ->setChoices([
-                '5.5%'=>'5.5',
-                '10%'=>'10',
-                '20%'=>'20'
-            ]),
-            AssociationField::new('category')->setLabel('Catégorie associée')
-        ];
     }
 }

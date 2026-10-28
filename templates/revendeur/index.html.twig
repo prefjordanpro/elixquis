@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+{% block title %}Nos revendeurs — Elixquis{% endblock %}
+{% block stylesheets %}
+  <link rel="stylesheet" href="{{ asset('assets/vendor/leaflet/leaflet.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/css/revendeurs.css') }}">
+{% endblock %}
+{% block body %}
+<section class="section-space retailers-page">
+  <div class="container">
+    <div class="section-heading"><div>
+      <p class="section-label">Où nous trouver</p>
+      <h1>Nos revendeurs.</h1>
+      <p>{{ homeContent.retailersIntro }}</p>
+    </div></div>
+    <div class="retailers-map-frame">
+      <div id="retailers-map" role="region" aria-label="Carte des revendeurs Elixquis en France" tabindex="0"></div>
+      <p class="retailers-map-note" id="map-status" role="status">Les adresses de nos revendeurs sont disponibles dans la liste ci-dessous.</p>
+    </div>
+    <div class="retailers-search" hidden>
+      <label for="retailers-search">Ville ou code postal</label>
+      <input id="retailers-search" class="form-control" type="search" autocomplete="off" placeholder="Rechercher une ville ou un code postal" aria-controls="retailers-list">
+      <p id="retailers-results" role="status" aria-live="polite"></p>
+    </div>
+    <h2 class="h3 mt-5">Les adresses Elixquis</h2>
+    <div class="retailers-list" id="retailers-list">
+      {% for revendeur in revendeurs %}
+      <article class="retailer-card" id="revendeur-{{ revendeur.id }}" data-retailer data-city="{{ revendeur.ville }}" data-postcode="{{ revendeur.codePostal }}"{% if revendeur.latitude is not null and revendeur.longitude is not null %} data-lat="{{ revendeur.latitude }}" data-lng="{{ revendeur.longitude }}"{% endif %}>
+        <p class="section-label">{{ revendeur.codePostal }} · {{ revendeur.ville }}</p>
+        <h3 class="h4 retailer-name">{{ revendeur.nom }}</h3>
+        <address class="retailer-address">{{ revendeur.adresse }}<br>{% if revendeur.complementAdresse %}{{ revendeur.complementAdresse }}<br>{% endif %}{{ revendeur.codePostal }} {{ revendeur.ville }}<br>{{ revendeur.pays }}</address>
+        {% if revendeur.telephone %}<p class="retailer-phone">{{ revendeur.telephone }}</p>{% endif %}
+        <div class="retailer-actions">
+          {% if revendeur.latitude is not null and revendeur.longitude is not null %}<button type="button" class="editorial-link retailer-locate" hidden>Voir sur la carte<span class="visually-hidden"> : {{ revendeur.nom }}</span></button>{% endif %}
+          {% if revendeur.siteWeb %}<a class="editorial-link retailer-website" href="{{ revendeur.siteWeb }}" target="_blank" rel="noopener noreferrer">Site web<span class="visually-hidden"> : {{ revendeur.nom }} (nouvelle fenêtre)</span></a>{% endif %}
+        </div>
+      </article>
+      {% else %}<p>Aucun revendeur à afficher pour le moment. Retrouvez nos recettes dans <a href="{{ path('app_catalogue') }}">la boutique</a>.</p>{% endfor %}
+    </div>
+    <p id="retailers-empty" hidden>Aucun revendeur ne correspond à cette recherche.</p>
+  </div>
+</section>
+{% endblock %}
+{% block javascripts %}
+  <script src="{{ asset('assets/vendor/leaflet/leaflet.js') }}"></script>
+  <script src="{{ asset('assets/js/revendeurs.js') }}"></script>
+{% endblock %}

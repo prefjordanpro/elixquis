@@ -1,0 +1,17 @@
+.retailers-page { overflow-x: clip; }
+.retailers-map-frame { border: 1px solid var(--elixquis-bordure); background: var(--elixquis-ivoire); padding: clamp(.5rem, 2vw, 1rem); }
+#retailers-map { height: clamp(320px, 55vh, 580px); width: 100%; z-index: 0; background: var(--elixquis-beige); }
+.retailers-map-note { font-size: .85rem; color: var(--elixquis-muted); margin: .8rem 0 0; }
+.retailers-search { max-width: 32rem; margin-top: 2rem; }
+.retailers-search label { display: block; margin-bottom: .5rem; }
+.retailers-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+.retailer-card { padding: 1.5rem; border-top: 1px solid var(--elixquis-or); background: var(--elixquis-ivoire); min-width: 0; overflow-wrap: anywhere; }
+.retailer-card[hidden], [hidden].retailers-search, [hidden].retailer-locate { display: none !important; }
+.retailer-address { font-style: normal; }
+.retailer-actions { display: flex; flex-wrap: wrap; gap: 1rem; }
+button.retailer-locate { background: transparent; border: 0; padding: 0; text-align: left; cursor: pointer; }
+.leaflet-popup-content { font-family: inherit; overflow-wrap: anywhere; }
+.leaflet-popup-content h3 { font-size: 1.2rem; }
+.leaflet-container { font-family: inherit; }
+@media (max-width: 991px) { .retailers-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 575px) { .retailers-list { grid-template-columns: minmax(0, 1fr); } #retailers-map { height: 350px; } }

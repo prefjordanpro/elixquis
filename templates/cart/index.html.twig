@@ -14,7 +14,7 @@
       <article class="card cart-line mb-3"><div class="card-body">
         <div class="row g-3 align-items-center">
           <div class="col-3 col-md-2"><div class="ratio ratio-1x1"><img src="{{ asset('uploads/' ~ product.object.illustration) }}" alt="{{ product.object.name }}" class="img-fluid rounded" width="120" height="120"></div></div>
-          <div class="col-9 col-md-5"><h2 class="h6 mb-1"><a class="text-reset text-decoration-none" href="{{ path('app_product', {slug: product.object.slug}) }}">{{ product.object.name }}</a></h2><span class="small text-muted">Prix unitaire : {{ product.object.pricewt|price }}</span></div>
+          <div class="col-9 col-md-5"><h2 class="h6 mb-1"><a class="text-reset text-decoration-none" href="{{ path('app_product', {slug: product.object.slug}) }}">{{ product.object.name }}</a></h2><span class="small text-muted">Prix unitaire : {% if product.object.promotionActive %}<del>{{ product.object.regularPriceWt|price }}</del> {% endif %}{{ product.object.pricewt|price }}</span></div>
           <div class="col-7 col-md-3"><span class="cart-field-label">Quantité</span><div class="quantity-controls" role="group" aria-label="Quantité de {{ product.object.name }}">
             <form method="post" action="{{ path('app_cart_decrease', {id: product.object.id}) }}"><input type="hidden" name="_token" value="{{ csrf_token('cart') }}"><button type="submit" class="btn btn-outline-secondary btn-sm" aria-label="Diminuer la quantité de {{ product.object.name }}" {{ product.qty == 1 ? 'disabled' : '' }}>&minus;</button></form>
             <span class="badge text-bg-secondary" aria-label="{{ product.qty }} unité{{ product.qty > 1 ? 's' : '' }}">x{{ product.qty }}</span>
@@ -28,8 +28,11 @@
     </div>
     <div class="col-lg-4"><aside class="card summary-card"><div class="card-body">
       <h2>Votre récapitulatif</h2>
+      {% set commercial = commercial_cart() %}
+      {% include 'components/_promo_code.html.twig' %}
+      {% if commercial.discountCents %}<div class="summary-row"><span>Articles avant code</span><strong>{{ (commercial.subtotalCents / 100)|price }}</strong></div><div class="summary-row"><span>Remise code</span><strong>−{{ (commercial.discountCents / 100)|price }}</strong></div>{% endif %}
       <div class="summary-row"><span>Sous-total · {{ fullCartQuantity }} article{{ fullCartQuantity > 1 ? 's' : '' }}</span><strong>{{ totalWt|price }}</strong></div>
-      <div class="summary-row"><span>Livraison</span><span class="text-muted">À choisir</span></div>
+      <div class="summary-row"><span>Livraison</span><span class="text-muted">{{ commercial.freeShipping ? 'Offerte · mode à choisir' : 'À choisir' }}</span></div>
       <p class="text-muted small mt-3">Les frais seront précisés à l’étape livraison. Aucun paiement à cette étape.</p>
       <div class="summary-total d-flex justify-content-between align-items-center gap-2"><strong>Total hors livraison</strong><strong>{{ totalWt|price }}</strong></div>
       <a href="{{ path('app_sendcloud_checkout') }}" class="btn btn-brand w-100 mt-4 btn-lg">Poursuivre ma commande <i data-feather="arrow-right" aria-hidden="true"></i></a>

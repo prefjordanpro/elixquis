@@ -1,0 +1,19 @@
+{% extends 'admin/legal/base.html.twig' %}
+{% form_theme form 'admin/legal/form_theme.html.twig' %}
+{% block content_title %}{{ page.label }}{% endblock %}
+{% block configured_stylesheets %}{{ parent() }}<link rel="stylesheet" href="{{ asset('field-text-editor.css', 'easyadmin.assets.package') }}">{% endblock %}
+{% block configured_javascripts %}{{ parent() }}<script src="{{ asset('field-text-editor.js', 'easyadmin.assets.package') }}"></script>{% endblock %}
+{% block main %}
+<p><a href="{{ path('admin_legal') }}">← Pages légales</a> · <a href="{{ path('admin_legal_history', {type: page.id}) }}">Historique</a></p>
+{% if page.id == 'cgv' %}<p class="alert alert-warning">Les Conditions Générales de Vente constituent un document juridique. Vérifiez attentivement toute modification avant publication.</p>{% endif %}
+{% if not legal_complete(page.draftContent) %}<p class="alert alert-info">À compléter avant publication définitive{% if page.id == 'cgv' %} : médiateur de la consommation et encadré officiel des garanties légales à vérifier.{% endif %}</p>{% endif %}
+{% if preview is not null %}<section class="workspace-panel mb-4"><h2>Prévisualisation non publiée</h2><article class="legal-reading"><h1>{{ previewTitle }}</h1>{{ preview|raw }}</article></section>{% endif %}
+<div class="legal-admin-form">{{ form_start(form) }}{{ form_errors(form) }}{{ form_row(form.title) }}{{ form_row(form.body) }}{{ form_rest(form) }}
+<div class="workspace-shortcuts mt-3"><button type="submit" name="draft_action" value="save" class="btn btn-primary">Enregistrer le brouillon</button><button type="submit" name="draft_action" value="preview" class="btn btn-secondary">Prévisualiser</button></div>{{ form_end(form) }}</div>
+<section class="workspace-panel mt-4"><h2>Publier le brouillon enregistré</h2><p>Publier cette nouvelle version ? Elle remplacera la version actuellement visible sur le site.</p>
+<form method="post" action="{{ path('admin_legal_publish', {type: page.id}) }}" onsubmit="return confirm('Publier cette nouvelle version ? Elle remplacera la version actuellement visible sur le site.');">
+  <input type="hidden" name="_token" value="{{ csrf_token('legal_publish_' ~ page.id) }}"><input type="hidden" name="revision" value="{{ page.revision }}">
+  <label class="d-block mb-3"><input type="checkbox" name="confirmed" value="1" required> Je confirme la publication du brouillon enregistré.</label>
+  <button class="btn btn-primary" type="submit" {{ not legal_complete(page.draftContent) or not page.hasChanges ? 'disabled' : '' }}>Publier</button>
+</form></section>
+{% endblock %}

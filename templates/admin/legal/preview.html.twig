@@ -1,0 +1,7 @@
+{% extends 'admin/legal/base.html.twig' %}
+{% block content_title %}{{ version ? 'Version ' ~ version.number ~ ' — lecture seule' : 'Aperçu privé du brouillon' }}{% endblock %}
+{% block main %}
+<p><a href="{{ path('admin_legal_edit', {type: page.id}) }}">Retour au document</a> · <a href="{{ path('admin_legal_history', {type: page.id}) }}">Historique</a></p>
+<p class="alert alert-info">{{ version ? 'Version publiée le ' ~ version.publishedAt|date('d/m/Y H:i') ~ '. Son contenu est conservé en lecture seule.' : 'Cet aperçu est réservé aux administrateurs. Il ne constitue pas une publication.' }}</p>
+<article class="legal-reading"><h1>{{ title }}</h1>{{ body|raw }}</article>
+{% endblock %}

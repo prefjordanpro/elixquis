@@ -29,6 +29,7 @@
         "symfony/flex": "^2",
         "symfony/form": "7.4.*",
         "symfony/framework-bundle": "7.4.*",
+        "symfony/html-sanitizer": "7.4.*",
         "symfony/http-client": "7.4.*",
         "symfony/intl": "7.4.*",
         "symfony/mailer": "7.4.*",
@@ -106,6 +107,7 @@
         }
     },
     "require-dev": {
+        "doctrine/doctrine-fixtures-bundle": "^4.3",
         "phpunit/phpunit": "^9.5",
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",

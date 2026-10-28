@@ -1,0 +1,21 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% block content_title %}{{ promotion ? 'Promotions produits' : 'Stock' }}{% endblock %}
+{% block main %}
+<div class="workspace-intro"><p>{{ promotion ? 'Choisissez un produit pour lui appliquer une réduction, avec ou sans dates.' : 'Repérez les produits à réapprovisionner et ajustez leur quantité disponible.' }}</p>
+{% if not promotion %}<p>Stock faible : de 1 à {{ threshold }} unités. <a href="{{ path('admin_stock_settings') }}">Régler le seuil de stock faible</a></p>{% endif %}</div>
+<form method="get" class="workspace-search">
+  <label>Nom du produit<input class="form-control" type="search" name="q" value="{{ search }}" placeholder="Rechercher un produit"></label>
+  {% if not promotion %}<label>Niveau de stock<select class="form-select" name="niveau"><option value="">Tous les stocks</option>{% for value, label in {rupture: 'Rupture', faible: 'Stock faible', normal: 'Stock normal'} %}<option value="{{ value }}" {{ level == value ? 'selected' : '' }}>{{ label }}</option>{% endfor %}</select></label>{% else %}<label>Afficher<select class="form-select" name="selection"><option value="">Tous les produits</option><option value="configurees" {{ app.request.query.get('selection') == 'configurees' ? 'selected' : '' }}>Promotions configurées</option></select></label>{% endif %}
+  <button type="submit" class="btn btn-secondary">Rechercher</button>
+</form>
+<p role="status">{{ total }} produit{{ total > 1 ? 's' : '' }}</p>
+<div class="workspace-product-list">
+{% for product in products %}<article class="workspace-product-row">
+  <img src="{{ asset('uploads/' ~ product.illustration) }}" alt="" width="64" height="80">
+  <div><h2>{{ product.name }}</h2><span class="text-muted">{{ product.category }}{{ not product.isActive ? ' · Masqué sur le site' : '' }}</span></div>
+  {% if promotion %}<div>{{ product.promotionSummary }}<br><span>{{ product.priceWt|number_format(2, ',', ' ') }} € TTC</span></div>{% else %}<div><strong>{{ product.stock }} unité{{ product.stock > 1 ? 's' : '' }}</strong><br><span class="badge {{ product.stock == 0 ? 'bg-danger' : (product.stock <= threshold ? 'bg-warning text-dark' : 'bg-success') }}">{{ product.stock == 0 ? 'Rupture' : (product.stock <= threshold ? 'Stock faible' : 'Stock normal') }}</span></div>{% endif %}
+  <a class="btn btn-secondary" href="{{ path('admin_product_edit', {entityId: product.id}) }}#Product_{{ promotion ? 'promotionSelection' : 'stock' }}">{{ promotion ? 'Modifier la promotion' : 'Modifier le stock' }}<span class="visually-hidden"> : {{ product.name }}</span></a>
+</article>{% else %}<p>Aucun produit ne correspond à cette recherche.</p>{% endfor %}
+</div>
+{% if pages > 1 %}<nav class="workspace-pagination" aria-label="Pages de produits">{% if page > 1 %}<a href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({page: page - 1})) }}">Précédente</a>{% endif %}<span>Page {{ page }} / {{ pages }}</span>{% if page < pages %}<a href="{{ path(app.request.attributes.get('_route'), app.request.query.all|merge({page: page + 1})) }}">Suivante</a>{% endif %}</nav>{% endif %}
+{% endblock %}
