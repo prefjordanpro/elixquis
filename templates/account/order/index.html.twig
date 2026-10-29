@@ -26,11 +26,12 @@
             </h2>
             <div class="order-actions">
             <a href="{{ path('app_account') }}" class="btn btn-outline-secondary btn-sm rounded-pill">Mes commandes</a>
-            <a target="_blank" rel="noopener" href="{{ path('app_invoice_customer', { id_order : order.id }) }}" class="btn btn-primary btn-sm rounded-pill">Document PDF</a>
+            {% if order.initialInvoice %}<a href="{{ path('app_invoice_document', {id: order.initialInvoice.id}) }}" class="btn btn-primary btn-sm rounded-pill">Télécharger ma facture</a>{% endif %}
             </div>
         </div>
 
         {% include 'account/order/_payment.html.twig' %}
+        {% include 'account/order/_billing.html.twig' %}
         {% include 'account/order/_shipping.html.twig' %}
         {% include 'account/order/_cancellation.html.twig' %}
         <div class="row g-3">

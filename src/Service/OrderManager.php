@@ -25,7 +25,7 @@ class OrderManager
     }
 
     private CommercialPricing $pricing;
-    public function __construct(private EntityManagerInterface $em, private OrderEmails $emails, ?CommercialPricing $pricing = null) { $this->pricing = $pricing ?? new CommercialPricing($em); }
+    public function __construct(private EntityManagerInterface $em, private OrderEmails $emails, private InvoiceIssuer $invoices, ?CommercialPricing $pricing = null) { $this->pricing = $pricing ?? new CommercialPricing($em); }
 
     public function create(User $user, Address $address, Carrier $carrier, array $lines, ?\App\Shipping\DeliverySelection $delivery = null, ?string $promoCode = null): Order
     {
@@ -39,6 +39,8 @@ class OrderManager
                 ->setCarrierTvaRate($carrier->getTva())->setStockReserved(true)->setPaymentTrackingEnabled(true)
                 ->setDelivery(sprintf("%s %s\n%s\n%s %s — %s\n%s", $address->getFirstname(), $address->getLastname(),
                     $address->getAddress(), $address->getPostal(), $address->getCity(), $address->getCountry(), $address->getPhone()));
+            $order->recordInvoiceCustomer(['firstname'=>$address->getFirstname(), 'lastname'=>$address->getLastname(), 'email'=>$user->getEmail(),
+                'address'=>$address->getAddress(), 'postal'=>$address->getPostal(), 'city'=>$address->getCity(), 'country'=>$address->getCountry(), 'addressSource'=>'delivery']);
             if ($delivery) { $order->setShippingSnapshot($delivery->snapshot); }
             foreach ($delivery?->snapshot['colisage'] ?? [] as $index => $colis) {
                 $emballage = isset($colis['emballage']['id']) ? $this->em->find(\App\Entity\Emballage::class, $colis['emballage']['id']) : null;
@@ -84,6 +86,7 @@ class OrderManager
                 $order->addOrderDetail((new OrderDetail())->setProduct($product)->setProductName($product->getName())
                     ->setProductIllustration($product->getIllustration())->setProductQuantity($qty)
                     ->setProductPrice($quote['unitCents'][$key] / 100)->setProductTva($product->getTva())
+                    ->setRegularUnitPriceCents((int) round($product->getRegularPriceWt() * 100))
                     ->setCommercialDiscountCents($quote['discounts'][$key]));
             }
             $this->em->persist($order);
@@ -115,7 +118,10 @@ class OrderManager
                 }
                 $order->setStripePaymentIntentId($intent);
             }
-            if (in_array($order->getState(), [1, 2, 3, 4, 5, 6, 7], true)) { return; }
+            if (in_array($order->getState(), [1, 2, 3, 4, 5, 6, 7], true)) {
+                if ($order->getPaymentConfirmedAt() && $order->getInvoiceCustomerSnapshot()) $this->invoices->issue($order);
+                return;
+            }
             if (!self::allows('payment', $order->getState(), 1) || (!$historicalMatch && !$order->isStockReserved())) {
                 throw new \DomainException('Cette commande ne peut plus être payée.');
             }
@@ -128,6 +134,8 @@ class OrderManager
                 $order->markPromoUsageCounted();
             }
             $order->setState(1);
+            $order->recordPaymentConfirmation();
+            if ($order->getInvoiceCustomerSnapshot()) $this->invoices->issue($order);
             $this->emails->queue($order);
         });
     }
@@ -175,6 +183,7 @@ class OrderManager
                 throw new \DomainException('Le remboursement Stripe ne correspond pas au remboursement total de cette commande.');
             }
             $order->setStripeRefundId($refund->id)->setStripeRefundStatus($refund->status);
+            if ($refund->status === 'succeeded') $this->invoices->credit($order, $refund);
             if ($refund->status === 'succeeded' && $order->getState() !== 6) {
                 if (!self::allows('refund', $order->getState(), 6)) { throw new \DomainException('Ce remboursement n’est pas autorisé.'); }
                 if ($order->getState() === 7) {

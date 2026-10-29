@@ -55,6 +55,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToDashboard('Vue d’ensemble', 'fas fa-house');
         yield MenuItem::section('VENTES');
         yield MenuItem::linkTo(OrderCrudController::class, 'Commandes', 'fas fa-shopping-bag');
+        yield MenuItem::linkToRoute('Factures', 'fas fa-file-invoice', 'admin_invoices');
         yield MenuItem::linkTo(UserCrudController::class, 'Clients', 'fas fa-users');
         yield MenuItem::section('CATALOGUE');
         yield MenuItem::linkTo(ProductCrudController::class, 'Produits', 'fas fa-wine-bottle');

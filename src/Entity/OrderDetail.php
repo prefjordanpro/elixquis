@@ -9,6 +9,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: OrderDetailRepository::class)]
 class OrderDetail
 {
+    #[ORM\Column(nullable: true)]
+    private ?int $regularUnitPriceCents = null;
+    public function getRegularUnitPriceCents(): ?int { return $this->regularUnitPriceCents; }
+    public function setRegularUnitPriceCents(int $value): static { $this->regularUnitPriceCents = $value; return $this; }
     #[ORM\Column(options: ['default' => 0])]
     private int $commercialDiscountCents = 0;
     public function getCommercialDiscountCents(): int { return $this->commercialDiscountCents; }

@@ -1,0 +1,13 @@
+parameters:
+    invoice.archive_dir: '%kernel.project_dir%/var/accounting-archive'
+    invoice.seller:
+        legalName: 'ELIXQUIS'
+        legalForm: 'SASU'
+        capital: '1 000 euros'
+        address: "6 rue de la Fontaine\n94470 Boissy-Saint-Léger\nFrance"
+        siren: '989318589'
+        siret: '98931858900011'
+        rcs: 'Créteil 989 318 589'
+        vat: 'FR25989318589'
+        email: 'contact@elixquis.fr'
+        phone: '+33 6 64 36 20 90'

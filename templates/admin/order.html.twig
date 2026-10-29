@@ -1,6 +1,7 @@
 {# templates/admin/order.html.twig #}
 {% set order = (entity.instance is defined) ? entity.instance : ea.entity.instance %}
 {% set crud  = 'App\\\\Controller\\\\Admin\\\\OrderCrudController' %}
+{% include 'admin/_billing.html.twig' %}
 {% if order.promoCode %}<p>Code promo : <strong>{{ order.promoCode }}</strong> · remise incluse dans les totaux : {{ (order.promoDiscountCents / 100)|price }}</p>{% endif %}
 {% if order.transportCostCents is not null %}<p class="small text-muted">Coût transport TTC du devis : {{ (order.transportCostCents / 100)|price }} · Livraison facturée : {{ order.carrierPrice|price }}</p>{% endif %}
 <div class="mb-3">

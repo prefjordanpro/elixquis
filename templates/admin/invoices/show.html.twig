@@ -1,0 +1,15 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% block content_title %}{{ invoice.label }} {{ invoice.number }}{% endblock %}
+{% block main %}
+<p><a href="{{ path('admin_invoices') }}">← Factures</a></p>
+<p>Document émis en lecture seule · {{ invoice.status }} · {{ invoice.issuedAt|date('d/m/Y H:i', 'Europe/Paris') }}</p>
+<a class="btn btn-primary mb-4" href="{{ path('app_invoice_document_admin', {id: invoice.id}) }}">Télécharger le PDF</a>
+{% if invoice.originalInvoice %}<p>Avoir relatif à la facture <a href="{{ path('admin_invoice', {id: invoice.originalInvoice.id}) }}">{{ invoice.originalInvoice.number }}</a>.</p><p>{{ document.creditReason }}</p>{% endif %}
+<div class="row g-4"><section class="col-md-6"><h2 class="h4">Vendeur</h2><p>{{ document.seller.legalName }} · {{ document.seller.legalForm }}<br>{{ document.seller.address|nl2br }}<br>SIRET {{ document.seller.siret }}<br>TVA {{ document.seller.vat }}</p></section><section class="col-md-6"><h2 class="h4">Client</h2><p>{{ document.buyer.firstname }} {{ document.buyer.lastname }}<br>{{ document.buyer.email }}<br>{{ document.buyer.address }}<br>{{ document.buyer.postal }} {{ document.buyer.city }} · {{ document.buyer.country }}</p></section></div>
+<p>Commande {{ document.orderReference }} · Paiement confirmé le {{ invoice.paidAt|date('d/m/Y H:i', 'Europe/Paris') }} · {{ document.paymentMethod }}</p>
+<div class="table-responsive"><table class="table"><thead><tr><th>Désignation</th><th>Quantité</th><th>Prix unitaire TTC</th><th>TVA</th><th>Total HT</th><th>TVA</th><th>Total TTC</th></tr></thead><tbody>
+{% for line in document.lines %}<tr><td>{{ line.name }}{% if line.couponDiscountCents %}<br><small>Remise code : {{ (line.couponDiscountCents / 100)|price }}</small>{% endif %}</td><td>{{ line.quantity }}</td><td>{{ (line.unitGrossCents / 100)|price }}</td><td>{{ line.rateBasisPoints / 100 }} %</td><td>{{ (line.netCents / 100)|price }}</td><td>{{ (line.taxCents / 100)|price }}</td><td>{{ (line.grossCents / 100)|price }}</td></tr>{% endfor %}
+<tr><td>Livraison — {{ document.shipping.name }}</td><td>1</td><td>{{ (document.shipping.grossCents / 100)|price }}</td><td>{{ document.shipping.rateBasisPoints / 100 }} %</td><td>{{ (document.shipping.netCents / 100)|price }}</td><td>{{ (document.shipping.taxCents / 100)|price }}</td><td>{{ (document.shipping.grossCents / 100)|price }}</td></tr></tbody></table></div>
+<p>Total HT : {{ (invoice.totalNetCents / 100)|price }} · TVA : {{ (invoice.totalTaxCents / 100)|price }} · <strong>Total TTC : {{ (invoice.totalGrossCents / 100)|price }}</strong></p>
+<p>Référence paiement : {{ invoice.paymentReference }}{% if invoice.refundReference %} · Référence remboursement : {{ invoice.refundReference }}{% endif %}</p>
+{% endblock %}

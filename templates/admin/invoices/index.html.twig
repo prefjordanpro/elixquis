@@ -1,0 +1,17 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+{% block content_title %}Factures{% endblock %}
+{% block main %}
+<p>Factures et avoirs émis, conservés en lecture seule.</p>
+<form method="get" class="workspace-panel mb-4"><div class="row g-3">
+<div class="col-md-5"><label for="invoice-q">Numéro, client ou commande</label><input class="form-control" id="invoice-q" name="q" value="{{ search }}"></div>
+<div class="col-md-2"><label for="invoice-from">Du</label><input class="form-control" id="invoice-from" type="date" name="from" value="{{ app.request.query.get('from') }}"></div>
+<div class="col-md-2"><label for="invoice-to">Au</label><input class="form-control" id="invoice-to" type="date" name="to" value="{{ app.request.query.get('to') }}"></div>
+<div class="col-md-3"><label for="invoice-type">Type</label><select class="form-select" id="invoice-type" name="type"><option value="">Tous</option><option value="invoice" {{ app.request.query.get('type') == 'invoice' ? 'selected' }}>Facture</option><option value="credit" {{ app.request.query.get('type') == 'credit' ? 'selected' }}>Avoir</option></select></div>
+</div><button class="btn btn-primary mt-3">Rechercher</button></form>
+<div class="table-responsive"><table class="table align-middle"><thead><tr><th>Numéro</th><th>Date</th><th>Commande</th><th>Client</th><th>Montant TTC</th><th>Type</th><th>Actions</th></tr></thead><tbody>
+{% for invoice in documents %}{% set data = invoice.snapshot %}<tr><td>{{ invoice.number }}</td><td>{{ invoice.issuedAt|date('d/m/Y', 'Europe/Paris') }}</td><td><a href="{{ path('admin_order_detail', {entityId: invoice.order.id}) }}">{{ data.orderReference }}</a></td><td>{{ data.buyer.firstname }} {{ data.buyer.lastname }}<br><small>{{ data.buyer.email }}</small></td><td>{{ invoice.type == 'credit' ? '−' }}{{ (invoice.totalGrossCents / 100)|price }}</td><td>{{ invoice.type == 'credit' ? 'Avoir' : 'Facture' }}</td><td><a class="btn btn-sm btn-secondary" href="{{ path('admin_invoice', {id: invoice.id}) }}">Voir</a> <a class="btn btn-sm btn-primary" href="{{ path('app_invoice_document_admin', {id: invoice.id}) }}">Télécharger le PDF</a></td></tr>{% else %}<tr><td colspan="7">Aucun document pour cette recherche.</td></tr>{% endfor %}
+</tbody></table></div>
+<p>{{ total }} document(s) · Page {{ page }} / {{ pages }}</p>
+{% if page > 1 %}<a href="{{ path('admin_invoices', app.request.query.all|merge({page: page - 1})) }}">Précédente</a>{% endif %}
+{% if page < pages %}<a href="{{ path('admin_invoices', app.request.query.all|merge({page: page + 1})) }}">Suivante</a>{% endif %}
+{% endblock %}

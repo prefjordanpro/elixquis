@@ -214,6 +214,7 @@ final class HomeCmsRevendeursTest extends WebTestCase
         $expected = (new SchemaTool($this->em))->getSchemaFromMetadata($this->em->getMetadataFactory()->getAllMetadata());
         // SQLite reports every INTEGER PRIMARY KEY as auto-generated, even this fixed singleton id.
         $actual->getTable('commercial_settings')->getColumn('id')->setAutoincrement(false);
+        $actual->getTable('invoice_sequence')->getColumn('id')->setAutoincrement(false);
         self::assertTrue($manager->createComparator()->compareSchemas($actual, $expected)->isEmpty());
     }
 }

@@ -3,6 +3,9 @@
 namespace App\Controller;
 
 use Dompdf\Dompdf;
+use App\Entity\Invoice;
+use App\Service\InvoicePdf;
+use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\OrderRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -15,7 +18,7 @@ final class InvoiceController extends AbstractController
      * Vérification de la commande pour un utilisateur donné
      */
     #[Route('/compte/facture/impression/{id_order}', name: 'app_invoice_customer')]
-    public function printForCustomer(OrderRepository $orderRepository, $id_order): Response
+    public function printForCustomer(OrderRepository $orderRepository, $id_order, InvoicePdf $pdf): Response
     {
         // 1. Vérification de l'objet commande - Existe ?
         $order = $orderRepository->findOneById($id_order);
@@ -29,6 +32,8 @@ final class InvoiceController extends AbstractController
             return $this->redirectToRoute('app_account');
         }
 
+        if ($invoice = $order->getInitialInvoice()) return $this->documentResponse($invoice, $pdf);
+
         $dompdf = new Dompdf();
         $html = $this->renderView('invoice/index.html.twig', [
             'order' => $order
@@ -38,7 +43,7 @@ final class InvoiceController extends AbstractController
         $dompdf->render();
 
         return new Response($dompdf->output(), 200, ['Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="facture-'.$order->getId().'.pdf"', 'Cache-Control' => 'private, no-store']);
+            'Content-Disposition' => 'inline; filename="recapitulatif-'.$order->getId().'.pdf"', 'Cache-Control' => 'private, no-store']);
     }
 
         /*
@@ -46,7 +51,7 @@ final class InvoiceController extends AbstractController
      * Vérification de la commande pour un utilisateur donné
      */
     #[Route('/admin/facture/impression/{id_order}', name: 'app_invoice_admin')]
-    public function printForAdmin(OrderRepository $orderRepository, $id_order): Response
+    public function printForAdmin(OrderRepository $orderRepository, $id_order, InvoicePdf $pdf): Response
     {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
         // 1. Vérification de l'objet commande - Existe ?
@@ -56,6 +61,8 @@ final class InvoiceController extends AbstractController
             return $this->redirectToRoute('admin');
         }
 
+        if ($invoice = $order->getInitialInvoice()) return $this->documentResponse($invoice, $pdf);
+
         $dompdf = new Dompdf();
         $html = $this->renderView('invoice/index.html.twig', [
             'order' => $order
@@ -65,7 +72,21 @@ final class InvoiceController extends AbstractController
         $dompdf->render();
 
         return new Response($dompdf->output(), 200, ['Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="facture-'.$order->getId().'.pdf"', 'Cache-Control' => 'private, no-store']);
+            'Content-Disposition' => 'inline; filename="recapitulatif-'.$order->getId().'.pdf"', 'Cache-Control' => 'private, no-store']);
     }
 
+    #[Route('/compte/documents/{id}/pdf', name: 'app_invoice_document', requirements: ['id'=>'\d+'], methods: ['GET'])]
+    #[Route('/admin/factures/document/{id}/pdf', name: 'app_invoice_document_admin', requirements: ['id'=>'\d+'], methods: ['GET'])]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_USER')]
+    public function document(int $id, EntityManagerInterface $em, InvoicePdf $pdf): Response
+    {
+        $invoice = $em->find(Invoice::class, $id);
+        if (!$invoice || (!$this->isGranted('ROLE_ADMIN') && $invoice->getOrder()->getUser()?->getId() !== $this->getUser()?->getId())) throw $this->createNotFoundException();
+        return $this->documentResponse($invoice, $pdf);
+    }
+    private function documentResponse(Invoice $invoice, InvoicePdf $pdf): Response
+    {
+        return new Response($pdf->generate($invoice), 200, ['Content-Type'=>'application/pdf',
+            'Content-Disposition'=>'attachment; filename="'.$invoice->getNumber().'.pdf"', 'Cache-Control'=>'private, no-store', 'X-Content-Type-Options'=>'nosniff']);
+    }
 }

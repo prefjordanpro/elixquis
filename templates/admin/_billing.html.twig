@@ -1,0 +1,4 @@
+<section class="workspace-panel my-4"><h2 class="h4">FACTURATION</h2>
+{% for invoice in order.invoices %}<div class="mb-3"><strong>{{ invoice.type == 'credit' ? 'Avoir' : 'Facture' }} {{ invoice.number }}</strong> · {{ invoice.issuedAt|date('d/m/Y', 'Europe/Paris') }} · {{ (invoice.totalGrossCents / 100)|price }}<br><a class="btn btn-sm btn-secondary mt-2" href="{{ path('admin_invoice', {id: invoice.id}) }}">{{ invoice.type == 'credit' ? 'Voir l’avoir' : 'Voir la facture' }}</a> <a class="btn btn-sm btn-primary mt-2" href="{{ path('app_invoice_document_admin', {id: invoice.id}) }}">Télécharger</a></div>
+{% else %}<p>Aucune facture émise.{% if order.state == 0 %} Le paiement n’est pas confirmé.{% else %} Les commandes historiques ne sont pas facturées rétroactivement.{% endif %}</p>{% endfor %}
+</section>

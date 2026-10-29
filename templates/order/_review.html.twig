@@ -12,7 +12,7 @@
           <strong>{{ (item.totalPriceCents / 100)|price }}</strong>
         </div>
         {% endfor %}
-        <a class="purchase-document-link" href="{{ path('app_invoice_customer', {id_order: order.id}) }}" target="_blank" rel="noopener">Document PDF <span class="visually-hidden">(nouvel onglet)</span></a>
+        <a class="purchase-document-link" href="{{ path('app_invoice_customer', {id_order: order.id}) }}" target="_blank" rel="noopener">Récapitulatif PDF <span class="visually-hidden">(nouvel onglet)</span></a>
       </section>
       <section class="card card-body mb-4" aria-labelledby="review-delivery">
         <h2 id="review-delivery">Adresse & livraison</h2>

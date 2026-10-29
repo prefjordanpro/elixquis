@@ -10,6 +10,7 @@
 >
     <php>
         <ini name="display_errors" value="1" />
+        <ini name="memory_limit" value="1G" />
         <ini name="error_reporting" value="-1" />
         <server name="APP_ENV" value="test" force="true" />
         <server name="DATABASE_URL" value="sqlite:///:memory:" force="true" />

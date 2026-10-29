@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><title>{{ invoice.label }} {{ invoice.number }}</title>
+<style>
+@page { margin: 35px 36px 45px; } body { font-family: 'DejaVu Sans', sans-serif; color: #1a1a1a; font-size: 9pt; line-height: 1.35; }
+h1 { font-size: 23px; margin: 0; letter-spacing: 2px; } h2 { font-size: 15px; margin: 0 0 5px; } h3 { font-size: 9pt; margin: 0 0 7px; color: #8b451f; }
+.header { border-bottom: 2px solid #ba9540; padding-bottom: 15px; margin-bottom: 18px; } .brand { letter-spacing: 4px; font-size: 19px; }
+.muted { color: #656057; } table { width: 100%; border-collapse: collapse; } td, th { vertical-align: top; } .parties td { width: 50%; padding: 0 12px 18px 0; }
+.items th { background: #faf8f4; font-weight: bold; border-bottom: 1px solid #ba9540; padding: 8px 5px; } .items td { padding: 9px 5px; border-bottom: 1px solid #ddd7ca; }
+.right { text-align: right; } .center { text-align: center; } .totals { margin-top: 18px; } .totals td { padding: 5px; } .grand { background: #faf8f4; font-weight: bold; font-size: 12px; }
+thead { display: table-header-group; } tr { page-break-inside: avoid; } .foot { margin-top: 8px; padding-top: 6px; border-top: 1px solid #ddd7ca; font-size: 8pt; line-height: 1.2; } .payment { margin-top: 12px; } .parties { overflow-wrap: anywhere; }
+</style></head><body>
+{% macro money(cents) %}{{ (cents / 100)|number_format(2, ',', ' ') }} €{% endmacro %}{% import _self as ui %}
+{% set credit = invoice.type == 'credit' %}
+<div class="header"><table><tr><td><strong class="brand">ELIXQUIS</strong><p class="muted">{{ document.seller.legalName }}</p></td><td class="right"><h1>{{ invoice.label }}</h1><h2>{{ invoice.number }}</h2><div>Émis le {{ invoice.issuedAt|date('d/m/Y', 'Europe/Paris') }}</div><div>{{ invoice.status }}</div></td></tr></table></div>
+{% if credit %}<p><strong>Avoir relatif à la facture {{ invoice.originalInvoice.number }}</strong>, émise le {{ invoice.originalInvoice.issuedAt|date('d/m/Y', 'Europe/Paris') }}.</p><p>Motif : {{ document.creditReason|default('Remboursement total confirmé') }}</p>{% endif %}
+<table class="parties"><tr><td><h3>VENDEUR</h3><strong>{{ document.seller.legalName }}</strong> · {{ document.seller.legalForm }} au capital de {{ document.seller.capital }}<br>{{ document.seller.address|nl2br }}<br>SIREN : {{ document.seller.siren }}<br>SIRET : {{ document.seller.siret }}<br>RCS : {{ document.seller.rcs }}<br>TVA intracommunautaire : {{ document.seller.vat }}<br>{{ document.seller.email }}<br>{{ document.seller.phone }}</td>
+<td><h3>CLIENT</h3><strong>{{ document.buyer.firstname }} {{ document.buyer.lastname }}</strong><br>{{ document.buyer.email }}<br>{{ document.buyer.address }}<br>{{ document.buyer.postal }} {{ document.buyer.city }}<br>{{ document.buyer.country }}<p class="muted">Adresse de commande utilisée pour la facturation ; aucune adresse de facturation distincte n’a été renseignée.</p></td></tr></table>
+<p>Commande : <strong>{{ document.orderReference }}</strong> · passée le {{ document.orderPlacedAt|date('d/m/Y', 'Europe/Paris') }}<br>Confirmation du paiement : {{ invoice.paidAt|date('d/m/Y H:i', 'Europe/Paris') }}<br>{% if invoice.saleAt %}Date de livraison : {{ invoice.saleAt|date('d/m/Y', 'Europe/Paris') }}{% else %}Date de livraison non connue à l’émission.{% endif %}<br>Nature de l’opération : livraison de biens. Devise : {{ invoice.currency }}.</p>
+<table class="items"><thead><tr><th>Désignation</th><th class="center">Qté</th><th class="right">Prix unitaire HT</th><th class="right">TVA</th><th class="right">Total HT</th></tr></thead><tbody>
+{% for line in document.lines %}<tr><td><strong>{{ line.name }}</strong><br><span class="muted">Prix unitaire TTC : {{ ui.money(line.unitGrossCents) }}{% if line.productDiscountCents %}<br>Promotion produit incluse : {{ ui.money(line.productDiscountCents) }} TTC{% endif %}{% if line.couponDiscountCents %}<br>Code {{ document.promoCode }} : {{ ui.money(line.couponDiscountCents) }} TTC inclus{% endif %}</span></td><td class="center">{{ line.quantity }}</td><td class="right">{{ ui.money(line.unitNetCents) }}</td><td class="right">{{ (line.rateBasisPoints / 100)|number_format(2, ',', ' ') }} %</td><td class="right">{{ ui.money(line.netCents) }}</td></tr>{% endfor %}
+<tr><td>Livraison — {{ document.shipping.name }}</td><td class="center">1</td><td class="right">{{ ui.money(document.shipping.netCents) }}</td><td class="right">{{ (document.shipping.rateBasisPoints / 100)|number_format(2, ',', ' ') }} %</td><td class="right">{{ ui.money(document.shipping.netCents) }}</td></tr></tbody></table>
+<table class="totals"><tr><td>Sous-total HT des articles, remises incluses</td><td class="right">{{ ui.money(document.totals.netCents - document.shipping.netCents) }}</td></tr>
+<tr><td>Remises TTC déjà incluses (produits et code)</td><td class="right">{{ ui.money(document.totals.discountCents) }}</td></tr>
+<tr><td>Livraison TTC</td><td class="right">{{ ui.money(document.shipping.grossCents) }}</td></tr>
+<tr><td>Total HT</td><td class="right">{{ ui.money(document.totals.netCents) }}</td></tr>
+{% for tax in document.taxes %}<tr><td>TVA {{ (tax.rateBasisPoints / 100)|number_format(2, ',', ' ') }} % (base HT {{ ui.money(tax.netCents) }})</td><td class="right">{{ ui.money(tax.taxCents) }}</td></tr>{% endfor %}
+<tr><td>Total TVA</td><td class="right">{{ ui.money(document.totals.taxCents) }}</td></tr><tr class="grand"><td>{{ credit ? 'Total de l’avoir TTC' : 'Total TTC' }}</td><td class="right">{{ ui.money(document.totals.grossCents) }}</td></tr></table>
+<div class="payment">{{ document.paymentMethod }}<br>{% if credit %}Montant crédité : {{ ui.money(document.totals.grossCents) }}<br>Référence remboursement : {{ invoice.refundReference }}{% else %}<strong>Payé : {{ ui.money(document.totals.grossCents) }}</strong><br>Reste à payer : 0,00 €{% endif %}<br>Référence paiement : {{ invoice.paymentReference }}</div>
+{% if document.deliveryAddress and document.buyer.addressSource != 'delivery' %}<div class="foot"><strong>Adresse de livraison enregistrée</strong><br>{{ document.deliveryAddress|striptags|nl2br }}</div>{% endif %}
+<div class="foot muted">Les remises sont déjà incluses. Les montants HT et TVA sont arrondis par ligne après remise.</div>
+</body></html>

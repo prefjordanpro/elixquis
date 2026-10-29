@@ -188,7 +188,7 @@ class StorefrontTest extends WebTestCase
         $this->client->loginUser($this->user);
         $crawler = $this->client->request('GET', '/admin');
         self::assertResponseIsSuccessful();
-        self::assertSame(['Vue d’ensemble', 'VENTES', 'Commandes', 'Clients', 'CATALOGUE', 'Produits', 'Catégories', 'Stock',
+        self::assertSame(['Vue d’ensemble', 'VENTES', 'Commandes', 'Factures', 'Clients', 'CATALOGUE', 'Produits', 'Catégories', 'Stock',
             'PROMOTIONS', 'Promotions produits', 'Codes promo', 'Livraison offerte', 'LIVRAISON', 'Emballages', 'SITE', 'Modifier le site', 'Pages légales', 'Revendeurs', 'Voir la boutique'],
             $crawler->filter('#main-menu .menu-item-label')->each(fn ($node) => trim($node->text())));
         self::assertSelectorTextNotContains('#main-menu', 'Transporteurs');

@@ -1,0 +1,3 @@
+{% if order.invoices|length %}<section class="card card-body mb-3"><h2 class="h5">Facturation</h2>
+{% for invoice in order.invoices %}<div class="mb-2"><strong>{{ invoice.type == 'credit' ? 'Avoir' : 'Facture' }} {{ invoice.number }}</strong><p class="small mb-1">{{ invoice.type == 'credit' ? 'Émis' : 'Émise' }} le {{ invoice.issuedAt|date('d/m/Y', 'Europe/Paris') }} · {{ (invoice.totalGrossCents / 100)|price }}</p><a class="btn btn-sm btn-outline-primary" href="{{ path('app_invoice_document', {id: invoice.id}) }}">{{ invoice.type == 'credit' ? 'Télécharger l’avoir' : 'Télécharger le PDF' }}</a></div>{% endfor %}
+</section>{% endif %}

@@ -34,7 +34,7 @@ final class OrderEmailsTest extends WebTestCase
         static::getContainer()->set(Mail::class, $mail);
         $this->emails = new OrderEmails($this->em, $mail, static::getContainer()->get('twig'),
             static::getContainer()->get('router'), new NullLogger(), 'https://shop.example.test', 'sender@example.test');
-        $this->orders = new OrderManager($this->em, $this->emails);
+        $this->orders = new OrderManager($this->em, $this->emails, static::getContainer()->get(\App\Service\InvoiceIssuer::class));
         $user = (new User())->setEmail('julie@example.test')->setFirstname('Julie')->setLastname('Martin')->setPassword('unused');
         $this->product = (new Product())->setName('Rhum')->setSlug('rhum')->setDescription('Test')->setIllustration('test.jpg')->setPrice(10)->setTva(20)->setStock(8);
         $this->order = (new Order())->setUser($user)->setCreatedAt(new \DateTime())->setState(0)

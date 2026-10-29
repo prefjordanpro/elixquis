@@ -15,6 +15,28 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(name: 'IDX_ORDER_PROMO_CODE_DEFINITION', columns: ['promo_code_definition_id'])]
 class Order
 {
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $invoiceCustomerSnapshot = null;
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $paymentConfirmedAt = null;
+    #[ORM\OneToMany(mappedBy: 'order', targetEntity: Invoice::class)]
+    #[ORM\OrderBy(['id' => \SortDirection::Ascending])]
+    private Collection $invoices;
+    public function getInvoices(): Collection { return $this->invoices; }
+    public function addInvoice(Invoice $invoice): void
+    {
+        if ($invoice->getOrder() !== $this) throw new \LogicException('Document et commande incompatibles.');
+        if (!$this->invoices->contains($invoice)) $this->invoices->add($invoice);
+    }
+    public function getInitialInvoice(): ?Invoice { foreach ($this->invoices as $invoice) if ($invoice->getType() === 'invoice') return $invoice; return null; }
+    public function getInvoiceCustomerSnapshot(): ?array { return $this->invoiceCustomerSnapshot; }
+    public function recordInvoiceCustomer(array $snapshot): void
+    {
+        if ($this->invoiceCustomerSnapshot !== null) throw new \LogicException('Les coordonnées de commande sont déjà enregistrées.');
+        $this->invoiceCustomerSnapshot = $snapshot;
+    }
+    public function getPaymentConfirmedAt(): ?\DateTimeImmutable { return $this->paymentConfirmedAt; }
+    public function recordPaymentConfirmation(): void { $this->paymentConfirmedAt ??= new \DateTimeImmutable('now', new \DateTimeZone('Europe/Paris')); }
     #[ORM\ManyToOne(targetEntity: LegalVersion::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
     private ?LegalVersion $acceptedTermsVersion = null;
@@ -183,6 +205,7 @@ class Order
 
     public function __construct()
     {
+        $this->invoices = new ArrayCollection();
         $this->notifications = new ArrayCollection();
         $this->colis = new ArrayCollection();
         $this->orderDetails = new ArrayCollection();
