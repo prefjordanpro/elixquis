@@ -24,7 +24,7 @@ final class LegalContent
     public function published(string $type): ?LegalVersion
     {
         $version = $this->em->find(LegalPage::class, $type)?->getPublishedVersion();
-        return $version && $this->markup->isComplete($version->getContent()) ? $version : null;
+        return $version && $this->markup->isPublishable($version->getContent(), $type) ? $version : null;
     }
     public function saveDraft(LegalPage $page, string $title, string $content, int $revision): void
     {
@@ -36,15 +36,15 @@ final class LegalContent
     public function publish(LegalPage $page, int $revision, ?User $publisher): LegalVersion
     {
         $publisher = $publisher?->getId() ? $this->em->find(User::class, $publisher->getId()) : null;
-        if (!$this->markup->isComplete($this->markup->clean($page->getDraftContent())) || !$this->markup->isComplete($page->getDraftTitle())) throw new \DomainException('À compléter avant publication définitive : renseignez les éléments manquants du document.');
+        if (!$this->markup->isPublishable($this->markup->clean($page->getDraftContent()), $page->getId()) || !$this->markup->isComplete($page->getDraftTitle())) throw new \DomainException('À compléter avant publication définitive : renseignez les éléments manquants du document.');
         if (!$page->hasChanges()) throw new \DomainException('Aucune nouvelle modification à publier.');
         return $this->em->wrapInTransaction(function () use ($page, $revision, $publisher) {
             $this->em->refresh($page, LockMode::PESSIMISTIC_WRITE);
             if ($page->getRevision() !== $revision) throw new \DomainException('Ce document a changé. Rechargez la page avant de publier.');
-            if (!$this->markup->isComplete($page->getDraftContent()) || !$page->hasChanges()) throw new \DomainException('Vérifiez le brouillon avant publication.');
+            if (!$this->markup->isPublishable($page->getDraftContent(), $page->getId()) || !$this->markup->isComplete($page->getDraftTitle()) || !$page->hasChanges()) throw new \DomainException('Vérifiez le brouillon avant publication.');
             $date = new \DateTimeImmutable();
             $content = str_replace('[DATE DE PUBLICATION]', $date->format('d/m/Y'), $this->markup->clean($page->getDraftContent()));
-            if (!$this->markup->isComplete($content)) throw new \DomainException('Le document nettoyé ne peut pas être publié en l’état.');
+            if (!$this->markup->isPublishable($content, $page->getId())) throw new \DomainException('Le document nettoyé ne peut pas être publié en l’état.');
             $version = new LegalVersion($page, ($page->getPublishedVersion()?->getNumber() ?? 0) + 1, $content, $publisher, $date);
             $this->em->persist($version); $page->publish($version);
             return $version;

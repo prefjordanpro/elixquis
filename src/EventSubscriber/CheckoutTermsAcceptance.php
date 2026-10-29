@@ -23,7 +23,7 @@ final class CheckoutTermsAcceptance
         $page = $manager->find(LegalPage::class, 'cgv');
         if ($page) $manager->refresh($page, LockMode::PESSIMISTIC_READ);
         $version = $page?->getPublishedVersion();
-        if (!$version || !$this->markup->isComplete($version->getContent())) throw new \DomainException('La validation de commande est momentanément indisponible.');
+        if (!$version || !$this->markup->isPublishable($version->getContent(), 'cgv')) throw new \DomainException('La validation de commande est momentanément indisponible.');
         if ($request->request->get('accept_terms') !== '1') throw new \DomainException('Veuillez lire et accepter les Conditions Générales de Vente.');
         if ((string) $version->getId() !== $request->request->get('terms_version')) throw new \DomainException('Les Conditions Générales de Vente ont changé. Rechargez la page et consultez leur nouvelle version.');
         $order->acceptTerms($version);

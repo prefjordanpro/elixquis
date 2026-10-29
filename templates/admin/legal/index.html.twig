@@ -6,9 +6,10 @@
 {% for page in pages %}<section class="workspace-panel">
   <h2>{{ page.label }}</h2>
   <p><span class="badge {{ page.publishedVersion ? 'bg-success' : 'bg-secondary' }}">{{ page.publishedVersion ? 'Publiées' : (page.draftContent|striptags|trim ? 'Brouillon' : 'À compléter') }}</span></p>
-  {% if page.draftContent|striptags|trim and not legal_complete(page.draftContent) %}<p class="text-warning-emphasis">À compléter avant publication définitive</p>{% endif %}
+  {% if page.id == 'cgv' and not legal_complete(page.draftContent) %}<p class="text-warning-emphasis">Avant la mise en production définitive, complétez le médiateur de la consommation et l’encadré réglementaire des garanties légales.</p>{% endif %}
+  {% if page.draftContent|striptags|trim and (not legal_publishable(page.draftContent, page.id) or not legal_complete(page.draftTitle)) %}<p class="text-warning-emphasis">À compléter avant publication définitive</p>{% endif %}
   {% if page.publishedVersion and page.hasChanges %}<p>Un brouillon contient des modifications non publiées.</p>{% endif %}
-  <p class="text-muted small">Dernière modification : {{ page.updatedAt|date('d/m/Y H:i') }}<br>Publication : {{ page.publishedVersion ? page.publishedVersion.publishedAt|date('d/m/Y H:i') : 'Jamais publié' }}</p>
+  <p class="text-muted small">Dernière modification : {{ page.updatedAt|date('d/m/Y H:i') }}<br>Publication : {{ page.publishedVersion ? page.publishedVersion.publishedAt|date('d/m/Y H:i') : 'Jamais publié' }}{% if page.publishedVersion %}<br>Version {{ page.publishedVersion.number }}{% endif %}</p>
   <div class="workspace-shortcuts"><a class="btn btn-primary" href="{{ path('admin_legal_edit', {type: page.id}) }}">Modifier</a><a class="btn btn-secondary" href="{{ path('admin_legal_preview', {type: page.id}) }}">Aperçu</a><a class="btn btn-secondary" href="{{ path('admin_legal_history', {type: page.id}) }}">Historique</a></div>
 </section>{% endfor %}
 </div>

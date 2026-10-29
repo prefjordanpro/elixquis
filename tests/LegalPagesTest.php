@@ -56,7 +56,7 @@ final class LegalPagesTest extends WebTestCase
     {
         $this->client->loginUser($this->admin); $crawler = $this->client->request('GET', '/admin/pages-legales');
         self::assertResponseIsSuccessful(); self::assertCount(4, $crawler->filter('.workspace-panel'));
-        self::assertSelectorTextContains('.content-body', 'À compléter avant publication définitive');
+        self::assertSelectorTextContains('.content-body', 'Avant la mise en production définitive, complétez le médiateur');
         $page = $this->em->find(LegalPage::class, 'cgv');
         self::assertStringContainsString('[À COMPLÉTER — MÉDIATEUR DE LA CONSOMMATION]', $page->getDraftContent());
         self::assertStringContainsString('[À INSÉRER — ENCADRÉ RÉGLEMENTAIRE OFFICIEL DES GARANTIES LÉGALES]', $page->getDraftContent());
@@ -97,15 +97,75 @@ final class LegalPagesTest extends WebTestCase
         $this->em->refresh($page); self::assertStringNotContainsString('non enregistré', $page->getDraftContent());
         $this->client->request('GET', '/conditions-generales-de-vente'); self::assertResponseStatusCodeSame(404);
     }
-    public function testPublishingRequiresConfirmationAndRejectsIncompleteDraft(): void
+    public function testPublishingRequiresConfirmationAndAllowsThePreparedTerms(): void
     {
         $this->client->loginUser($this->admin); $crawler = $this->client->request('GET', '/admin/pages-legales/cgv/modifier');
         $this->client->request('POST', '/admin/pages-legales/cgv/publier', ['confirmed'=>'1', 'revision'=>1]); self::assertResponseStatusCodeSame(403);
         $crawler = $this->client->request('GET', '/admin/pages-legales/cgv/modifier');
-        $form = $crawler->filter('form[action$="/publier"]')->form(); $values = $form->getPhpValues(); $values['confirmed'] = '1';
+        $form = $crawler->filter('form[action$="/publier"]')->form(); $values = $form->getPhpValues();
+        $this->client->request('POST', $form->getUri(), $values); self::assertResponseStatusCodeSame(403);
+        $values['confirmed'] = '1';
         $this->client->request('POST', $form->getUri(), $values); self::assertResponseRedirects();
-        self::assertSame(0, $this->em->getRepository(LegalVersion::class)->count([]));
-        $this->client->followRedirect(); self::assertSelectorTextContains('.content-body', 'À compléter avant publication définitive');
+        self::assertSame(1, $this->em->getRepository(LegalVersion::class)->count([]));
+        $this->client->followRedirect(); self::assertSelectorTextContains('.content-body', 'Avant la mise en production définitive, complétez le médiateur');
+        $page = $this->em->find(LegalPage::class, 'cgv'); $version = $page->getPublishedVersion();
+        self::assertSame(1, $version->getNumber()); self::assertNotNull($version->getPublishedAt());
+        self::assertSame('Publiée', $version->getStatus());
+        self::assertStringContainsString('[À COMPLÉTER — MÉDIATEUR', $version->getContent());
+        self::assertStringNotContainsString('[DATE DE PUBLICATION]', $version->getContent());
+        $this->client->request('GET', '/admin/pages-legales');
+        self::assertSelectorTextContains('.workspace-panel', 'Publiées');
+        self::assertSelectorTextContains('.workspace-panel', 'Version 1');
+        $this->export('legal-initial-published-admin');
+        $this->client->request('GET', '/conditions-generales-de-vente'); self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('.legal-document-body', '16. Modification et conservation des CGV');
+        foreach (['[À COMPLÉTER', '[À INSÉRER', '[NOM]', '[ADRESSE]', '[SITE INTERNET]', 'Avant la mise en production définitive'] as $placeholder) {
+            self::assertSelectorTextNotContains('main', $placeholder);
+        }
+        self::assertSelectorExists('.site-footer a[href="/conditions-generales-de-vente"]');
+        self::assertSelectorNotExists('.site-footer a[href="/mentions-legales"]');
+        self::assertSelectorTextNotContains('.site-footer', 'À compléter');
+        $this->export('legal-initial-published');
+        $this->client->request('GET', '/conditions-generales-de-vente/version/'.$version->getId()); self::assertResponseIsSuccessful();
+        $page = $this->em->find(LegalPage::class, 'cgv');
+        $this->content()->saveDraft($page, $page->getDraftTitle(), '<p>Changement non publié.</p>', $page->getRevision());
+        $this->client->request('GET', '/conditions-generales-de-vente');
+        self::assertSelectorTextNotContains('.legal-document-body', 'Changement non publié');
+        $crawler = $this->checkout(); self::assertResponseIsSuccessful();
+        $form = $crawler->filter('form[name="order"]')->form(['order[addresses]'=>$this->address->getId(), 'order[carriers]'=>$this->carrier->getId(), 'accept_terms'=>'1']);
+        $this->client->submit($form); self::assertResponseRedirects();
+        self::assertSame($version->getId(), $this->em->getRepository(Order::class)->findOneBy([])->getAcceptedTermsVersion()->getId());
+    }
+    public function testPublicationMigrationReusesTheExistingDraftAndIsIdempotent(): void
+    {
+        require_once dirname(__DIR__).'/migrations/Version20261029100000.php';
+        $page = $this->page(); $source = $page->getDraftContent();
+        $connection = $this->em->getConnection();
+        $migration = new \DoctrineMigrations\Version20261029100000($connection, new \Psr\Log\NullLogger());
+        $migration->up(new \Doctrine\DBAL\Schema\Schema());
+        foreach ($migration->getSql() as $query) $connection->executeStatement($query->getStatement(), $query->getParameters());
+        $this->em->clear();
+        $page = $this->em->find(LegalPage::class, 'cgv');
+        self::assertSame($source, $page->getDraftContent());
+        self::assertSame($source, $page->getPublishedVersion()->getSourceContent());
+        self::assertSame(1, $page->getPublishedVersion()->getNumber());
+        self::assertSame(4, $this->em->getRepository(LegalPage::class)->count([]));
+        $repeat = new \DoctrineMigrations\Version20261029100000($connection, new \Psr\Log\NullLogger());
+        $repeat->up(new \Doctrine\DBAL\Schema\Schema()); self::assertSame([], $repeat->getSql());
+        self::assertSame(1, $this->em->getRepository(LegalVersion::class)->count([]));
+        $this->client->request('GET', '/conditions-generales-de-vente'); self::assertResponseIsSuccessful();
+        self::assertSelectorExists('.site-footer a[href="/conditions-generales-de-vente"]');
+    }
+    public function testOnlyTheTwoKnownCgvReservationsMayRemainAtPublication(): void
+    {
+        $markup = static::getContainer()->get(LegalMarkup::class);
+        $initial = $this->page()->getDraftContent();
+        self::assertTrue($markup->isPublishable($initial, 'cgv'));
+        self::assertFalse($markup->isComplete($initial));
+        self::assertFalse($markup->isPublishable($initial, 'mentions'));
+        $page = $this->savedDraft('<p>Document [À COMPLÉTER — AUTRE CHAMP].</p>');
+        $this->expectException(\DomainException::class);
+        $this->content()->publish($page, $page->getRevision(), $this->admin);
     }
     public function testPublishCreatesAnImmutableSnapshotAndOnlyOneCurrentVersion(): void
     {
@@ -163,7 +223,11 @@ final class LegalPagesTest extends WebTestCase
     }
     public function testFooterHasNoPlaceholdersOrDeadLinksAndOnlyPublishedDocuments(): void
     {
-        $this->page(); $this->client->request('GET', '/'); self::assertResponseIsSuccessful();
+        $this->page(); $crawler = $this->client->request('GET', '/'); self::assertResponseIsSuccessful();
+        self::assertCount(4, $crawler->filter('.footer-grid > div'));
+        self::assertSame(['La boutique', 'Votre espace', 'Informations'], $crawler->filter('.footer-title')->each(static fn ($node) => $node->text()));
+        self::assertSelectorNotExists('.footer-grid > div:last-child a');
+        $this->export('footer-unpublished');
         self::assertSelectorNotExists('.site-footer a[href="/conditions-generales-de-vente"]');
         self::assertSelectorTextNotContains('.site-footer', 'À compléter'); self::assertSelectorNotExists('.legal-pending');
         foreach (['/mentions-legales','/politique-de-confidentialite','/politique-cookies','/retractation'] as $url) { $this->client->request('GET', $url); self::assertResponseStatusCodeSame(404); }
@@ -190,11 +254,47 @@ final class LegalPagesTest extends WebTestCase
         $this->client->request('GET', '/politique-de-confidentialite'); self::assertResponseIsSuccessful();
         $this->client->request('GET', '/'); self::assertSelectorExists('.site-footer a[href="/politique-de-confidentialite"]');
         self::assertSelectorNotExists('.site-footer a[href="/mentions-legales"]'); self::assertSelectorNotExists('.site-footer a[href="/politique-cookies"]');
+        foreach (['cgv', 'mentions', 'cookies'] as $type) {
+            $document = $this->em->find(LegalPage::class, $type);
+            $this->content()->saveDraft($document, $document->getLabel(), '<p>Document complet réservé aux tests.</p>', $document->getRevision());
+            $this->content()->publish($document, $document->getRevision(), null);
+        }
+        $crawler = $this->client->request('GET', '/');
+        $links = $crawler->filter('.footer-grid > div:last-child a')->each(static fn ($node) => $node->attr('href'));
+        self::assertSame(['/conditions-generales-de-vente', '/mentions-legales', '/politique-de-confidentialite', '/politique-cookies', '/retractation'], $links);
+        foreach ($links as $url) {
+            $this->client->request('GET', $url);
+            self::assertResponseIsSuccessful();
+        }
     }
     public function testOversizedMultibyteDocumentsAreRejectedInsteadOfSilentlyTruncated(): void
     {
         $this->expectException(\DomainException::class); $this->expectExceptionMessage('trop long');
         static::getContainer()->get(LegalMarkup::class)->clean(str_repeat('é', 100001));
+    }
+    public function testInvisibleWhitespaceCannotBePublishedAsACompleteDocument(): void
+    {
+        $markup = static::getContainer()->get(LegalMarkup::class);
+        foreach (['<p>&nbsp;</p>', '<p>&#8239;&#8203;&#65279;</p>', "<p> \n\t</p>"] as $empty) {
+            self::assertFalse($markup->isComplete($empty));
+        }
+        $page = $this->savedDraft('<p>&nbsp;</p>');
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessage('À compléter avant publication définitive');
+        $this->content()->publish($page, $page->getRevision(), $this->admin);
+    }
+    public function testIncompleteTitleIsFlaggedAndCannotBePublished(): void
+    {
+        $page = $this->savedDraft();
+        $this->content()->saveDraft($page, '[À COMPLÉTER — TITRE]', $page->getDraftContent(), $page->getRevision());
+        $this->client->loginUser($this->admin);
+        $this->client->request('GET', '/admin/pages-legales');
+        self::assertSelectorTextContains('.content-body', 'À compléter avant publication définitive');
+        $this->client->request('GET', '/admin/pages-legales/cgv/modifier');
+        self::assertSelectorExists('form[action$="/publier"] button[disabled]');
+        self::assertSelectorTextContains('.alert-info', 'À compléter avant publication définitive');
+        $this->expectException(\DomainException::class);
+        $this->content()->publish($page, $page->getRevision(), $this->admin);
     }
     public function testCheckoutCheckboxIsRequiredUncheckedAndVersionSpecific(): void
     {

@@ -1,4 +1,46 @@
-# Pages légales — compte rendu du 28 octobre 2026
+# Pages légales — compte rendu vérifié le 29 octobre 2026
+
+## Mentions légales et confidentialité — dernière étape du 29 octobre 2026
+
+Les mentions légales et la confidentialité sont publiées en version 1 depuis le 29/10/2026 à 08:54:38, dans leurs emplacements existants, via `Version20261029110000`. Les CGV ne changent pas. Les deux nouvelles routes et les liens du footer sont vérifiés en configurations dev et prod locales. Suite complète : **470 tests, 4 958 assertions, aucun échec** ; Doctrine **Mapping [OK], Database [OK]**. Les modifications futures restent des brouillons jusqu'à publication explicite.
+
+La politique cookies reste non publiée : la pièce jointe s'arrête à « ## 9. Modifier son ». Les consignes reçues s'arrêtent également au milieu de la section prospection. La suite a été demandée ; elle n'a pas été inventée. L'audit technique a identifié OpenStreetMap pour les revendeurs, Géoplateforme/IGN pour le géocodage et Mapbox dans le sélecteur Sendcloud. La qualification des stockages techniques Mapbox reste à finaliser avant toute affirmation d'exemption globale ou mise en place éventuelle d'un consentement. Aucun faux dispositif de gestion des cookies n'est ajouté.
+
+L'[audit détaillé](AUDIT_CONFIDENTIALITE_COOKIES_20261029.md) recense les données, scripts, stockages, sources, limites de vérification, adaptations des textes fournis et fichiers ajoutés. Aucun déploiement distant, commit ou push.
+
+## Publication demandée le 29 octobre 2026 — état actuel
+
+Les CGV existantes sont maintenant **publiées, version 1, le 29/10/2026 à 08:25:14 (heure de Paris)** dans la base locale. Il existe toujours quatre documents, dont un seul possède une version publiée ; une seule version CGV a été créée. Le contenu source de cet instantané est identique au HTML préparé lors du chantier initial. Le brouillon n'a pas été remplacé, et une nouvelle modification reste privée jusqu'à sa publication explicite.
+
+La publication et l'affichage distinguent désormais un contenu publiable d'un document juridiquement complet. Seuls les deux marqueurs connus concernant médiateur et garanties, ainsi que les champs associés nom/adresse/site du médiateur, ne bloquent plus les CGV. Les contenus vides, titres incomplets et autres marqueurs restent refusés. Les règles des trois autres documents sont conservées. Aucun traitement dépendant du mode dev n'a été ajouté.
+
+L'avertissement administratif est : « Avant la mise en production définitive, complétez le médiateur de la consommation et l’encadré réglementaire des garanties légales. » Les écrans d'édition et la liste affichent les informations de publication ; la liste indique aussi le numéro de version. Les réserves restent conservées dans le brouillon et l'instantané historique ; leurs paragraphes non renseignés sont omis uniquement du rendu public. Aucun organisme ni encadré juridique n'a été inventé.
+
+`/conditions-generales-de-vente` et le lien du footer fonctionnent avec les CGV initiales publiées ; la lecture des versions historiques et le consentement au checkout utilisent la même règle. Les autres documents ne sont pas publiés automatiquement. Leurs liens restent absents du footer.
+
+La migration additive de données `Version20261029100000` lit le brouillon CGV existant, crée son instantané numéroté et daté, puis affecte la référence de publication. Elle ne recopie pas un nouveau document à partir d'un fichier, ne remplace aucune version déjà publiée et ne crée pas de doublon si elle est réexécutée. Elle est appliquée localement. Pour le serveur de production distant, livrer les changements puis exécuter `php bin/console doctrine:migrations:migrate --env=prod --no-debug --no-interaction` et reconstruire le cache suivant la procédure habituelle. Aucun déploiement distant n'a été effectué ici.
+
+Vérifications réexécutées : **25 tests juridiques, 234 assertions** ; suite complète **465 tests, 4 874 assertions, aucun échec** (49,412 s), résultats dans `var/legal-published-full.txt` et `.xml`. Doctrine : **Mapping [OK], Database [OK]** ; huit fichiers Twig juridiques valides. Une requête réelle au noyau de l'application, sur la base locale, donne HTTP 200, un lien CGV dans le footer et la version 1 pour chacune des configurations **dev** et **prod** (`debug=false`). Les caches locaux obsolètes ont été reconstruits ; le cache prod a été réchauffé avec succès. Contrôle navigateur complémentaire à 390 px : **12 contrôles réussis**, onze écrans dont les CGV initiales publiées et leur écran administrateur, aucun débordement ni erreur JavaScript. Les réserves sont absentes du texte public et le consentement reste visible sans JavaScript.
+
+Fichiers de cette publication : `src/Service/LegalMarkup.php`, `src/Service/LegalContent.php`, `src/Twig/LegalExtension.php`, `src/Controller/LegalController.php`, `src/EventSubscriber/CheckoutTermsAcceptance.php`, `templates/admin/legal/index.html.twig`, `templates/admin/legal/edit.html.twig`, `migrations/Version20261029100000.php`, `tests/LegalPagesTest.php`, `tools/check-legal-pages.cjs` et ce compte rendu. Stripe, Sendcloud, Mailjet, facturation et `.env.local` restent inchangés. Aucun commit ni push.
+
+Les sections ci-dessous décrivent les étapes précédentes ; leurs indications de CGV non publiées ou bloquées constituent l'état antérieur, remplacé par cette publication.
+
+## Reprise du 29 octobre 2026
+
+L'intégration décrite ci-dessous était déjà présente et suivie par Git au début de cette reprise, sur `feature/cms-home-revendeurs`, avec un espace de travail propre. Elle a été réutilisée sans créer de système parallèle. Aucun changement de branche, commit ou push ; aucune modification de `.env.local`, Stripe, Sendcloud, Mailjet, facturation, promotions, stock ou remboursements.
+
+Deux corrections ciblées complètent ce travail : les documents contenant uniquement des espaces Unicode ou caractères invisibles ne sont plus considérés comme complets ; les marqueurs dans le titre déclenchent désormais l'alerte et désactivent le bouton de publication, et le titre est revérifié après verrouillage de la page. Deux tests de régression couvrent ces cas. La zone de lecture publique utilise désormais explicitement le fond ivoire de la palette existante ; le contrôle navigateur vérifie sa couleur calculée.
+
+Fichiers modifiés pendant cette reprise : `src/Service/LegalContent.php`, `src/Service/LegalMarkup.php`, `templates/admin/legal/edit.html.twig`, `templates/admin/legal/index.html.twig`, `public/assets/css/legal.css`, `tests/LegalPagesTest.php`, `tools/check-legal-pages.cjs` et ce compte rendu. Aucune nouvelle migration : la migration additive `Version20261028100000` est déjà appliquée. Aucun document n'a été publié dans la base locale : les quatre références de publication sont nulles. Le contenu source initial a également été comparé directement à la pièce jointe de cette demande : identité du texte hors espaces et retours à la ligne.
+
+Contrôles réexécutés : **23 tests juridiques, 176 assertions** ; suite complète **463 tests, 4 816 assertions, aucun échec**, durée 47,131 s ; `doctrine:schema:validate` donne **Mapping [OK], Database [OK]** ; huit fichiers Twig juridiques valides. Les dépréciations des dépendances restent signalées. Les résultats de la suite complète sont dans `var/legal-full.txt` et `var/legal-full.xml`. Le cache de développement obsolète a été régénéré avec `php bin/console cache:clear` ; la lecture de la base fonctionne aussi avec `--no-debug`.
+
+Catalogue local revérifié : « Aux bonbons deux », id 10, possède zéro produit, contre des produits actifs dans les trois autres catégories. Aucune catégorie supprimée ; son caractère de test ne peut pas être établi à partir de ces données.
+
+Vérification navigateur réexécutée sur huit écrans à 1600, 1280, 1024, 768, 430, 390 et 320 px : **57 contrôles réussis**, aucun débordement horizontal ni erreur JavaScript, colonnes du footer conformes, et consentement visible sans JavaScript. Résultat conservé dans `var/legal-review/browser/results-seven-widths.json`. Après la correction du fond ivoire, **9 contrôles supplémentaires à 390 px** passent, dont la couleur calculée des pages publiques et le consentement sans JavaScript ; résultat dans `var/legal-review/browser/results.json`. Les pages sont des exports des tests SQLite ; aucune version de démonstration n'est publiée dans la base locale. Playwright est installé uniquement dans le répertoire ignoré `var/legal-review/tooling`, sans dépendance ajoutée au projet.
+
+Les sections suivantes détaillent l'architecture existante et ses limites. Les résultats datés du 28 octobre qui y figurent constituent les vérifications antérieures, distinctes de celles de cette reprise.
 
 Travail repris dans le workspace existant sur `feature/cms-home-revendeurs`, sans recréer les entités ni les migrations déjà préparées. Aucun commit ni push. Les changements antérieurs du chantier back-office, CMS et revendeurs ont été conservés.
 
@@ -34,7 +76,9 @@ Sans CGV complètes publiées, la validation d'une nouvelle commande web est ind
 
 ## 8. Footer
 
-Organisation en colonnes marque, boutique, compte et Informations lorsque des documents sont publiés. Quatre colonnes sur ordinateur, deux sur tablette, une sur mobile ; trois colonnes sur ordinateur tant qu'aucun lien légal n'est publiable. Le message public « Informations légales à compléter avant la mise en production » a été supprimé.
+Organisation en quatre colonnes permanentes : marque, boutique, compte et Informations. La colonne Informations reste présente même sans document publié, avec uniquement son titre et aucun lien ni message de complétion. Quatre colonnes sur ordinateur, une grille 2 × 2 sur tablette, une colonne sur mobile. Le message public « Informations légales à compléter avant la mise en production » a été supprimé.
+
+À la suite de la demande spécifique sur le footer, le masquage de la quatrième colonne et le passage à trois colonnes ont été retirés. La marque n'occupe plus toute la rangée sur tablette. Le filtrage et l'ordre des liens publiés sont conservés. Les 23 tests juridiques passent avec 185 assertions, dont la présence des quatre blocs sans publication et l'ordre des cinq liens avec vérification de leurs pages cibles.
 
 La catégorie « Aux bonbons deux » (id 10 dans la base locale inspectée) ne contient aucun produit. Elle a été conservée : son statut réel n'est pas déduit de son nom. Le footer ne propose que les catégories contenant au moins un produit actif. Aucun produit ni catégorie n'a été supprimé.
 

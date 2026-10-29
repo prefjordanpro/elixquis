@@ -26,7 +26,24 @@ final class LegalMarkup
     public function isComplete(string $html): bool
     {
         $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        return trim($text) !== '' && !preg_match('/\[(?:À\s+(?:COMPLÉTER|INSÉRER)|NOM\]|ADRESSE\]|SITE INTERNET\])/ui', $text);
+        return preg_match('/[^\s\p{Z}\p{Cf}]/u', $text) === 1
+            && !preg_match('/\[(?:À\s+(?:COMPLÉTER|INSÉRER)|NOM\]|ADRESSE\]|SITE INTERNET\])/ui', $text);
+    }
+    public function isPublishable(string $html, string $type): bool
+    {
+        if ($type === 'cgv') {
+            $html = str_replace([
+                '[À COMPLÉTER — MÉDIATEUR DE LA CONSOMMATION]',
+                '[À INSÉRER — ENCADRÉ RÉGLEMENTAIRE OFFICIEL DES GARANTIES LÉGALES]',
+                '[NOM]', '[ADRESSE]', '[SITE INTERNET]',
+            ], '', html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+        }
+        return $this->isComplete($html);
+    }
+    public function renderPublished(string $html): string
+    {
+        // Keep the source in the immutable snapshot; do not expose unfilled editorial fields.
+        return preg_replace_callback('~<p>.*?</p>~su', fn ($match) => $this->isComplete($match[0]) ? $match[0] : '', $this->render($html));
     }
     public function render(string $html): string
     {

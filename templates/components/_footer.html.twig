@@ -1,7 +1,7 @@
   <footer class="site-footer" data-bs-theme="dark">
     <div class="container">
       {% set legalLinks = legal_links() %}
-      <div class="footer-grid {{ legalLinks is empty ? 'footer-grid--no-legal' : '' }}">
+      <div class="footer-grid">
         <div class="footer-brand">
           <a class="navbar-brand" href="{{ path('app_home') }}">Elixquis</a>
           <p class="footer-intro">Des saveurs épicées &amp; fruitées pour des moments conviviaux.</p>
@@ -20,7 +20,7 @@
             {% if company.email %}<li><a href="mailto:{{ company.email }}">Nous contacter</a></li>{% endif %}
           </ul>
         </div>
-        {% if legalLinks %}<div class="footer-section"><h2 class="footer-title">Informations</h2><ul class="list-unstyled">{% for link in legalLinks %}<li><a href="{{ path(link.route) }}">{{ link.label }}</a></li>{% endfor %}</ul></div>{% endif %}
+        <div class="footer-section"><h2 class="footer-title">Informations</h2>{% if legalLinks %}<ul class="list-unstyled">{% for link in legalLinks %}<li><a href="{{ path(link.route) }}">{{ link.label }}</a></li>{% endfor %}</ul>{% endif %}</div>
       </div>
       <div class="footer-bottom">
         <p>© {{ "now"|date("Y") }} Elixquis</p>

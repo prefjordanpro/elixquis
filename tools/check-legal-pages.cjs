@@ -30,22 +30,40 @@ const mime = { '.css':'text/css', '.js':'application/javascript', '.jpg':'image/
       for (const screen of screens) {
         await page.goto(`http://legal.test/${screen}`, { waitUntil:'networkidle' });
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${screen}: horizontal overflow at ${width}`);
-        if (screen === 'footer-published') {
+        if (screen === 'footer-published' || screen === 'footer-unpublished') {
           assert.equal(await page.locator('.footer-grid > div').count(), 4);
           const columns = await page.locator('.footer-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
           assert.equal(columns, width >= 992 ? 4 : (width >= 576 ? 2 : 1));
+          const positions = await page.locator('.footer-grid > div').evaluateAll(elements => elements.map(el => ({ x: el.offsetLeft, y: el.offsetTop })));
+          if (width >= 992) {
+            assert(positions.every(position => position.y === positions[0].y));
+            assert(positions[3].x > positions[2].x);
+          } else if (width >= 576) {
+            assert.equal(positions[0].y, positions[1].y);
+            assert.equal(positions[2].y, positions[3].y);
+            assert(positions[2].y > positions[0].y);
+          }
+          if (screen === 'footer-unpublished') assert.equal(await page.locator('.footer-grid > div:last-child a').count(), 0);
           assert.equal(await page.locator('.legal-pending').count(), 0);
         }
         if (screen === 'legal-edit') {
           assert(await page.locator('trix-editor').isVisible());
           assert.match(await page.locator('trix-editor').innerText(), /989 318 589/);
-          assert.equal(await page.locator('button[type="submit"]').filter({ hasText:'Publier' }).isDisabled(), true);
+          assert.equal(await page.locator('button[type="submit"]').filter({ hasText:'Publier' }).isDisabled(), false);
           assert.doesNotMatch(await page.locator('trix-editor').innerText(), /<h2>|<p>/);
         }
         if (screen === 'legal-checkout') {
           const checkbox = page.locator('input[name="accept_terms"]');
           assert.equal(await checkbox.isChecked(), false);
           assert.equal(await checkbox.getAttribute('required'), '');
+        }
+        if (screen === 'legal-public' || screen === 'withdrawal') {
+          assert.equal(await page.locator('#contenu').evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(250, 248, 244)');
+        }
+        if (screen === 'legal-initial-published') {
+          assert.equal(await page.locator('.site-footer a[href="/conditions-generales-de-vente"]').count(), 1);
+          assert.doesNotMatch(await page.locator('main').innerText(), /\[À COMPLÉTER|\[À INSÉRER|\[NOM\]|\[ADRESSE\]|\[SITE INTERNET\]|Avant la mise en production définitive/);
+          assert.match(await page.locator('.legal-document-body').innerText(), /16\. Modification et conservation des CGV/);
         }
         await page.screenshot({ path:path.join(output, `${screen}-${width}.png`), fullPage:true });
         results.push({ screen, width, overflow:false });

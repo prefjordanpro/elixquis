@@ -19,14 +19,14 @@ final class LegalController extends AbstractController
     {
         $version = $content->published($type);
         if (!$version) throw $this->createNotFoundException();
-        return $this->render('legal/page.html.twig', ['version' => $version, 'body' => $markup->render($version->getContent())]);
+        return $this->render('legal/page.html.twig', ['version' => $version, 'body' => $markup->renderPublished($version->getContent())]);
     }
     #[Route('/conditions-generales-de-vente/version/{id}', name: 'app_legal_cgv_version', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function version(int $id, EntityManagerInterface $em, LegalMarkup $markup): Response
     {
         $version = $em->find(LegalVersion::class, $id);
-        if (!$version || $version->getPage()->getId() !== 'cgv' || !$markup->isComplete($version->getContent())) throw $this->createNotFoundException();
-        return $this->render('legal/page.html.twig', ['version' => $version, 'body' => $markup->render($version->getContent())]);
+        if (!$version || $version->getPage()->getId() !== 'cgv' || !$markup->isPublishable($version->getContent(), 'cgv')) throw $this->createNotFoundException();
+        return $this->render('legal/page.html.twig', ['version' => $version, 'body' => $markup->renderPublished($version->getContent())]);
     }
     #[Route('/retractation', name: 'app_legal_withdrawal', methods: ['GET'])]
     public function withdrawal(LegalContent $content): Response
